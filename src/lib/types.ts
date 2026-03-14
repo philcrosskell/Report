@@ -116,6 +116,18 @@ export interface PriorityFix {
   timeline: string
 }
 
+export interface GapAnalysis {
+  executiveSummary: string
+  criticalIssues: { issue: string; impact: string; fix: string; effort: 'Easy' | 'Medium' | 'Hard' }[]
+  quickWins: { win: string; action: string; timeEstimate: string }[]
+  positioningGap: string
+  topRecommendation: string
+  beforeScore: number
+  afterScore: number
+  beforeGrade: string
+  afterGrade: string
+}
+
 export interface AuditReport {
   overview: {
     url: string
@@ -136,6 +148,7 @@ export interface AuditReport {
   projectedScoreAfterFixes: ProjectedScores
   competitorAnalysis: CompetitorAnalysis
   priorityFixes: PriorityFix[]
+  gapAnalysis: GapAnalysis
   strengthsWeaknesses: {
     strengths: string[]
     weaknesses: string[]
@@ -153,6 +166,7 @@ export interface Audit {
   url: string
   label: string
   projectId: string
+  assignedTo: string
   scores: AuditScores
   report: AuditReport
   date: string
@@ -170,6 +184,7 @@ export interface AuditRequest {
   url: string
   label?: string
   projectId?: string
+  assignedTo?: string
   project?: Project | null
   competitors?: Competitor[]
   existingAuditsCount?: number
@@ -180,4 +195,35 @@ export interface AuditResponse {
   success: boolean
   report?: AuditReport
   error?: string
+}
+
+// Competitor comparison types
+export interface ComparisonRequest {
+  projectId: string
+  auditIds: string[]
+}
+
+export interface ComparisonResult {
+  projectName: string
+  businessUrl: string
+  pages: {
+    id: string
+    url: string
+    label: string
+    assignedTo: string
+    scores: AuditScores
+    hookType: string
+    positioningStrength: string
+    topStrengths: string[]
+    topWeaknesses: string[]
+    quickWins: string[]
+  }[]
+  insights: {
+    leader: string
+    leaderUrl: string
+    biggestGap: string
+    sharedWeaknesses: string[]
+    differentiators: string[]
+    recommendation: string
+  }
 }

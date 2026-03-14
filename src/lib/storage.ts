@@ -31,6 +31,9 @@ function store(key: string, value: unknown) {
 export function getProjects(): Project[] { return load<Project[]>(KEYS.projects, []) }
 export function saveProjects(p: Project[]) { store(KEYS.projects, p) }
 export function addProject(p: Project) { saveProjects([...getProjects(), p]) }
+export function updateProject(updated: Project) {
+  saveProjects(getProjects().map(p => p.id === updated.id ? updated : p))
+}
 export function deleteProject(id: string) {
   saveProjects(getProjects().filter(p => p.id !== id))
   saveAudits(getAudits().filter(a => a.projectId !== id))
@@ -41,6 +44,7 @@ export function saveAudits(a: Audit[]) { store(KEYS.audits, a) }
 export function addAudit(a: Audit) { saveAudits([...getAudits(), a]) }
 export function deleteAudit(id: string) { saveAudits(getAudits().filter(a => a.id !== id)) }
 export function getAuditById(id: string) { return getAudits().find(a => a.id === id) }
+export function getAuditsByProject(projectId: string) { return getAudits().filter(a => a.projectId === projectId) }
 
 export function getLpWeights(): LpWeights { return load<LpWeights>(KEYS.weights, DEFAULT_WEIGHTS) }
 export function saveLpWeights(w: LpWeights) { store(KEYS.weights, w) }
