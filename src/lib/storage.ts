@@ -1,9 +1,10 @@
-import { Project, Audit, LpWeights } from './types'
+import { Project, Audit, LpWeights, SavedCompetitorReport } from './types'
 
 const KEYS = {
   projects: 'auditiq_projects',
   audits: 'auditiq_audits',
   weights: 'auditiq_weights',
+  competitorReports: 'auditiq_competitor_reports',
 }
 
 export const DEFAULT_WEIGHTS: LpWeights = {
@@ -19,9 +20,7 @@ function load<T>(key: string, fallback: T): T {
   try {
     const v = localStorage.getItem(key)
     return v ? (JSON.parse(v) as T) : fallback
-  } catch {
-    return fallback
-  }
+  } catch { return fallback }
 }
 
 function store(key: string, value: unknown) {
@@ -48,3 +47,17 @@ export function getAuditsByProject(projectId: string) { return getAudits().filte
 
 export function getLpWeights(): LpWeights { return load<LpWeights>(KEYS.weights, DEFAULT_WEIGHTS) }
 export function saveLpWeights(w: LpWeights) { store(KEYS.weights, w) }
+
+export function getCompetitorReports(): SavedCompetitorReport[] {
+  return load<SavedCompetitorReport[]>(KEYS.competitorReports, [])
+}
+export function saveCompetitorReports(r: SavedCompetitorReport[]) { store(KEYS.competitorReports, r) }
+export function addCompetitorReport(r: SavedCompetitorReport) {
+  saveCompetitorReports([...getCompetitorReports(), r])
+}
+export function deleteCompetitorReport(id: string) {
+  saveCompetitorReports(getCompetitorReports().filter(r => r.id !== id))
+}
+export function getCompetitorReportById(id: string) {
+  return getCompetitorReports().find(r => r.id === id)
+}

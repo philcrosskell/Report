@@ -146,9 +146,9 @@ export interface AuditReport {
   seoCategories: SeoCategories
   lpScoring: LpScoring
   projectedScoreAfterFixes: ProjectedScores
+  gapAnalysis: GapAnalysis
   competitorAnalysis: CompetitorAnalysis
   priorityFixes: PriorityFix[]
-  gapAnalysis: GapAnalysis
   strengthsWeaknesses: {
     strengths: string[]
     weaknesses: string[]
@@ -197,33 +197,70 @@ export interface AuditResponse {
   error?: string
 }
 
-// Competitor comparison types
-export interface ComparisonRequest {
-  projectId: string
-  auditIds: string[]
+// ─── Competitor Intelligence Report ───────────────────────────────────────────
+export interface CompetitorProfile {
+  name: string
+  url: string
+  tier: 'Client' | 'Premium' | 'Mid' | 'Budget'
+  positioning: string
+  whatTheyDoWell: string
+  hookType: string
+  hookHeadline: string
+  hookEffectiveness: string
+  primaryAnxiety: string
+  outcomePromised: string
+  howTheyProve: string
+  actionTrigger: string
 }
 
-export interface ComparisonResult {
-  projectName: string
+export interface ClaimsMatrixRow {
+  claimType: string
+  [key: string]: string
+}
+
+export interface HeadlineFinding {
+  number: number
+  title: string
+  detail: string
+}
+
+export interface StrategicImplication {
+  number: number
+  title: string
+  detail: string
+}
+
+export interface QuickWin {
+  action: string
+  why: string
+  effort: 'Easy' | 'Medium' | 'Hard'
+}
+
+export interface CompetitorIntelligenceReport {
+  businessName: string
   businessUrl: string
-  pages: {
-    id: string
-    url: string
-    label: string
-    assignedTo: string
-    scores: AuditScores
-    hookType: string
-    positioningStrength: string
-    topStrengths: string[]
-    topWeaknesses: string[]
-    quickWins: string[]
-  }[]
-  insights: {
-    leader: string
-    leaderUrl: string
-    biggestGap: string
-    sharedWeaknesses: string[]
-    differentiators: string[]
-    recommendation: string
+  date: string
+  market: string
+  headlineFindings: HeadlineFinding[]
+  profiles: CompetitorProfile[]
+  claimsMatrix: {
+    claimTypes: string[]
+    rows: { claimType: string; values: Record<string, string> }[]
   }
+  tableStakes: string[]
+  whiteSpace: { opportunity: string; rationale: string; owner: string }[]
+  noiseToAvoid: string[]
+  buyerAnxieties: { concern: string; addressedBy: string; ignoredBy: string }[]
+  strategicImplications: StrategicImplication[]
+  quickWins: QuickWin[]
+  summary: string
+}
+
+export interface SavedCompetitorReport {
+  id: string
+  businessName: string
+  businessUrl: string
+  projectId?: string
+  report: CompetitorIntelligenceReport
+  date: string
 }
