@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
-import { ComparisonRequest, ComparisonResult, Audit } from '@/lib/types'
+import { ComparisonResult, Audit } from '@/lib/types'
 
 async function callAI(prompt: string): Promise<string> {
   const provider = process.env.AI_PROVIDER ?? 'anthropic'
