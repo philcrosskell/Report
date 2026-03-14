@@ -889,7 +889,7 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
             <tbody>{r.profiles.map(p => (
               <tr key={p.url} className="hover:bg-[var(--bg3)] transition-colors">
                 <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{p.name}</td>
-                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)', fontStyle: 'italic' }}>"{p.hookHeadline}"</td>
+                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)', fontStyle: 'italic' }}>&ldquo;{p.hookHeadline}&rdquo;</td>
                 <TD><Tag color={p.hookType === 'Outcome' ? 'green' : p.hookType === 'Transformation+Proof' ? 'green' : p.hookType === 'Services List' ? 'amber' : 'blue'}>{p.hookType}</Tag></TD>
                 <TD>{p.hookEffectiveness}</TD>
               </tr>
