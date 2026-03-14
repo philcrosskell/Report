@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.2.3",
+    "next": "15.2.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "@anthropic-ai/sdk": "0.27.0",
@@ -28,6 +28,6 @@
     "postcss": "8.4.47",
     "autoprefixer": "10.4.20",
     "eslint": "9.0.0",
-    "eslint-config-next": "15.2.3"
+    "eslint-config-next": "15.2.4"
   }
 }
