@@ -7,6 +7,7 @@ import {
   getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
   getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
   getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
+  getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
@@ -18,12 +19,14 @@ function gcol(g: string) { return g === 'A' || g === 'B' ? 'var(--green)' : g ==
 
 // ─── primitives ───────────────────────────────────────────────────────────────
 function Tag({ color, children }: { color: string; children: React.ReactNode }) {
-  const m: Record<string, string> = { green: 'bg-emerald-400/10 text-emerald-400', amber: 'bg-yellow-400/10 text-yellow-400', red: 'bg-red-400/10 text-red-400', purple: 'bg-violet-400/10 text-violet-400', blue: 'bg-blue-400/10 text-blue-400', grey: 'bg-zinc-400/10 text-zinc-400' }
+  const m: Record<string, string> = { green: 'bg-emerald-400/10 text-emerald-400', amber: 'bg-yellow-400/10 text-yellow-400', red: 'bg-red-400/10 text-red-400', purple: 'bg-yellow-400/10 text-yellow-400', blue: 'bg-blue-400/10 text-blue-400', grey: 'bg-zinc-400/10 text-zinc-400' }
   return <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${m[color] ?? m.purple}`}>{children}</span>
 }
 function Btn({ children, onClick, primary = false, danger = false, sm = false, disabled = false, cls = '' }: { children: React.ReactNode; onClick?: () => void; primary?: boolean; danger?: boolean; sm?: boolean; disabled?: boolean; cls?: string }) {
   const size = sm ? 'px-2.5 py-1 text-[12px]' : 'px-3.5 py-2 text-[13px]'
-  const style = primary ? 'bg-[var(--accent)] border-[var(--accent)] text-white hover:opacity-90' : danger ? 'bg-transparent border-[var(--border)] text-[var(--red)] hover:bg-red-400/10' : 'bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]'
+  const style = primary ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)] font-bold hover:opacity-90'
+    : danger ? 'bg-transparent border-[var(--border)] text-[var(--red)] hover:bg-red-400/10'
+    : 'bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]'
   return <button onClick={onClick} disabled={disabled} className={`inline-flex items-center gap-1.5 font-medium border rounded-lg transition-all ${size} ${style} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${cls}`}>{children}</button>
 }
 function Card({ children, cls = '' }: { children: React.ReactNode; cls?: string }) {
@@ -113,12 +116,13 @@ export default function Home() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
+  const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
   const [viewingAudit, setViewingAudit] = useState<Audit | null>(null)
 
   useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
-    setCompReports(getCompetitorReports()); setReady(true)
+    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setReady(true)
   }, [])
 
   const refresh = useCallback(() => {
@@ -160,9 +164,17 @@ export default function Home() {
   return (
     <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-        <div className="p-5 pb-4 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold" style={{ background: 'var(--accent)' }}>A</div>
-          <div><div className="text-sm font-semibold">AuditIQ</div><div className="text-[10px] font-mono" style={{ color: 'var(--t3)' }}>SEO Dashboard</div></div>
+        {/* BEAL-style yellow top bar */}
+        <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
+        {/* Logo area */}
+        <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
+          <svg width="16" height="36" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
+          </svg>
+          <div>
+            <div className="text-sm font-bold tracking-wide" style={{ color: 'var(--t1)' }}>AuditIQ</div>
+            <div className="text-[10px]" style={{ color: 'var(--t3)' }}>by BEAL Creative</div>
+          </div>
         </div>
         <nav className="p-2.5 flex-1 overflow-y-auto">
           {(['Main', 'Tools', 'Config'] as const).map(section => (
@@ -170,12 +182,22 @@ export default function Home() {
               <div className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-2" style={{ color: 'var(--t3)' }}>{section}</div>
               {navItems.filter(n => n.section === section).map(item => (
                 <button key={item.id} onClick={() => setView(item.id as View)}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] mb-0.5 transition-all border"
-                  style={{ color: view === item.id ? 'var(--accent2)' : 'var(--t2)', background: view === item.id ? 'rgba(124,106,247,0.1)' : 'transparent', borderColor: view === item.id ? 'rgba(124,106,247,0.3)' : 'transparent' }}>
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] mb-0.5 transition-all"
+                  style={{
+                    color: view === item.id ? '#0f0f11' : 'var(--t2)',
+                    background: view === item.id ? 'var(--accent)' : 'transparent',
+                    fontWeight: view === item.id ? 700 : 400,
+                  }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={NAV_ICONS[item.id]} /></svg>
                   <span className="flex-1 text-left">{item.label}</span>
                   {'badge' in item && (item.badge as number) > 0 && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{item.badge}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{
+                        background: view === item.id ? 'rgba(0,0,0,0.2)' : 'rgba(255,229,0,0.15)',
+                        color: view === item.id ? '#0f0f11' : 'var(--accent)',
+                      }}>
+                      {item.badge}
+                    </span>
                   )}
                 </button>
               ))}
@@ -187,7 +209,7 @@ export default function Home() {
         {view === 'dashboard' && <Dashboard projects={projects} audits={audits} onNew={() => setView('projects')} onAudit={() => setView('audit')} onView={setViewingAudit} />}
         {view === 'projects' && <Projects projects={projects} audits={audits} onRefresh={refresh} onAudit={() => setView('audit')} />}
         {view === 'audit' && <AuditPage projects={projects} weights={weights} onRefresh={refresh} />}
-        {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} />}
+        {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
@@ -293,7 +315,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
               const avgS = pa.length ? Math.round(pa.reduce((s, a) => s + a.scores.seo, 0) / pa.length) : null
               const avgL = pa.length ? Math.round(pa.reduce((s, a) => s + a.scores.lp, 0) / pa.length) : null
               return (
-                <div key={p.id} className="rounded-xl p-[18px] border hover:border-violet-400/30 transition-colors" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                <div key={p.id} className="rounded-xl p-[18px] border hover:border-yellow-400/30 transition-colors" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
                   <div className="text-[15px] font-semibold mb-1">{p.name}</div>
                   <div className="font-mono text-[12px] mb-3" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                   <div className="flex gap-4 mb-3">
@@ -394,7 +416,7 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
               <div className="flex flex-col gap-1.5">
                 {STEPS.map((s, i) => (
                   <div key={s} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-violet-400 pulse' : ''}`} style={i > stepIdx ? { background: 'var(--border2)' } : {}} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400 pulse' : ''}`} style={i > stepIdx ? { background: 'var(--border2)' } : {}} />
                     {s}
                   </div>
                 ))}
@@ -548,7 +570,7 @@ function GapTab({ r }: { r: AuditReport }) {
             ))}
           </Card>
           <Card><CTitle>📍 Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
-          <div className="rounded-xl p-5 border" style={{ background: 'rgba(124,106,247,0.06)', borderColor: 'rgba(124,106,247,0.25)' }}>
+          <div className="rounded-xl p-5 border" style={{ background: 'rgba(255,229,0,0.05)', borderColor: 'rgba(255,229,0,0.3)' }}>
             <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>★ Top Recommendation</div>
             <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
           </div>
@@ -666,7 +688,7 @@ function FixesTab({ r }: { r: AuditReport }) {
       <CTitle>Priority Fixes — Ranked by Impact</CTitle>
       {r.priorityFixes.map(f => (
         <div key={f.rank} className="flex gap-3.5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.rank}</div>
+          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{f.rank}</div>
           <div className="flex-1">
             <div className="text-[13px] font-semibold mb-1">{f.title}</div>
             <div className="mb-1 pl-0"><span className="text-[12px] font-semibold" style={{ color: 'var(--t2)' }}>Problem: </span><SmartText text={f.problem} color="var(--t3)" /></div>
@@ -758,7 +780,7 @@ function RecsTab({ r }: { r: AuditReport }) {
 }
 
 // ─── Competitor Analysis Page ─────────────────────────────────────────────────
-function CompetitorPage({ projects, onRefresh }: { projects: Project[]; onRefresh: () => void }) {
+function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { projects: Project[]; onRefresh: () => void; brandLogo: string; onLogoChange: (l: string) => void }) {
   const [mode, setMode] = useState<'manual' | 'project'>('manual')
   const [bizName, setBizName] = useState(''), [bizUrl, setBizUrl] = useState(''), [market, setMarket] = useState('')
   const [comps, setComps] = useState([{ name: '', url: '' }, { name: '', url: '' }, { name: '', url: '' }, { name: '', url: '' }])
@@ -797,7 +819,7 @@ function CompetitorPage({ projects, onRefresh }: { projects: Project[]; onRefres
     if (!result) return
     const { exportCompetitorPDF } = await import('@/lib/competitorPdf')
     const saved: SavedCompetitorReport = { id: uid(), businessName: result.businessName, businessUrl: result.businessUrl, report: result, date: new Date().toISOString() }
-    exportCompetitorPDF(saved)
+    exportCompetitorPDF(saved, brandLogo)
   }
 
   return (
@@ -843,7 +865,30 @@ function CompetitorPage({ projects, onRefresh }: { projects: Project[]; onRefres
               )}
             </div>
           )}
-          <div className="mt-4">
+          <div className="mt-4 flex items-end gap-4 flex-wrap">
+            <div>
+              <Lbl>Primary Business Logo (optional)</Lbl>
+              <div className="flex items-center gap-3">
+                {brandLogo
+                  ? <img src={brandLogo} alt="Logo" className="h-10 rounded object-contain" style={{ maxWidth: 120, background: 'var(--bg4)', padding: 4 }} />
+                  : <div className="h-10 w-24 rounded border flex items-center justify-center text-[11px]" style={{ borderColor: 'var(--border)', color: 'var(--t3)' }}>No logo</div>
+                }
+                <div className="flex gap-2">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border rounded-lg transition-all bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]">
+                    ↑ Upload
+                    <input type="file" accept="image/*,.svg" className="hidden" onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = ev => onLogoChange(ev.target?.result as string)
+                      reader.readAsDataURL(file)
+                    }} />
+                  </label>
+                  {brandLogo && <Btn sm onClick={() => onLogoChange('')}>Remove</Btn>}
+                </div>
+              </div>
+              <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>Appears on the report cover. PNG, JPG, or SVG.</div>
+            </div>
             <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Analysing market...' : '⟳ Run Competitor Analysis'}</Btn>
           </div>
         </Card>
@@ -864,15 +909,26 @@ function CompetitorPage({ projects, onRefresh }: { projects: Project[]; onRefres
           <>
             {/* Action bar */}
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-              <div className="flex-1"><div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div></div>
+              {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
+              <div className="flex-1">
+                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
+              </div>
               {!saved ? (
-                <><Btn onClick={saveReport} primary>Save Report</Btn><Btn onClick={exportPDF}>↓ Export PDF</Btn><Btn danger onClick={() => setResult(null)}>Discard</Btn></>
+                <>
+                  <Btn onClick={saveReport} primary>Save Report</Btn>
+                  <Btn onClick={exportPDF}>↓ Export PDF</Btn>
+                  <Btn danger onClick={() => setResult(null)}>Discard</Btn>
+                </>
               ) : (
-                <><div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div><Btn onClick={exportPDF}>↓ Export PDF</Btn></>
+                <>
+                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div>
+                  <Btn onClick={exportPDF}>↓ Export PDF</Btn>
+                </>
               )}
             </div>
 
-            <CompIntelReport r={result} />
+            <CompIntelReport r={result} brandLogo={brandLogo} />
           </>
         )}
       </div>
@@ -881,16 +937,26 @@ function CompetitorPage({ projects, onRefresh }: { projects: Project[]; onRefres
 }
 
 // ─── Competitor Intelligence Report View ──────────────────────────────────────
-function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
+function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
+      {/* Report header with logo */}
+      {brandLogo && (
+        <div className="flex items-center gap-4 mb-5 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
+          <div>
+            <div className="text-[13px] font-semibold">{r.businessName}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report · {r.date}</div>
+          </div>
+        </div>
+      )}
       {/* Headline findings */}
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-1">The Short Version</div>
         <div className="text-[13px] mb-4" style={{ color: 'var(--t3)' }}>Three findings from analysing {r.profiles.length} businesses in this market.</div>
         {r.headlineFindings.map(f => (
           <div key={f.number} className="flex gap-4 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.number}</div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{f.number}</div>
             <div className="flex-1"><div className="text-[14px] font-semibold mb-2">{f.title}</div><SmartText text={f.detail} /></div>
           </div>
         ))}
@@ -1006,7 +1072,7 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
         {r.strategicImplications.map(s => (
           <div key={s.number} className="mb-4 p-5 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{s.number}</div>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{s.number}</div>
               <div className="text-[14px] font-semibold">{s.title}</div>
             </div>
             <SmartText text={s.detail} />
@@ -1033,7 +1099,7 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
       </Card>
 
       {/* Summary — structured not a wall of text */}
-      <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(124,106,247,0.04)', borderColor: 'rgba(124,106,247,0.2)' }}>
+      <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.15)' }}>
         <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
         {(() => {
           const sentences = r.summary.match(/[^.!?]+[.!?]+/g) ?? [r.summary]
@@ -1054,7 +1120,7 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
                 </ul>
               )}
               {closing && (
-                <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(124,106,247,0.08)', borderColor: 'rgba(124,106,247,0.3)' }}>
+                <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(255,229,0,0.07)', borderColor: 'rgba(255,229,0,0.35)' }}>
                   <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>★ Key Recommendation</div>
                   <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{closing}</div>
                 </div>
@@ -1071,7 +1137,10 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
   const [tab, setTab] = useState<'audits' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
+  const [storedLogo, setStoredLogo] = useState<string>('')
   const sorted = [...audits].reverse()
+
+  useEffect(() => { setStoredLogo(getBrandLogo()) }, [])
 
   const exportAudit = async (id: string) => {
     const audit = getAuditById(id); if (!audit) return
@@ -1079,7 +1148,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
   }
   const exportComp = async (id: string) => {
     const rep = compReports.find(r => r.id === id); if (!rep) return
-    const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep)
+    const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep, storedLogo)
   }
 
   if (viewingComp) {
@@ -1087,10 +1156,11 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
           <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
+          {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
           <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
           <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>
         </div>
-        <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} /></div>
+        <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
       </>
     )
   }

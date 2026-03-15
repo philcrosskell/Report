@@ -61,3 +61,9 @@ export function deleteCompetitorReport(id: string) {
 export function getCompetitorReportById(id: string) {
   return getCompetitorReports().find(r => r.id === id)
 }
+
+// Brand logo — stored as base64 data URL
+const LOGO_KEY = 'auditiq_brand_logo'
+export function getBrandLogo(): string { return load<string>(LOGO_KEY, '') }
+export function saveBrandLogo(dataUrl: string) { store(LOGO_KEY, dataUrl) }
+export function clearBrandLogo() { localStorage.removeItem(LOGO_KEY) }

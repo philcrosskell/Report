@@ -1,6 +1,6 @@
 import { SavedCompetitorReport } from './types'
 
-export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise<void> {
+export async function exportCompetitorPDF(saved: SavedCompetitorReport, brandLogo = ''): Promise<void> {
   const { default: jsPDF } = await import('jspdf')
   const { default: autoTable } = await import('jspdf-autotable')
   const r = saved.report
@@ -10,7 +10,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
 
   // ── Colours ──
   const DARK: [number,number,number] = [15, 15, 17]
-  const PURPLE: [number,number,number] = [124, 106, 247]
+  const PURPLE: [number,number,number] = [255, 229, 0]   // BEAL yellow — used for section headers
   const GREEN: [number,number,number] = [52, 211, 153]
   const AMBER: [number,number,number] = [251, 191, 36]
   const RED: [number,number,number] = [248, 113, 113]
@@ -26,7 +26,9 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
     np(18)
     doc.setFillColor(...color)
     doc.rect(M, y, CW, 9, 'F')
-    doc.setTextColor(255, 255, 255)
+    // Yellow needs black text, other colours (green) use white
+    const isYellow = color[0] > 200 && color[1] > 200 && color[2] < 100
+    doc.setTextColor(...(isYellow ? DARK : [255, 255, 255] as [number,number,number]))
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.text(title.toUpperCase(), M + 4, y + 6.2)
@@ -82,32 +84,45 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
   // ════════════════════════════════════════════
   doc.setFillColor(...DARK)
   doc.rect(0, 0, W, 297, 'F')
-  doc.setFillColor(...PURPLE)
+  // BEAL yellow top bar
+  doc.setFillColor(255, 229, 0)
   doc.rect(0, 0, W, 5, 'F')
   doc.setFillColor(30, 30, 45)
-  doc.rect(0, 5, W, 80, 'F')
+  doc.rect(0, 5, W, 85, 'F')
+  // Yellow vertical bar motif (BEAL logo)
+  doc.setFillColor(255, 229, 0)
+  doc.roundedRect(M, 14, 4, 65, 2, 2, 'F')
+
+  // Logo if provided
+  if (brandLogo && !brandLogo.startsWith('data:image/svg')) {
+    try {
+      const ext = brandLogo.startsWith('data:image/png') ? 'PNG' : brandLogo.startsWith('data:image/webp') ? 'WEBP' : 'JPEG'
+      doc.addImage(brandLogo, ext, M + 8, 12, 55, 22, undefined, 'FAST')
+    } catch { /* skip */ }
+  }
 
   doc.setTextColor(...GREY)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
-  doc.text('COMPETITOR INTELLIGENCE REPORT', M, 28)
+  doc.text('COMPETITOR INTELLIGENCE REPORT', M + 8, brandLogo ? 40 : 28)
 
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(24)
+  doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
-  const titleLines = doc.splitTextToSize(`How ${r.market} Competes`, CW) as string[]
-  titleLines.forEach((l, i) => doc.text(l, M, 42 + i * 11))
+  const titleLines = doc.splitTextToSize(`How ${r.market} Competes`, CW - 8) as string[]
+  const titleStart = brandLogo ? 50 : 38
+  titleLines.forEach((l, i) => doc.text(l, M + 8, titleStart + i * 11))
 
   doc.setFontSize(13)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...LIGHT)
-  doc.text(`Where ${r.businessName} is Being Undervalued`, M, 42 + titleLines.length * 11 + 4)
+  doc.text(`Where ${r.businessName} is Being Undervalued`, M + 8, titleStart + titleLines.length * 11 + 4)
 
   doc.setFontSize(10)
   doc.setTextColor(...GREY)
-  doc.text(`Prepared for: ${r.businessName}`, M, 105)
-  doc.text(`Analysed: ${r.businessUrl} vs. ${r.profiles.length - 1} competitor${r.profiles.length > 2 ? 's' : ''}`, M, 113)
-  doc.text(`Date: ${r.date}`, M, 121)
+  doc.text(`Prepared for: ${r.businessName}`, M, 108)
+  doc.text(`Analysed: ${r.businessUrl} vs. ${r.profiles.length - 1} competitor${r.profiles.length > 2 ? 's' : ''}`, M, 116)
+  doc.text(`Date: ${r.date}`, M, 124)
 
   doc.setFontSize(8)
   doc.setTextColor(60, 60, 80)
@@ -180,7 +195,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index === 1) {
         const tier = String(data.cell.raw)
-        data.cell.styles.textColor = tier === 'Client' ? [124, 106, 247] : tier === 'Premium' ? [52, 211, 153] : [160, 160, 180]
+        data.cell.styles.textColor = tier === 'Client' ? [255, 229, 0] : tier === 'Premium' ? [52, 211, 153] : [160, 160, 180]
         data.cell.styles.fontStyle = 'bold'
       }
     },
@@ -474,7 +489,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
     const last = sentences[sentences.length - 1].trim()
     np(20)
     y += 4
-    doc.setFillColor(235, 232, 255)
+    doc.setFillColor(255, 249, 180)
     const lastL = doc.splitTextToSize(last, CW - 12) as string[]
     doc.roundedRect(M, y - 3, CW, lastL.length * 5.5 + 12, 2, 2, 'F')
     doc.setFontSize(10)
@@ -483,7 +498,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
     doc.text('★ Key Recommendation', M + 4, y + 3.5)
     y += 8
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(60, 40, 120)
+    doc.setTextColor(60, 50, 0)
     doc.text(lastL, M + 4, y)
     y += lastL.length * 5.5 + 8
   }

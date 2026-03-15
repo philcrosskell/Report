@@ -10,7 +10,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
 
   // ── colours ──────────────────────────────────────────────────────────────────
   const DARK: [number,number,number] = [15, 15, 17]
-  const PURPLE: [number,number,number] = [124, 106, 247]
+  const PURPLE: [number,number,number] = [255, 229, 0]
   const GREEN: [number,number,number] = [52, 211, 153]
   const AMBER: [number,number,number] = [251, 191, 36]
   const RED: [number,number,number] = [248, 113, 113]
@@ -27,7 +27,9 @@ export async function exportPDF(audit: Audit): Promise<void> {
     np(16)
     doc.setFillColor(...color)
     doc.rect(M, y, CW, 9, 'F')
-    doc.setTextColor(255, 255, 255)
+    // Yellow (#FFE500) needs black text; green uses white
+    const isYellow = color[0] > 200 && color[1] > 200 && color[2] < 50
+    doc.setTextColor(...(isYellow ? DARK : [255, 255, 255] as [number,number,number]))
     doc.setFontSize(10); doc.setFont('helvetica', 'bold')
     doc.text(title.toUpperCase(), M + 4, y + 6.2)
     y += 13
@@ -71,14 +73,19 @@ export async function exportPDF(audit: Audit): Promise<void> {
   // COVER HEADER
   // ════════════════════════════════════════════════════════════════════════════
   doc.setFillColor(...DARK); doc.rect(0, 0, W, 42, 'F')
-  doc.setFillColor(...PURPLE); doc.rect(0, 0, W, 3, 'F')
-  doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont('helvetica', 'bold')
-  doc.text('AuditIQ', M, 20)
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal')
-  doc.setTextColor(160, 160, 184); doc.text('Page Audit Report', M, 29)
+  // BEAL yellow top bar
+  doc.setFillColor(...PURPLE); doc.rect(0, 0, W, 4, 'F')
+  // Yellow vertical bar motif
+  doc.setFillColor(...PURPLE); doc.roundedRect(M, 8, 3, 28, 1, 1, 'F')
+  // Header text
+  doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont('helvetica', 'bold')
+  doc.text('AuditIQ', M + 8, 19)
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal')
+  doc.setTextColor(160, 160, 184)
+  doc.text('by BEAL Creative · Page Audit Report', M + 8, 27)
   doc.text(
     new Date(audit.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }),
-    W - M, 29, { align: 'right' }
+    W - M, 27, { align: 'right' }
   )
   y = 52
 
@@ -217,13 +224,13 @@ export async function exportPDF(audit: Audit): Promise<void> {
     y += 2
     // Top recommendation callout
     np(20)
-    doc.setFillColor(235, 232, 255)
+    doc.setFillColor(255, 249, 180)
     const recLines = doc.splitTextToSize(g.topRecommendation, CW - 8) as string[]
     doc.roundedRect(M, y - 2, CW, recLines.length * 5.5 + 14, 2, 2, 'F')
     doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PURPLE)
     doc.text('★ TOP RECOMMENDATION', M + 4, y + 4)
     y += 9
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(60, 40, 120)
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(50, 40, 0)
     doc.text(recLines, M + 4, y)
     y += recLines.length * 5.5 + 8
   }
