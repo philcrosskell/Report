@@ -40,26 +40,47 @@ async function callAI(prompt: string): Promise<string> {
   return callAnthropic(prompt)
 }
 
-function parseJSON<T>(raw: string): T {
+function normaliseJSON(raw: string): string {
   // Strip markdown fences
-  const clean = raw
+  let s = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '')
     .trim()
 
-  // Find the first { and the matching closing }
-  const start = clean.indexOf('{')
+  // Find the JSON object boundaries
+  const start = s.indexOf('{')
+  if (start > 0) s = s.slice(start)
+
+  // Remove JavaScript-style comments (// and /* */)
+  s = s.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+
+  // Replace single-quoted strings with double-quoted
+  // Only do this outside of already double-quoted strings
+  s = s.replace(/'([^'\\]*(\\.[^'\\]*)*)'/g, (match, inner) => {
+    // Don't replace if this looks like a contraction inside a value
+    return `"${inner.replace(/"/g, '\\"')}"`
+  })
+
+  // Fix trailing commas before } or ]
+  s = s.replace(/,(\s*[}\]])/g, '$1')
+
+  // Fix unquoted keys: look for word: pattern not inside a string
+  s = s.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3')
+
+  return s
+}
+
+function parseJSON<T>(raw: string): T {
+  const normalised = normaliseJSON(raw)
+
+  // Find the first { and the matching closing } by tracking depth
+  const start = normalised.indexOf('{')
   if (start === -1) throw new Error('No JSON object found in response')
 
-  // Walk forward tracking depth to find the true closing brace
-  let depth = 0
-  let end = -1
-  let inString = false
-  let escaped = false
-
-  for (let i = start; i < clean.length; i++) {
-    const ch = clean[i]
+  let depth = 0, end = -1, inString = false, escaped = false
+  for (let i = start; i < normalised.length; i++) {
+    const ch = normalised[i]
     if (escaped) { escaped = false; continue }
     if (ch === '\\' && inString) { escaped = true; continue }
     if (ch === '"') { inString = !inString; continue }
@@ -72,17 +93,12 @@ function parseJSON<T>(raw: string): T {
   }
 
   if (end !== -1) {
-    // We found a complete JSON object — use exactly that, ignoring anything after
-    try {
-      return JSON.parse(clean.slice(start, end + 1)) as T
-    } catch {
-      // Fall through to repair
-    }
+    try { return JSON.parse(normalised.slice(start, end + 1)) as T }
+    catch { /* fall through to repair */ }
   }
 
-  // JSON was truncated — attempt repair
-  const partial = clean.slice(start)
-  const repaired = repairJSON(partial)
+  // Truncated — attempt structural repair
+  const repaired = repairJSON(normalised.slice(start))
   return JSON.parse(repaired) as T
 }
 
