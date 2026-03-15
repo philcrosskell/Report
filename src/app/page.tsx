@@ -869,11 +869,11 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div>
               <Lbl>Primary Business Logo (optional)</Lbl>
               <div className="flex items-center gap-3">
-                {brandLogo
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  ? <img src={brandLogo} alt="Logo" className="h-10 rounded object-contain" style={{ maxWidth: 120, background: 'var(--bg4)', padding: 4 }} />
-                  : <div className="h-10 w-24 rounded border flex items-center justify-center text-[11px]" style={{ borderColor: 'var(--border)', color: 'var(--t3)' }}>No logo</div>
-                }
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+              {brandLogo
+                ? <img src={brandLogo} alt="Logo" className="h-10 rounded object-contain" style={{ maxWidth: 120, background: 'var(--bg4)', padding: 4 }} />
+                : <div className="h-10 w-24 rounded border flex items-center justify-center text-[11px]" style={{ borderColor: 'var(--border)', color: 'var(--t3)' }}>No logo</div>
+              }
                 <div className="flex gap-2">
                   <label className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border rounded-lg transition-all bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]">
                     ↑ Upload
