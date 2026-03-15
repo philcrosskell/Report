@@ -870,6 +870,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               <Lbl>Primary Business Logo (optional)</Lbl>
               <div className="flex items-center gap-3">
                 {brandLogo
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   ? <img src={brandLogo} alt="Logo" className="h-10 rounded object-contain" style={{ maxWidth: 120, background: 'var(--bg4)', padding: 4 }} />
                   : <div className="h-10 w-24 rounded border flex items-center justify-center text-[11px]" style={{ borderColor: 'var(--border)', color: 'var(--t3)' }}>No logo</div>
                 }
@@ -909,6 +910,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
           <>
             {/* Action bar */}
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
                 <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
@@ -943,6 +945,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Report header with logo */}
       {brandLogo && (
         <div className="flex items-center gap-4 mb-5 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
@@ -1156,6 +1159,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
           <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
           <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
           <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>

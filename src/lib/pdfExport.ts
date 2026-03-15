@@ -267,7 +267,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
     np(16)
     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
     doc.text(`${catLabels[k] ?? k} — ${cat.score}%`, M, y); y += 7
-    cat.checks.forEach(c => {
+    cat.checks.forEach((c: { label: string; status: string; detail: string; criticality: string }) => {
       np(14)
       const dotColor: [number,number,number] = c.status === 'pass' ? GREEN : c.status === 'fail' ? RED : AMBER
       doc.setFillColor(...dotColor); doc.circle(M + 2.5, y + 1.5, 2, 'F')
