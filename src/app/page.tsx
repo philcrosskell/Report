@@ -851,12 +851,21 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-1">The Short Version</div>
         <div className="text-[13px] mb-4" style={{ color: 'var(--t3)' }}>Three findings from analysing {r.profiles.length} businesses in this market.</div>
-        {r.headlineFindings.map(f => (
-          <div key={f.number} className="flex gap-4 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.number}</div>
-            <div><div className="text-[14px] font-semibold mb-1">{f.title}</div><div className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{f.detail}</div></div>
-          </div>
-        ))}
+        {r.headlineFindings.map(f => {
+          const sentences = f.detail.split(/(?<=\.)\s+/).filter(Boolean)
+          return (
+            <div key={f.number} className="flex gap-4 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.number}</div>
+              <div>
+                <div className="text-[14px] font-semibold mb-2">{f.title}</div>
+                {sentences.length <= 1
+                  ? <div className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{f.detail}</div>
+                  : <div className="flex flex-col gap-1.5">{sentences.map((s, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{s}</p>)}</div>
+                }
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Who we looked at */}
@@ -966,37 +975,74 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
       {/* Strategic implications */}
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-4">Strategic Implications</div>
-        {r.strategicImplications.map(s => (
-          <div key={s.number} className="mb-4 p-5 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{s.number}</div>
-              <div className="text-[14px] font-semibold">{s.title}</div>
+        {r.strategicImplications.map(s => {
+          const sentences = s.detail.split(/(?<=\.)\s+/)
+          const paras: string[] = []
+          for (let i = 0; i < sentences.length; i += 2) {
+            paras.push(sentences.slice(i, i + 2).join(' '))
+          }
+          return (
+            <div key={s.number} className="mb-4 p-5 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{s.number}</div>
+                <div className="text-[14px] font-semibold">{s.title}</div>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {paras.map((p, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{p}</p>)}
+              </div>
             </div>
-            <div className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{s.detail}</div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* Quick wins */}
+      {/* Quick wins — 2 columns */}
       <Card>
         <CTitle>Quick Wins — 30 Days</CTitle>
         <div className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Actionable changes executable without a full rebrand.</div>
-        {r.quickWins.map((w, i) => (
-          <div key={i} className="flex gap-3 py-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.15)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>☐</div>
-            <div className="flex-1">
-              <div className="text-[13px] font-medium mb-0.5">{w.action}</div>
-              <div className="text-[12px] mb-1" style={{ color: 'var(--t3)' }}>{w.why}</div>
-              <Tag color={w.effort === 'Easy' ? 'green' : w.effort === 'Medium' ? 'amber' : 'red'}>{w.effort} effort</Tag>
+        <div className="grid grid-cols-2 gap-3">
+          {r.quickWins.map((w, i) => (
+            <div key={i} className="flex gap-3 p-3 rounded-lg border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>☐</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold mb-1 leading-snug">{w.action}</div>
+                <div className="text-[12px] mb-1.5 leading-relaxed" style={{ color: 'var(--t3)' }}>{w.why}</div>
+                <Tag color={w.effort === 'Easy' ? 'green' : w.effort === 'Medium' ? 'amber' : 'red'}>{w.effort} effort</Tag>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </Card>
 
-      {/* Summary */}
+      {/* Summary — structured not a wall of text */}
       <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(124,106,247,0.04)', borderColor: 'rgba(124,106,247,0.2)' }}>
-        <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>Summary</div>
-        <div className="text-[14px] leading-relaxed" style={{ color: 'var(--t1)' }}>{r.summary}</div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
+        {(() => {
+          const sentences = r.summary.match(/[^.!?]+[.!?]+/g) ?? [r.summary]
+          const intro = sentences[0]?.trim() ?? ''
+          const bullets = sentences.slice(1, -1).map(s => s.trim()).filter(Boolean)
+          const closing = sentences.length > 1 ? sentences[sentences.length - 1]?.trim() : ''
+          return (
+            <>
+              {intro && <p className="text-[14px] font-semibold leading-relaxed mb-3" style={{ color: 'var(--t1)' }}>{intro}</p>}
+              {bullets.length > 0 && (
+                <ul className="mb-3 flex flex-col gap-1.5">
+                  {bullets.map((b, i) => (
+                    <li key={i} className="flex gap-2.5 items-start text-[13px] leading-relaxed">
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: 'var(--accent2)' }} />
+                      <span style={{ color: 'var(--t2)' }}>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {closing && (
+                <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(124,106,247,0.08)', borderColor: 'rgba(124,106,247,0.3)' }}>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>★ Key Recommendation</div>
+                  <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{closing}</div>
+                </div>
+              )}
+            </>
+          )
+        })()}
       </div>
     </div>
   )
