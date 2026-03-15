@@ -41,25 +41,55 @@ async function callAI(prompt: string): Promise<string> {
 }
 
 function parseJSON<T>(raw: string): T {
-  const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
-  try { return JSON.parse(clean) as T }
-  catch {
-    // Try extracting the outermost { ... }
-    const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-    if (start !== -1 && end > start) {
-      try { return JSON.parse(clean.slice(start, end + 1)) as T }
-      catch { /* fall through to repair */ }
+  // Strip markdown fences
+  let clean = raw
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+
+  // Find the first { and the matching closing }
+  const start = clean.indexOf('{')
+  if (start === -1) throw new Error('No JSON object found in response')
+
+  // Walk forward tracking depth to find the true closing brace
+  let depth = 0
+  let end = -1
+  let inString = false
+  let escaped = false
+
+  for (let i = start; i < clean.length; i++) {
+    const ch = clean[i]
+    if (escaped) { escaped = false; continue }
+    if (ch === '\\' && inString) { escaped = true; continue }
+    if (ch === '"') { inString = !inString; continue }
+    if (inString) continue
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth--
+      if (depth === 0) { end = i; break }
     }
-    // Last resort — attempt to repair truncated JSON
-    const partial = start !== -1 ? clean.slice(start) : clean
-    const repaired = repairJSON(partial)
-    return JSON.parse(repaired) as T
   }
+
+  if (end !== -1) {
+    // We found a complete JSON object — use exactly that, ignoring anything after
+    try {
+      return JSON.parse(clean.slice(start, end + 1)) as T
+    } catch {
+      // Fall through to repair
+    }
+  }
+
+  // JSON was truncated — attempt repair
+  const partial = clean.slice(start)
+  const repaired = repairJSON(partial)
+  return JSON.parse(repaired) as T
 }
 
 function repairJSON(partial: string): string {
   const stack: string[] = []
-  let inString = false, escaped = false
+  let inString = false
+  let escaped = false
   for (const ch of partial) {
     if (escaped) { escaped = false; continue }
     if (ch === '\\' && inString) { escaped = true; continue }
