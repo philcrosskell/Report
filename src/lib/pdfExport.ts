@@ -315,7 +315,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
     np(16)
     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
     doc.text(`${lpLabels[k] ?? k} — ${cat.score}/${cat.maxScore}`, M, y); y += 7
-    cat.subScores.forEach(s => {
+    cat.subScores.forEach((s: { label: string; score: number; max: number; note: string }) => {
       np(14)
       const scoreCol: [number,number,number] = s.score >= 2 ? GREEN : s.score >= 1 ? AMBER : RED
       doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...scoreCol)
