@@ -53,15 +53,6 @@ export async function exportPDF(audit: Audit): Promise<void> {
     }
   }
 
-  function bullet(text: string, indent = 4, color: [number,number,number] = DARK) {
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...color)
-    const lines = doc.splitTextToSize(text, CW - indent - 6) as string[]
-    np(lines.length * 5.5 + 3)
-    doc.setFillColor(...color); doc.circle(M + indent + 1, y - 1, 1, 'F')
-    doc.text(lines, M + indent + 5, y)
-    y += lines.length * 5.5 + 2
-  }
-
   function labelValue(label: string, value: string, indent = 0) {
     np(12)
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
