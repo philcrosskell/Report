@@ -8,7 +8,7 @@ async function callAnthropic(prompt: string): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const msg = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 6000,
+    max_tokens: 8000,
     messages: [{ role: 'user', content: prompt }],
   })
   const block = msg.content[0]
@@ -20,7 +20,7 @@ async function callOpenAI(prompt: string): Promise<string> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const res = await client.chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 6000,
+    max_tokens: 8000,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: 'You are a senior SEO auditor. Return only valid complete JSON. Never truncate.' },
@@ -44,10 +44,36 @@ function parseJSON<T>(raw: string): T {
   const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
   try { return JSON.parse(clean) as T }
   catch {
+    // Try extracting the outermost { ... }
     const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-    if (start !== -1 && end > start) return JSON.parse(clean.slice(start, end + 1)) as T
-    throw new Error('Could not parse JSON response')
+    if (start !== -1 && end > start) {
+      try { return JSON.parse(clean.slice(start, end + 1)) as T }
+      catch { /* fall through to repair */ }
+    }
+    // Last resort — attempt to repair truncated JSON
+    const partial = start !== -1 ? clean.slice(start) : clean
+    const repaired = repairJSON(partial)
+    return JSON.parse(repaired) as T
   }
+}
+
+function repairJSON(partial: string): string {
+  const stack: string[] = []
+  let inString = false, escaped = false
+  for (const ch of partial) {
+    if (escaped) { escaped = false; continue }
+    if (ch === '\\' && inString) { escaped = true; continue }
+    if (ch === '"') { inString = !inString; continue }
+    if (inString) continue
+    if (ch === '{') stack.push('}')
+    else if (ch === '[') stack.push(']')
+    else if (ch === '}' || ch === ']') stack.pop()
+  }
+  let result = partial
+  if (inString) result += '"'
+  result = result.replace(/,\s*$/, '')
+  while (stack.length > 0) result += stack.pop()
+  return result
 }
 
 export async function generateAuditReport(req: AuditRequest): Promise<AuditReport & { scraped?: ScrapedPage }> {
