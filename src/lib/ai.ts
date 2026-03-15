@@ -42,7 +42,7 @@ async function callAI(prompt: string): Promise<string> {
 
 function parseJSON<T>(raw: string): T {
   // Strip markdown fences
-  let clean = raw
+  const clean = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '')
