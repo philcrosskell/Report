@@ -66,18 +66,95 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 // SmartText: any text >30 words is split into sentences rendered as separate paragraphs
-// This is the global 30-word rule — use this everywhere instead of bare text
+// Also detects numbered lists (1. 2. 3.) and renders them as proper list items
 function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string; className?: string; color?: string }) {
   if (!text) return null
+
+  // Detect numbered list pattern: "1. thing 2. thing 3. thing"
+  const numberedListPattern = /(?:^|\s)(\d+)\.\s/g
+  const matches = [...text.matchAll(numberedListPattern)]
+
+  if (matches.length >= 2) {
+    // Split into numbered items
+    const items: string[] = []
+    const positions = matches.map(m => ({ index: m.index ?? 0, num: m[1] }))
+    for (let i = 0; i < positions.length; i++) {
+      const start = (positions[i].index ?? 0) + positions[i].num.length + 2 // skip "N. "
+      const end = i + 1 < positions.length ? positions[i + 1].index : text.length
+      const item = text.slice(start, end).trim().replace(/\s+/g, ' ')
+      if (item) items.push(item)
+    }
+    if (items.length >= 2) {
+      return (
+        <ol className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {items.map((item, i) => (
+            <li key={i} className="flex gap-2.5 items-start text-[13px] leading-relaxed">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5"
+                style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent)', minWidth: 20 }}>
+                {i + 1}
+              </span>
+              <span style={{ color }}>{item}</span>
+            </li>
+          ))}
+        </ol>
+      )
+    }
+  }
+
+  // Detect bullet list pattern: "• thing • thing" or "- thing - thing"
+  const bulletPattern = /(?:^|[\n])\s*[•\-–]\s/g
+  const bulletMatches = [...text.matchAll(bulletPattern)]
+  if (bulletMatches.length >= 2) {
+    const items = text.split(/\n?\s*[•\-–]\s+/).map(s => s.trim()).filter(Boolean)
+    if (items.length >= 2) {
+      return (
+        <ul className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {items.map((item, i) => (
+            <li key={i} className="flex gap-2.5 items-start text-[13px] leading-relaxed">
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: 'var(--accent)' }} />
+              <span style={{ color }}>{item}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  }
+
   const wordCount = text.trim().split(/\s+/).length
   if (wordCount <= 30) {
     return <p className={`text-[13px] leading-relaxed ${className}`} style={{ color }}>{text}</p>
   }
-  // Split on sentence endings, keeping the delimiter
-  const sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) ?? [text]
-  const cleaned = sentences.map(s => s.trim()).filter(Boolean)
+  // Protect common abbreviations before splitting on sentence boundaries
+  const protected_ = text
+    .replace(/\be\.g\./gi, 'EGABBR')
+    .replace(/\bi\.e\./gi, 'IEABBR')
+    .replace(/\betc\./gi, 'ETCABBR')
+    .replace(/\bvs\./gi, 'VSABBR')
+    .replace(/\bDr\./gi, 'DRABBR')
+    .replace(/\bMr\./gi, 'MRABBR')
+    .replace(/\bMrs\./gi, 'MRSABBR')
+    .replace(/\bMs\./gi, 'MSABBR')
+    .replace(/\bSt\./gi, 'STABBR')
+    .replace(/\bNo\./gi, 'NOABBR')
+    .replace(/\bFig\./gi, 'FIGABBR')
+  const sentences = protected_.match(/[^.!?]+[.!?]+[\s]*/g) ?? [protected_]
+  const cleaned = sentences
+    .map(s => s
+      .replace(/EGABBR/g, 'e.g.')
+      .replace(/IEABBR/g, 'i.e.')
+      .replace(/ETCABBR/g, 'etc.')
+      .replace(/VSABBR/g, 'vs.')
+      .replace(/DRABBR/g, 'Dr.')
+      .replace(/MRABBR/g, 'Mr.')
+      .replace(/MRSABBR/g, 'Mrs.')
+      .replace(/MSABBR/g, 'Ms.')
+      .replace(/STABBR/g, 'St.')
+      .replace(/NOABBR/g, 'No.')
+      .replace(/FIGABBR/g, 'Fig.')
+      .trim()
+    )
+    .filter(Boolean)
   if (cleaned.length <= 1) {
-    // No sentence breaks found — split at clause boundaries (~30 words each)
     const words = text.split(/\s+/)
     const chunks: string[] = []
     for (let i = 0; i < words.length; i += 30) {
