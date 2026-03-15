@@ -159,11 +159,22 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     blank.imagesWithAlt = imgTags.filter(img => /alt=["'][^"']+["']/i.test(img)).length
     blank.imagesMissingAlt = imgTags.filter(img => !(/alt=["'][^"']*["']/i.test(img)) || /alt=["']['"]/.test(img)).length
 
-    // Forms
+    // Forms — exclude hidden inputs, honeypot fields, and non-visible inputs
     const formTags = html.match(/<form[\s>]/gi) ?? []
     blank.formCount = formTags.length
     blank.hasForms = blank.formCount > 0
-    blank.formFields = (html.match(/<input[^>]+(?:type=["'](?!hidden)[^"']+["']|(?!type=))[^>]*>/gi) ?? []).length
+    // Only count visible input types that a user actually interacts with
+    const visibleInputTypes = /type=["'](?:text|email|tel|number|password|search|url|date|time|month|week|color|range|file|checkbox|radio)["']/i
+    const inputTags = html.match(/<input[^>]+>/gi) ?? []
+    const visibleInputs = inputTags.filter(tag =>
+      !(/type=["']hidden["']/i.test(tag)) &&        // exclude hidden
+      !(/type=["']submit["']/i.test(tag)) &&         // exclude submit buttons
+      !(/type=["']button["']/i.test(tag)) &&         // exclude buttons
+      !(/type=["']reset["']/i.test(tag)) &&          // exclude reset
+      !(/type=["']image["']/i.test(tag)) &&          // exclude image buttons
+      (!tag.includes('type=') || visibleInputTypes.test(tag)) // include typeless (defaults to text) or visible types
+    )
+    blank.formFields = visibleInputs.length
       + (html.match(/<textarea/gi) ?? []).length
       + (html.match(/<select/gi) ?? []).length
 
