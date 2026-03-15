@@ -62,6 +62,37 @@ function SectionDivider({ label }: { label: string }) {
   return <div className="flex items-center gap-3 my-4"><div className="flex-1 h-px" style={{ background: 'var(--border)' }} /><span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--t3)' }}>{label}</span><div className="flex-1 h-px" style={{ background: 'var(--border)' }} /></div>
 }
 
+// SmartText: any text >30 words is split into sentences rendered as separate paragraphs
+// This is the global 30-word rule — use this everywhere instead of bare text
+function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string; className?: string; color?: string }) {
+  if (!text) return null
+  const wordCount = text.trim().split(/\s+/).length
+  if (wordCount <= 30) {
+    return <p className={`text-[13px] leading-relaxed ${className}`} style={{ color }}>{text}</p>
+  }
+  // Split on sentence endings, keeping the delimiter
+  const sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) ?? [text]
+  const cleaned = sentences.map(s => s.trim()).filter(Boolean)
+  if (cleaned.length <= 1) {
+    // No sentence breaks found — split at clause boundaries (~30 words each)
+    const words = text.split(/\s+/)
+    const chunks: string[] = []
+    for (let i = 0; i < words.length; i += 30) {
+      chunks.push(words.slice(i, i + 30).join(' '))
+    }
+    return (
+      <div className={`flex flex-col gap-2 ${className}`}>
+        {chunks.map((c, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color }}>{c}</p>)}
+      </div>
+    )
+  }
+  return (
+    <div className={`flex flex-col gap-2 ${className}`}>
+      {cleaned.map((s, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color }}>{s}</p>)}
+    </div>
+  )
+}
+
 // ─── app ──────────────────────────────────────────────────────────────────────
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
@@ -398,9 +429,15 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
       <Card>
         <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
           <div>
-            <div className="text-base font-semibold mb-1">{label || r.overview.pageType}</div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="text-base font-semibold">{label || r.overview.pageType}</div>
+              {r.scraped && !r.scraped.error
+                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">✓ Live data fetched</span>
+                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">⚠ Estimated — page not reachable</span>
+              }
+            </div>
             <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
-            <div className="text-[13px] leading-relaxed" style={{ color: 'var(--t3)', maxWidth: 560 }}>{r.overview.summary}</div>
+            <SmartText text={r.overview.summary} color="var(--t3)" />
           </div>
           <ExportAuditBtn auditId={auditId} />
         </div>
@@ -482,7 +519,7 @@ function GapTab({ r }: { r: AuditReport }) {
           <div className="text-2xl" style={{ color: 'var(--t3)' }}>→</div>
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>After Fixes</div><div className="text-3xl font-bold" style={{ color: 'var(--green)' }}>{g.afterScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color="green">{g.afterGrade}</Tag></div>
           <div className="rounded-xl px-5 py-3 border" style={{ background: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.2)' }}><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--green)' }}>Potential Uplift</div><div className="text-2xl font-bold" style={{ color: 'var(--green)' }}>+{diff} pts</div></div>
-          <div className="flex-1 min-w-[200px] text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{g.executiveSummary}</div>
+          <div className="flex-1 min-w-[200px]"><SmartText text={g.executiveSummary} /></div>
         </div>
       </Card>
       <div className="grid grid-cols-2 gap-4">
@@ -494,8 +531,8 @@ function GapTab({ r }: { r: AuditReport }) {
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: 'rgba(248,113,113,0.15)', color: 'var(--red)' }}>{i + 1}</div>
                 <div className="text-[13px] font-semibold">{item.issue}</div>
               </div>
-              <div className="text-[12px] mb-1 pl-7" style={{ color: 'var(--t3)' }}><strong style={{ color: 'var(--t2)' }}>Impact:</strong> {item.impact}</div>
-              <div className="text-[12px] mb-2 pl-7" style={{ color: 'var(--t2)' }}><strong>Fix:</strong> {item.fix}</div>
+              <div className="pl-7 mb-1"><span className="text-[12px] font-semibold" style={{ color: 'var(--t2)' }}>Impact: </span><SmartText text={item.impact} color="var(--t3)" /></div>
+              <div className="pl-7 mb-2"><span className="text-[12px] font-semibold" style={{ color: 'var(--t2)' }}>Fix: </span><SmartText text={item.fix} color="var(--t2)" /></div>
               <div className="pl-7"><Tag color={item.effort === 'Easy' ? 'green' : item.effort === 'Medium' ? 'amber' : 'red'}>{item.effort} fix</Tag></div>
             </div>
           ))}
@@ -506,14 +543,14 @@ function GapTab({ r }: { r: AuditReport }) {
             {g.quickWins.map((item, i) => (
               <div key={i} className="flex gap-3 mb-3 pb-3 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--green)' }}>{i + 1}</div>
-                <div><div className="text-[13px] font-semibold mb-0.5">{item.win}</div><div className="text-[12px] mb-1" style={{ color: 'var(--t3)' }}>{item.action}</div><Tag color="blue">{item.timeEstimate}</Tag></div>
+                <div><div className="text-[13px] font-semibold mb-0.5">{item.win}</div><SmartText text={item.action} color="var(--t3)" /><div className="mt-1"><Tag color="blue">{item.timeEstimate}</Tag></div></div>
               </div>
             ))}
           </Card>
-          <Card><CTitle>📍 Positioning Gap</CTitle><div className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{g.positioningGap}</div></Card>
+          <Card><CTitle>📍 Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
           <div className="rounded-xl p-5 border" style={{ background: 'rgba(124,106,247,0.06)', borderColor: 'rgba(124,106,247,0.25)' }}>
             <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>★ Top Recommendation</div>
-            <div className="text-[14px] font-semibold leading-relaxed" style={{ color: 'var(--t1)' }}>{g.topRecommendation}</div>
+            <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
           </div>
         </div>
       </div>
@@ -604,7 +641,7 @@ function LpTab({ r }: { r: AuditReport }) {
                 <Bar pct={c.percentage} />
                 <span className="font-mono text-[13px] font-semibold min-w-[55px] text-right" style={{ color: sc(c.percentage) }}>{c.score}/{c.maxScore}</span>
               </div>
-              <div className="text-[12px] mb-2 ml-0" style={{ color: 'var(--t3)' }}>{c.assessment}</div>
+              <SmartText text={c.assessment} color="var(--t3)" className="mb-2" />
               <div className="grid grid-cols-5 gap-2">
                 {c.subScores.map((s, i) => (
                   <div key={i} className="rounded-lg p-2 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
@@ -632,8 +669,8 @@ function FixesTab({ r }: { r: AuditReport }) {
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.rank}</div>
           <div className="flex-1">
             <div className="text-[13px] font-semibold mb-1">{f.title}</div>
-            <div className="text-[12px] mb-1" style={{ color: 'var(--t3)' }}><strong style={{ color: 'var(--t2)' }}>Problem:</strong> {f.problem}</div>
-            <div className="text-[12px] mb-2" style={{ color: 'var(--t2)' }}><strong>Fix:</strong> {f.fix}</div>
+            <div className="mb-1 pl-0"><span className="text-[12px] font-semibold" style={{ color: 'var(--t2)' }}>Problem: </span><SmartText text={f.problem} color="var(--t3)" /></div>
+            <div className="mb-2"><span className="text-[12px] font-semibold" style={{ color: 'var(--t2)' }}>Fix: </span><SmartText text={f.fix} color="var(--t2)" /></div>
             <div className="flex gap-2 flex-wrap">
               <Tag color={f.difficulty === 'Easy' ? 'green' : f.difficulty === 'Medium' ? 'amber' : 'red'}>{f.difficulty} fix</Tag>
               <Tag color="blue">Est. {f.uplift}</Tag>
@@ -655,10 +692,10 @@ function CompTab({ r }: { r: AuditReport }) {
         <Card>
           <CTitle>Hook Type & Positioning</CTitle>
           <div className="mb-3"><div className="text-[11px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--t3)' }}>Hook type</div><Tag color="amber">{c.hookType}</Tag></div>
-          <div className="text-[13px] mb-3 leading-relaxed" style={{ color: 'var(--t2)' }}>{c.hookAnalysis}</div>
+          <SmartText text={c.hookAnalysis} className="mb-3" />
           <div className="text-[11px] uppercase tracking-wider mb-1.5" style={{ color: 'var(--t3)' }}>Positioning strength</div>
           <Tag color={c.positioningStrength === 'Strong' ? 'green' : c.positioningStrength === 'Moderate' ? 'amber' : 'red'}>{c.positioningStrength}</Tag>
-          <div className="text-[12px] mt-2" style={{ color: 'var(--t3)' }}>{c.positioningNote}</div>
+          <div className="mt-2"><SmartText text={c.positioningNote} color="var(--t3)" /></div>
         </Card>
         <Card>
           <CTitle>Buyer Anxieties Addressed</CTitle>
@@ -677,7 +714,7 @@ function CompTab({ r }: { r: AuditReport }) {
           {c.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
-              <div className="text-[12px] mb-1.5" style={{ color: 'var(--t3)' }}>{w.rationale}</div>
+              <SmartText text={w.rationale} color="var(--t3)" className="mb-1.5" />
               <Tag color="green">{w.owner}</Tag>
             </div>
           ))}
@@ -851,21 +888,12 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-1">The Short Version</div>
         <div className="text-[13px] mb-4" style={{ color: 'var(--t3)' }}>Three findings from analysing {r.profiles.length} businesses in this market.</div>
-        {r.headlineFindings.map(f => {
-          const sentences = f.detail.split(/(?<=\.)\s+/).filter(Boolean)
-          return (
-            <div key={f.number} className="flex gap-4 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.number}</div>
-              <div>
-                <div className="text-[14px] font-semibold mb-2">{f.title}</div>
-                {sentences.length <= 1
-                  ? <div className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{f.detail}</div>
-                  : <div className="flex flex-col gap-1.5">{sentences.map((s, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{s}</p>)}</div>
-                }
-              </div>
-            </div>
-          )
-        })}
+        {r.headlineFindings.map(f => (
+          <div key={f.number} className="flex gap-4 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{f.number}</div>
+            <div className="flex-1"><div className="text-[14px] font-semibold mb-2">{f.title}</div><SmartText text={f.detail} /></div>
+          </div>
+        ))}
       </div>
 
       {/* Who we looked at */}
@@ -947,8 +975,8 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
           <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0–1 competitors. Strong differentiation potential.</div>
           {r.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-              <div className="text-[13px] font-semibold mb-0.5">{w.opportunity}</div>
-              <div className="text-[12px] mb-1.5" style={{ color: 'var(--t3)' }}>{w.rationale}</div>
+              <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
+              <SmartText text={w.rationale} color="var(--t3)" className="mb-1.5" />
               <Tag color="green">{w.owner}</Tag>
             </div>
           ))}
@@ -975,24 +1003,15 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
       {/* Strategic implications */}
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-4">Strategic Implications</div>
-        {r.strategicImplications.map(s => {
-          const sentences = s.detail.split(/(?<=\.)\s+/)
-          const paras: string[] = []
-          for (let i = 0; i < sentences.length; i += 2) {
-            paras.push(sentences.slice(i, i + 2).join(' '))
-          }
-          return (
-            <div key={s.number} className="mb-4 p-5 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{s.number}</div>
-                <div className="text-[14px] font-semibold">{s.title}</div>
-              </div>
-              <div className="flex flex-col gap-2.5">
-                {paras.map((p, i) => <p key={i} className="text-[13px] leading-relaxed" style={{ color: 'var(--t2)' }}>{p}</p>)}
-              </div>
+        {r.strategicImplications.map(s => (
+          <div key={s.number} className="mb-4 p-5 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: 'rgba(124,106,247,0.15)', color: 'var(--accent2)' }}>{s.number}</div>
+              <div className="text-[14px] font-semibold">{s.title}</div>
             </div>
-          )
-        })}
+            <SmartText text={s.detail} />
+          </div>
+        ))}
       </div>
 
       {/* Quick wins — 2 columns */}
@@ -1005,7 +1024,7 @@ function CompIntelReport({ r }: { r: CompetitorIntelligenceReport }) {
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>☐</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold mb-1 leading-snug">{w.action}</div>
-                <div className="text-[12px] mb-1.5 leading-relaxed" style={{ color: 'var(--t3)' }}>{w.why}</div>
+                <SmartText text={w.why} color="var(--t3)" className="mb-1.5" />
                 <Tag color={w.effort === 'Easy' ? 'green' : w.effort === 'Medium' ? 'amber' : 'red'}>{w.effort} effort</Tag>
               </div>
             </div>

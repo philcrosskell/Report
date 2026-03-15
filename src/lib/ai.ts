@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { AuditRequest, AuditReport } from './types'
 import { buildPromptPart1, buildPromptPart2 } from './prompt'
+import { scrapePage, ScrapedPage } from './scraper'
 
 async function callAnthropic(prompt: string): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -39,57 +40,63 @@ async function callAI(prompt: string): Promise<string> {
   return callAnthropic(prompt)
 }
 
-function cleanJSON(raw: string): string {
-  return raw
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim()
-}
-
 function parseJSON<T>(raw: string): T {
-  const clean = cleanJSON(raw)
-  try {
-    return JSON.parse(clean) as T
-  } catch {
-    // Find the outermost { ... } and try again
-    const start = clean.indexOf('{')
-    const end = clean.lastIndexOf('}')
-    if (start !== -1 && end !== -1 && end > start) {
-      return JSON.parse(clean.slice(start, end + 1)) as T
-    }
+  const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+  try { return JSON.parse(clean) as T }
+  catch {
+    const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
+    if (start !== -1 && end > start) return JSON.parse(clean.slice(start, end + 1)) as T
     throw new Error('Could not parse JSON response')
   }
 }
 
-export async function generateAuditReport(req: AuditRequest): Promise<AuditReport> {
-  // Call 1: overview + scores + SEO + LP scoring (~4000 tokens output)
-  const prompt1 = buildPromptPart1(req)
+export async function generateAuditReport(req: AuditRequest): Promise<AuditReport & { scraped?: ScrapedPage }> {
+  // Step 1: Fetch real page data (runs in parallel-friendly — fast timeout)
+  console.log(`Scraping: ${req.url}`)
+  let scraped: ScrapedPage | undefined
+  try {
+    scraped = await scrapePage(req.url)
+    if (scraped.error) {
+      console.warn(`Scrape failed for ${req.url}: ${scraped.error}`)
+    } else {
+      console.log(`Scraped: ${scraped.wordCount} words, ${scraped.formCount} forms, ${scraped.responseTimeMs}ms`)
+    }
+  } catch (e) {
+    console.warn('Scraper threw:', e)
+    scraped = undefined
+  }
+
+  // Step 2: AI Call 1 — overview + SEO + LP scoring using real data
+  const prompt1 = buildPromptPart1(req, scraped)
   const raw1 = await callAI(prompt1)
 
   type Part1 = Pick<AuditReport, 'overview' | 'scores' | 'seoCategories' | 'lpScoring' | 'projectedScoreAfterFixes'>
   const part1 = parseJSON<Part1>(raw1)
+  if (typeof part1.scores?.seo !== 'number') throw new Error('Part 1 missing scores')
 
-  if (typeof part1.scores?.seo !== 'number') {
-    throw new Error('Part 1 response missing scores')
+  // Inject real values directly — don't trust AI to copy numbers correctly
+  if (scraped && !scraped.error) {
+    part1.overview.wordCount = scraped.wordCount
+    part1.overview.internalLinks = scraped.internalLinks
+    part1.overview.externalLinks = scraped.externalLinks
+    part1.overview.mediaFiles = scraped.images
+    part1.overview.responseTime = `${scraped.responseTimeMs}ms`
+    part1.overview.fileSize = `${Math.round(scraped.htmlSizeBytes / 1024)} kB`
+    if (scraped.title) part1.overview.title = scraped.title
+    if (scraped.metaDescription) part1.overview.description = scraped.metaDescription
   }
 
-  // Build a compact summary to give part 2 context
-  const summary = `SEO: ${part1.scores.seo}, LP: ${part1.scores.lp}, Overall: ${part1.scores.overall}, Grade: ${part1.scores.grade}. Page type: ${part1.overview.pageType}. Summary: ${part1.overview.summary}`
+  const summary = `SEO: ${part1.scores.seo}, LP: ${part1.scores.lp}, Overall: ${part1.scores.overall}, Grade: ${part1.scores.grade}. Page: ${part1.overview.pageType}. ${part1.overview.summary}`
 
-  // Call 2: gap analysis + competitor + fixes + S&W + recommendations (~3000 tokens output)
-  const prompt2 = buildPromptPart2(req, summary)
+  // Step 3: AI Call 2 — gap analysis + fixes + competitor + recommendations
+  const prompt2 = buildPromptPart2(req, summary, scraped)
   const raw2 = await callAI(prompt2)
 
   type Part2 = Pick<AuditReport, 'gapAnalysis' | 'competitorAnalysis' | 'priorityFixes' | 'strengthsWeaknesses' | 'recommendations'>
   const part2 = parseJSON<Part2>(raw2)
+  if (!part2.gapAnalysis || !part2.priorityFixes) throw new Error('Part 2 missing required sections')
 
-  if (!part2.gapAnalysis || !part2.priorityFixes) {
-    throw new Error('Part 2 response missing required sections')
-  }
-
-  // Merge into a complete report
-  const report: AuditReport = {
+  return {
     overview: part1.overview,
     scores: part1.scores,
     seoCategories: part1.seoCategories,
@@ -100,7 +107,6 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
     priorityFixes: part2.priorityFixes,
     strengthsWeaknesses: part2.strengthsWeaknesses,
     recommendations: part2.recommendations,
+    scraped,
   }
-
-  return report
 }

@@ -159,6 +159,7 @@ export interface AuditReport {
     area: string
     action: string
   }[]
+  scraped?: import('./scraper').ScrapedPage
 }
 
 export interface Audit {
