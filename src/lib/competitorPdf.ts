@@ -66,41 +66,6 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
     y += 8
   }
 
-  function numberedItem(num: number, title: string, detail: string, effortColor: [number,number,number] = GREEN, effort = '') {
-    np(30)
-    // Number circle
-    doc.setFillColor(...effortColor)
-    doc.circle(M + 4, y + 3, 4, 'F')
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(255, 255, 255)
-    doc.text(String(num), M + 2.8, y + 4.5)
-    // Title
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...DARK)
-    const titleLines = doc.splitTextToSize(title, CW - 14) as string[]
-    doc.text(titleLines, M + 11, y + 4.5)
-    y += titleLines.length * 6 + 4
-    // Detail
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...GREY)
-    const detailLines = doc.splitTextToSize(detail, CW - 11) as string[]
-    np(detailLines.length * 5.5)
-    doc.text(detailLines, M + 11, y)
-    y += detailLines.length * 5.5 + 2
-    // Effort badge
-    if (effort) {
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...effortColor)
-      doc.text(`${effort} effort`, M + 11, y)
-      y += 8
-    }
-    y += 3
-  }
-
   function divider() {
     np(6)
     doc.setDrawColor(...GREY)
