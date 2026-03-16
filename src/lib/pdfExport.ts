@@ -464,13 +464,13 @@ export async function exportPDF(audit: Audit): Promise<void> {
   // 6. STRENGTHS & GAPS
   // ════════════════════════════════════════════════════════════
   secHeader('Strengths, Weaknesses & Opportunities')
-  const sw = r.strengthsWeaknesses
+  const swData = r.strengthsWeaknesses
   autoTable(doc, {
     startY: y,
     head: [['✓  Strengths', '✗  Weaknesses', '◎  Missed Opportunities']],
     body: (() => {
-      const max = Math.max(sw.strengths.length, sw.weaknesses.length, sw.missedOpportunities.length)
-      return Array.from({ length: max }, (_, i) => [sw.strengths[i] ?? '', sw.weaknesses[i] ?? '', sw.missedOpportunities[i] ?? ''])
+      const max = Math.max(swData.strengths.length, swData.weaknesses.length, swData.missedOpportunities.length)
+      return Array.from({ length: max }, (_, i) => [swData.strengths[i] ?? '', swData.weaknesses[i] ?? '', swData.missedOpportunities[i] ?? ''])
     })(),
     margin: { left: M, right: RT },
     styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
