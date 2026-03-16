@@ -9,6 +9,7 @@ async function callAnthropic(prompt: string): Promise<string> {
   const msg = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8000,
+    system: 'You are a senior SEO and landing page auditor. You respond ONLY with valid JSON objects. Never include markdown, preamble, explanation, or any text outside the JSON object. Start every response with { and end with }.',
     messages: [{ role: 'user', content: prompt }],
   })
   const block = msg.content[0]
@@ -158,8 +159,26 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   const raw1 = await callAI(prompt1)
 
   type Part1 = Pick<AuditReport, 'overview' | 'scores' | 'seoCategories' | 'lpScoring' | 'projectedScoreAfterFixes'>
-  const part1 = parseJSON<Part1>(raw1)
-  if (typeof part1.scores?.seo !== 'number') throw new Error('Part 1 missing scores')
+  let part1: Part1
+  try {
+    part1 = parseJSON<Part1>(raw1)
+  } catch (e) {
+    throw new Error(`Part 1 JSON parse failed: ${e instanceof Error ? e.message : String(e)}`)
+  }
+
+  // Scores might be nested under a wrapper key — unwrap if needed
+  const p1 = part1 as Record<string, unknown>
+  if (!part1.scores && p1.report) {
+    const inner = p1.report as Part1
+    part1 = inner
+  }
+
+  if (typeof part1.scores?.seo !== 'number') {
+    // Log what we got to help debug
+    console.error('Part 1 keys:', Object.keys(part1))
+    console.error('Part 1 scores:', JSON.stringify(part1.scores))
+    throw new Error(`Part 1 missing scores — got keys: ${Object.keys(part1).join(', ')}`)
+  }
 
   // Inject real values directly — don't trust AI to copy numbers correctly
   if (scraped && !scraped.error) {
@@ -180,8 +199,23 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   const raw2 = await callAI(prompt2)
 
   type Part2 = Pick<AuditReport, 'gapAnalysis' | 'competitorAnalysis' | 'priorityFixes' | 'strengthsWeaknesses' | 'recommendations'>
-  const part2 = parseJSON<Part2>(raw2)
-  if (!part2.gapAnalysis || !part2.priorityFixes) throw new Error('Part 2 missing required sections')
+  let part2: Part2
+  try {
+    part2 = parseJSON<Part2>(raw2)
+  } catch (e) {
+    throw new Error(`Part 2 JSON parse failed: ${e instanceof Error ? e.message : String(e)}`)
+  }
+
+  // Unwrap if nested
+  const p2 = part2 as Record<string, unknown>
+  if (!part2.gapAnalysis && p2.report) {
+    part2 = p2.report as Part2
+  }
+
+  if (!part2.gapAnalysis || !part2.priorityFixes) {
+    console.error('Part 2 keys:', Object.keys(part2))
+    throw new Error(`Part 2 missing required sections — got keys: ${Object.keys(part2).join(', ')}`)
+  }
 
   return {
     overview: part1.overview,

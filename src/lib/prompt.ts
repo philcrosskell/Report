@@ -30,7 +30,7 @@ Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${s
 LP weights: messageClarity=${w.messageClarity}, trustSocialProof=${w.trustSocialProof}, ctaForms=${w.ctaForms}, technicalPerformance=${w.technicalPerformance}, visualUX=${w.visualUX}
 Grades: A=90-100 B=70-89 C=50-69 D=30-49 F=0-29
 
-Return ONLY valid complete JSON for Part 1. No markdown. No truncation.
+Return ONLY valid complete JSON for Part 1. Start your response with { and end with }. No markdown. No preamble. No explanation. No truncation.
 
 Schema:
 {
@@ -72,7 +72,7 @@ Part 1 scores: ${part1Summary}
 
 ${hasReal ? `Key facts: Forms=${scraped.hasForms ? `YES (${scraped.formCount}, ~${scraped.formFields} fields)` : 'NONE'} | H1="${scraped.h1[0] ?? 'missing'}" | Words=${scraped.wordCount} | Phone=${scraped.phoneNumbers[0] ?? 'none'} | Schema=${scraped.hasSchema ? scraped.schemaTypes.join(',') : 'none'} | Missing alt=${scraped.imagesMissingAlt}` : ''}
 
-Return ONLY valid complete JSON for Part 2. No markdown. No truncation.
+Return ONLY valid complete JSON for Part 2. Start your response with { and end with }. No markdown. No preamble. No explanation. No truncation.
 
 {
   "gapAnalysis": {
