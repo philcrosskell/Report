@@ -48,11 +48,16 @@ const CAT_LABELS: Record<string, string> = {
   externalFactors: 'External Factors',
 }
 
-// ─── Section header ────────────────────────────────────────────────────────────
+// ─── Page card wrapper ─────────────────────────────────────────────────────────
 
-function sectionHeader(num: string, label: string, title: string, gradStart: string, gradEnd: string) {
-  return `
-  <div style="margin-top:40px;border-radius:12px;overflow:hidden;background:#07090F">
+function pageCard(content: string) {
+  return `<div style="background:#fff;border-radius:16px;overflow:hidden;margin-bottom:32px;box-shadow:0 8px 40px rgba(0,0,0,0.5)">${content}</div>`
+}
+
+// ─── Section header (sits flush at top of each page card) ──────────────────────
+
+function sectionHeader(_num: string, label: string, title: string, gradStart: string, gradEnd: string) {
+  return `<div style="background:#07090F">
     <div style="height:5px;background:linear-gradient(90deg,${gradStart},${gradEnd})"></div>
     <div style="padding:22px 32px">
       <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:6px">${esc(label)}</div>
@@ -79,8 +84,8 @@ export function exportHTML(audit: Audit) {
   const title = r.overview.title || url
 
   // ── Cover ─────────────────────────────────────────────────────────────────
-  const coverSection = `
-  <div style="border-radius:12px;overflow:hidden;background:#07090F;margin-bottom:8px">
+  const coverSection = pageCard(`
+  <div style="background:#07090F">
     <div style="height:5px;background:linear-gradient(90deg,#6366F1,#8B5CF6,#EC4899)"></div>
     <div style="padding:28px 32px 24px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:12px">
@@ -95,60 +100,59 @@ export function exportHTML(audit: Audit) {
       <div style="text-align:right;color:rgba(255,255,255,.25);font-size:11px">${esc(date)}</div>
     </div>
   </div>
-
-  <div style="padding:32px 0 8px">
+  <div style="padding:32px 32px 36px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8B5CF6;margin-bottom:10px">PAGE AUDIT REPORT</div>
     <div style="font-size:42px;font-weight:700;color:#0E1120;line-height:1.1;margin-bottom:8px">${esc(title)}</div>
-    <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">Homepage Audit</div>
+    <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${esc(r.overview.pageType || 'Page Audit')}</div>
     <a href="${esc(url)}" style="font-size:11px;color:#B0B5CC;text-decoration:none">${esc(url)}</a>
-  </div>
 
-  <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
+    <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
 
-  <div style="display:flex;gap:14px;margin-bottom:20px">
-    ${[
-      ['SEO SCORE', String(r.scores.seo), scoreColour(r.scores.seo)],
-      ['LP SCORE',  String(r.scores.lp),  scoreColour(r.scores.lp)],
-      ['OVERALL',   String(r.scores.overall), scoreColour(r.scores.overall)],
-      ['GRADE',     r.scores.grade, gradeColour(r.scores.grade)],
-    ].map(([lbl,val,col]) => `
-      <div style="flex:1;border-radius:12px;overflow:hidden;border:1px solid #ECEEF7">
-        <div style="height:4px;background:${col}"></div>
-        <div style="padding:14px 16px 16px;background:#F9FAFB;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:${col}">${esc(val)}</div>
-          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#B0B5CC;margin-top:4px">${esc(lbl)}</div>
-        </div>
-      </div>`).join('')}
-  </div>
+    <div style="display:flex;gap:14px;margin-bottom:20px">
+      ${[
+        ['SEO SCORE', String(r.scores.seo), scoreColour(r.scores.seo)],
+        ['LP SCORE',  String(r.scores.lp),  scoreColour(r.scores.lp)],
+        ['OVERALL',   String(r.scores.overall), scoreColour(r.scores.overall)],
+        ['GRADE',     r.scores.grade, gradeColour(r.scores.grade)],
+      ].map(([lbl,val,col]) => `
+        <div style="flex:1;border-radius:12px;overflow:hidden;border:1px solid #ECEEF7;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
+          <div style="height:4px;background:${col}"></div>
+          <div style="padding:14px 16px 16px;background:#F9FAFB;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:${col}">${esc(val)}</div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#B0B5CC;margin-top:4px">${esc(lbl)}</div>
+          </div>
+        </div>`).join('')}
+    </div>
 
-  <div style="background:#F7F8FD;border:1px solid #ECEEF7;border-radius:10px;padding:14px 20px;display:flex;gap:0;margin-bottom:20px">
-    ${[
-      ['PAGE TYPE', r.overview.pageType || '—'],
-      ['WORD COUNT', String(r.overview.wordCount)],
-      ['RESPONSE TIME', r.overview.responseTime],
-      ['INT. LINKS', String(r.overview.internalLinks)],
-      ['FILE SIZE', r.overview.fileSize],
-    ].map((s,i) => `
-      <div style="flex:1;${i>0?'border-left:1px solid #ECEEF7;':''} padding:0 ${i>0?'16':'0'}px 0 ${i>0?'16':'0'}px">
-        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#B0B5CC;margin-bottom:4px">${esc(s[0])}</div>
-        <div style="font-size:12px;font-weight:700;color:#4A5280">${esc(s[1])}</div>
-      </div>`).join('')}
-  </div>
+    <div style="background:#F7F8FD;border:1px solid #ECEEF7;border-radius:10px;padding:14px 20px;display:flex;gap:0;margin-bottom:20px">
+      ${[
+        ['PAGE TYPE', r.overview.pageType || '—'],
+        ['WORD COUNT', String(r.overview.wordCount)],
+        ['RESPONSE TIME', r.overview.responseTime],
+        ['INT. LINKS', String(r.overview.internalLinks)],
+        ['FILE SIZE', r.overview.fileSize],
+      ].map((s,i) => `
+        <div style="flex:1;${i>0?'border-left:1px solid #ECEEF7;':''} padding:0 ${i>0?'16':'0'}px 0 ${i>0?'16':'0'}px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#B0B5CC;margin-bottom:4px">${esc(s[0])}</div>
+          <div style="font-size:12px;font-weight:700;color:#4A5280">${esc(s[1])}</div>
+        </div>`).join('')}
+    </div>
 
-  <div style="font-size:13px;color:#4A5280;line-height:1.75">${esc(r.overview.summary)}</div>`
+    <div style="font-size:13px;color:#4A5280;line-height:1.75">${esc(r.overview.summary)}</div>
+  </div>`)
 
   // ── Gap Analysis ──────────────────────────────────────────────────────────
   const ga = r.gapAnalysis
-  const gapSection = `
+  const gapSection = pageCard(`
   ${sectionHeader('02','SECTION','Gap Analysis','#6366F1','#8B5CF6')}
-
-  <div style="display:flex;gap:14px;margin:20px 0">
+  <div style="padding:28px 32px 36px">
+  <div style="display:flex;gap:14px;margin:0 0 20px">
     ${[
       ['CURRENT SCORE', ga.beforeScore + ' (' + ga.beforeGrade + ')', '#F59E0B', '#F9FAFB', '#E5E7EB'],
       ['PROJECTED SCORE', ga.afterScore + ' (' + ga.afterGrade + ')', '#10B981', '#F9FAFB', '#E5E7EB'],
       ['POTENTIAL UPLIFT', '+' + (ga.afterScore - ga.beforeScore), '#10B981', '#ECFDF5', '#A7F3D0'],
     ].map(([lbl,val,col,bg,bc]) => `
-      <div style="flex:1;border-radius:10px;overflow:hidden;border:1px solid ${bc}">
+      <div style="flex:1;border-radius:10px;overflow:hidden;border:1px solid ${bc};box-shadow:0 2px 12px rgba(0,0,0,0.15)">
         <div style="height:4px;background:${col}"></div>
         <div style="padding:14px 16px 16px;background:${bg}">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#8B90AA;margin-bottom:6px">${esc(lbl)}</div>
@@ -165,7 +169,7 @@ export function exportHTML(audit: Audit) {
   ${subHead('Critical Issues','#EF4444')}
 
   ${ga.criticalIssues.map((ci,i) => `
-  <div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid #ECEEF7;margin-bottom:14px">
+  <div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid #ECEEF7;margin-bottom:14px;box-shadow:0 1px 8px rgba(0,0,0,0.10)">
     <div style="width:5px;background:#EF4444;flex-shrink:0"></div>
     <div style="flex:1;padding:18px 20px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
@@ -190,17 +194,19 @@ export function exportHTML(audit: Audit) {
     <div style="font-size:12px;color:#7A82A5;line-height:1.7">${esc(qw.action)}</div>
   </div>`).join('')}
 
-  <div style="border-radius:10px;overflow:hidden;margin-top:20px">
+  <div style="border-radius:10px;overflow:hidden;margin-top:20px;box-shadow:0 6px 28px rgba(99,102,241,0.28)">
     <div style="background:#6366F1;padding:10px 16px;font-size:9px;font-weight:700;letter-spacing:.12em;color:#fff">★ &nbsp;TOP RECOMMENDATION</div>
     <div style="background:#EEEDFE;padding:16px">
       <div style="font-size:13px;font-weight:700;color:#2D1FA3;line-height:1.7">${esc(ga.topRecommendation)}</div>
     </div>
-  </div>`
+  </div>
+  </div>`)
 
   // ── SEO Analysis ──────────────────────────────────────────────────────────
   const cats = r.seoCategories
-  const seoSection = `
+  const seoSection = pageCard(`
   ${sectionHeader('03','SECTION','SEO Analysis','#EF4444','#F97316')}
+  <div style="padding:28px 32px 36px">
 
   ${subHead('Category Scores','#6366F1')}
 
@@ -236,18 +242,20 @@ export function exportHTML(audit: Audit) {
       </div>
       <div style="flex-shrink:0;padding-top:2px">${statusPill(ch.status)}</div>
     </div>`).join('')}`
-  }).join('')}`
+  }).join('')}
+  </div>`)
 
   // ── Priority Fixes ────────────────────────────────────────────────────────
-  const fixSection = `
+  const fixSection = pageCard(`
   ${sectionHeader('04','SECTION','Priority Fixes','#F59E0B','#FBBF24')}
-  <div style="margin-top:20px">
+  <div style="padding:28px 32px 36px">
+  <div style="margin-top:0">
   ${r.priorityFixes.map((fix) => {
     const accentMap: Record<string,string> = { Easy:'#10B981', Medium:'#F59E0B', Hard:'#EF4444' }
     const accent = accentMap[fix.difficulty] || '#6366F1'
     const lightBg = fix.difficulty==='Easy' ? '#ECFDF5' : fix.difficulty==='Medium' ? '#FFFBEB' : '#FEF2F2'
     return `
-    <div style="display:flex;border-radius:12px;overflow:hidden;border:1px solid #ECEEF7;margin-bottom:16px">
+    <div style="display:flex;border-radius:12px;overflow:hidden;border:1px solid #ECEEF7;margin-bottom:16px;box-shadow:0 2px 14px rgba(0,0,0,0.12)">
       <div style="width:52px;background:${lightBg};display:flex;flex-direction:column;align-items:center;padding-top:20px;flex-shrink:0">
         <div style="width:34px;height:34px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff">${fix.rank}</div>
       </div>
@@ -267,13 +275,13 @@ export function exportHTML(audit: Audit) {
       </div>
     </div>`
   }).join('')}
-  </div>`
-
-  // ── Strengths / Weaknesses ────────────────────────────────────────────────
+  </div>
+  </div>`)
   const sw = r.strengthsWeaknesses
-  const swSection = `
+  const swSection = pageCard(`
   ${sectionHeader('05','SECTION','Strengths, Weaknesses & Opportunities','#10B981','#06B6D4')}
-  <div style="display:flex;gap:14px;margin-top:20px">
+  <div style="padding:28px 32px 36px">
+  <div style="display:flex;gap:14px;margin-top:0">
     ${[
       ['Strengths', sw.strengths, '#065F46', '#ECFDF5', '#10B981'],
       ['Weaknesses', sw.weaknesses, '#7F1D1D', '#FEF2F2', '#EF4444'],
@@ -289,12 +297,14 @@ export function exportHTML(audit: Audit) {
             </div>`).join('')}
         </div>
       </div>`).join('')}
-  </div>`
+  </div>
+  </div>`)
 
   // ── Recommendations ───────────────────────────────────────────────────────
-  const recSection = `
+  const recSection = pageCard(`
   ${sectionHeader('06','SECTION','Recommendations','#6366F1','#3B82F6')}
-  <div style="border-radius:10px;overflow:hidden;margin-top:20px">
+  <div style="padding:28px 32px 36px">
+  <div style="border-radius:10px;overflow:hidden;margin-top:0;box-shadow:0 2px 16px rgba(0,0,0,0.08)">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead>
         <tr style="background:#07090F;color:#fff">
@@ -312,7 +322,8 @@ export function exportHTML(audit: Audit) {
           </tr>`).join('')}
       </tbody>
     </table>
-  </div>`
+  </div>
+  </div>`)
 
   // ── Assemble full document ─────────────────────────────────────────────────
   const html = `<!DOCTYPE html>
@@ -323,7 +334,7 @@ export function exportHTML(audit: Audit) {
   <title>AuditIQ Report — ${esc(title)}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #F0F2FA; color: #0E1120; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #0E1120; color: #0E1120; }
     .wrapper { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
     @media (max-width: 600px) {
       .score-row { flex-direction: column !important; }
@@ -340,15 +351,15 @@ export function exportHTML(audit: Audit) {
     ${fixSection}
     ${swSection}
     ${recSection}
-    <div style="margin-top:48px;padding-top:20px;border-top:1px solid #ECEEF7;display:flex;align-items:center;justify-content:space-between">
+    <div style="margin-top:32px;padding:20px 0;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:4px;height:28px;background:#FFE600;border-radius:2px"></div>
         <div>
-          <div style="font-size:13px;font-weight:400;color:#07090F"><strong>BEAL</strong> Creative.</div>
-          <div style="font-size:8px;font-weight:700;letter-spacing:.14em;color:#8B90AA">AUDIT MACHINE</div>
+          <div style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.6)"><strong style="color:#fff">BEAL</strong> Creative.</div>
+          <div style="font-size:8px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,0.25)">AUDIT MACHINE</div>
         </div>
       </div>
-      <div style="font-size:11px;color:#B0B5CC">Generated ${esc(date)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.25)">Generated ${esc(date)}</div>
     </div>
   </div>
 </body>
