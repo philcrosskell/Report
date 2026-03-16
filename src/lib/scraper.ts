@@ -213,7 +213,7 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
         .filter(p => p !== '/' && p !== '')
     )
     blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
-    blank.phoneNumbers = [...new Set(phoneMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim()))].slice(0, 3)
+    blank.phoneNumbers = ([...new Set(phoneMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim()))] as string[]).slice(0, 3)
 
     // Email addresses
     const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) ?? []
