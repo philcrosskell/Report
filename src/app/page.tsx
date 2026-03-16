@@ -1223,6 +1223,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     const audit = getAuditById(id); if (!audit) return
     const { exportPDF } = await import('@/lib/pdfExport'); exportPDF(audit)
   }
+  const exportAuditHTML = async (id: string) => {
+    const audit = getAuditById(id); if (!audit) return
+    const { exportHTML } = await import('@/lib/htmlExport'); exportHTML(audit)
+  }
   const exportComp = async (id: string) => {
     const rep = compReports.find(r => r.id === id); if (!rep) return
     const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep, storedLogo)
@@ -1273,6 +1277,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                             <div className="flex gap-1.5">
                               <Btn sm onClick={() => onView(a)}>View</Btn>
                               <Btn sm onClick={() => exportAudit(a.id)}>↓ PDF</Btn>
+                              <Btn sm onClick={() => exportAuditHTML(a.id)}>↓ HTML</Btn>
                               <Btn sm danger onClick={() => { deleteAudit(a.id); onRefresh() }}>Delete</Btn>
                             </div>
                           </td>
