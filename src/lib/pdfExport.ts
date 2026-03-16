@@ -1,380 +1,563 @@
-import { Audit } from './types'
-
-// ─── Design tokens ─────────────────────────────────────────────────────────────
-const BLACK:      [number,number,number] = [20,  20,  20 ]
-const DARK:       [number,number,number] = [40,  40,  40 ]
-const GREY:       [number,number,number] = [100, 100, 110]
-const LIGHT_GREY: [number,number,number] = [180, 180, 190]
-const BG_GREY:    [number,number,number] = [248, 248, 250]
-const WHITE:      [number,number,number] = [255, 255, 255]
-const YELLOW:     [number,number,number] = [255, 229, 0  ]
-const Y_PALE:     [number,number,number] = [255, 249, 180]
-const GREEN:      [number,number,number] = [34,  197, 94 ]
-const AMBER:      [number,number,number] = [245, 158, 11 ]
-const RED:        [number,number,number] = [239, 68,  68 ]
-const BLUE:       [number,number,number] = [59,  130, 246]
-
-const SW   = 5        // left stripe width (mm)
-const M    = 24       // left content margin (mm)
-const RT   = 16       // right trim (mm)
-const W    = 210      // A4 width (mm)
-const PH   = 297      // A4 height (mm)
-const CW   = W - M - RT  // content width (mm)
-const LH   = 6        // standard line height (mm)
-const PG   = 6        // paragraph gap after text blocks (mm)
-
-const COVER_BAND = 84 // yellow cover band height (mm)
-
-function scol(n: number): [number,number,number] {
-  return n >= 70 ? GREEN : n >= 40 ? AMBER : RED
+import type { Audit, SeoCheck } from './types'
+ 
+type RGB = [number, number, number]
+ 
+// ─── Design tokens ──────────────────────────────────────────────────────────
+const DARK:       RGB = [7,   9,   15 ]
+const DARK_TEXT:  RGB = [14,  17,  32 ]
+const BODY:       RGB = [74,  82,  128]
+const MUTED:      RGB = [139, 144, 170]
+const LABEL:      RGB = [176, 181, 204]
+const BORDER:     RGB = [236, 238, 247]
+const LIGHT_BG:   RGB = [249, 250, 251]
+const LIGHT_BG2:  RGB = [247, 248, 253]
+const WHITE:      RGB = [255, 255, 255]
+const YELLOW:     RGB = [255, 230, 0  ]
+const INDIGO:     RGB = [99,  102, 241]
+const INDIGO_D:   RGB = [45,  31,  163]
+const INDIGO_BG:  RGB = [245, 246, 255]
+const INDIGO_L:   RGB = [238, 237, 254]
+const PURPLE:     RGB = [139, 92,  246]
+const CORAL:      RGB = [239, 68,  68 ]
+const AMBER:      RGB = [245, 158, 11 ]
+const AMBER_D:    RGB = [217, 119, 6  ]
+const GREEN:      RGB = [16,  185, 129]
+const GREEN_D:    RGB = [5,   150, 105]
+const MINT:       RGB = [6,   182, 212]
+const PINK:       RGB = [236, 72,  153]
+const BLUE:       RGB = [59,  130, 246]
+const ORANGE:     RGB = [249, 115, 22 ]
+const AMBER_L:    RGB = [251, 191, 36 ]
+ 
+const TAG_RED_BG: RGB = [254, 226, 226]; const TAG_RED_FG: RGB = [185, 28,  28 ]
+const TAG_AMB_BG: RGB = [254, 243, 199]; const TAG_AMB_FG: RGB = [146, 64,  14 ]
+const TAG_GRN_BG: RGB = [209, 250, 229]; const TAG_GRN_FG: RGB = [6,   95,  70 ]
+const TAG_BLU_BG: RGB = [219, 234, 254]; const TAG_BLU_FG: RGB = [29,  78,  216]
+ 
+// ─── Layout constants ────────────────────────────────────────────────────────
+const W  = 210   // A4 width (mm)
+const PH = 297   // A4 height (mm)
+const L  = 20    // left margin
+const RM = 16    // right margin
+const R  = W - RM
+const CW = R - L
+const LH = 5.5   // line height
+const PG = 5     // paragraph gap
+ 
+function scol(n: number): RGB {
+  return n >= 70 ? GREEN : n >= 40 ? AMBER : CORAL
 }
-
-// Protect common abbreviations from being treated as sentence-ends
-function abbrevProtect(t: string): string {
-  return t
-    .replace(/\be\.g\./g, 'e\x00g\x00').replace(/\bi\.e\./g, 'i\x00e\x00')
-    .replace(/\betc\./g, 'etc\x00').replace(/\bvs\./g, 'vs\x00')
-    .replace(/\bDr\./g, 'Dr\x00').replace(/\bMr\./g, 'Mr\x00')
-    .replace(/\bMrs\./g, 'Mrs\x00').replace(/\bNo\./g, 'No\x00')
+ 
+// ─── Helper: lerp two RGBs ───────────────────────────────────────────────────
+function lerpRGB(c1: RGB, c2: RGB, t: number): RGB {
+  return [
+    Math.round(c1[0] + t * (c2[0] - c1[0])),
+    Math.round(c1[1] + t * (c2[1] - c1[1])),
+    Math.round(c1[2] + t * (c2[2] - c1[2])),
+  ]
 }
-function splitSentences(text: string): string[] {
-  const p = abbrevProtect(text)
-  const s = p.match(/[^.!?]+[.!?]+[\s]*/g) ?? [p]
-  return s.map(x => x.trim().replace(/\x00/g, '.')).filter(Boolean)
-}
-
+ 
 export async function exportPDF(audit: Audit): Promise<void> {
-  const { default: jsPDF }     = await import('jspdf')
-  const { default: autoTable } = await import('jspdf-autotable')
+  const { default: jsPDF } = await import('jspdf')
   const r   = audit.report
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   let y = 0
-
-  // ─── Core helpers ──────────────────────────────────────────────────────────
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function lastY() { return (doc as any).lastAutoTable.finalY + 8 }
-
-  // Add a new interior page with yellow stripe + thin top rule
+ 
+  // ─── Colour setters ─────────────────────────────────────────────────────────
+  const sf = (col: RGB) => doc.setFillColor(col[0], col[1], col[2])
+  const st = (col: RGB) => doc.setTextColor(col[0], col[1], col[2])
+  const sd = (col: RGB) => doc.setDrawColor(col[0], col[1], col[2])
+ 
+  // ─── Gradient strip (simulated with thin rects) ──────────────────────────────
+  function gradStrip(c1: RGB, c2: RGB, yTop: number, h: number) {
+    const steps = 30
+    const sw = W / steps
+    for (let i = 0; i < steps; i++) {
+      const col = lerpRGB(c1, c2, i / steps)
+      doc.setFillColor(col[0], col[1], col[2])
+      doc.rect(i * sw, yTop, sw + 0.2, h, 'F')
+    }
+  }
+ 
+  // ─── Donut ring ──────────────────────────────────────────────────────────────
+  function drawSector(cx: number, cy: number, radius: number, pct: number, col: RGB) {
+    if (pct <= 0.01) return
+    const steps  = 32
+    const startA = -Math.PI / 2
+    const sweep  = Math.min(pct, 1) * 2 * Math.PI
+    const pts: [number, number][] = []
+    pts.push([radius * Math.cos(startA), radius * Math.sin(startA)])
+    for (let i = 1; i <= steps; i++) {
+      const a    = startA + sweep * i / steps
+      const prev = startA + sweep * (i - 1) / steps
+      pts.push([
+        radius * Math.cos(a) - radius * Math.cos(prev),
+        radius * Math.sin(a) - radius * Math.sin(prev),
+      ])
+    }
+    sf(col)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(doc as any).lines(pts, cx, cy, [1, 1], 'F', true)
+  }
+ 
+  function drawDonut(cx: number, cy: number, outerR: number, innerR: number, pct: number, col: RGB, bgCol: RGB) {
+    sf(BORDER);  doc.circle(cx, cy, outerR, 'F')
+    drawSector(cx, cy, outerR, pct, col)
+    sf(bgCol);   doc.circle(cx, cy, innerR, 'F')
+  }
+ 
+  // ─── Tag/pill badge ──────────────────────────────────────────────────────────
+  function drawTag(text: string, bg: RGB, fg: RGB, px: number, py: number, sz = 7.5): number {
+    doc.setFontSize(sz); doc.setFont('helvetica', 'bold')
+    const tw   = doc.getTextWidth(text)
+    const padX = 5; const padY = 2.5
+    const tagW = tw + padX * 2; const tagH = sz * 0.4 + padY * 2
+    sf(bg); doc.roundedRect(px, py - tagH + 2, tagW, tagH, tagH / 2, tagH / 2, 'F')
+    st(fg); doc.text(text, px + padX, py + 0.3)
+    return tagW + 3
+  }
+ 
+  // ─── Horizontal rule ─────────────────────────────────────────────────────────
+  function hline(yPos: number, col: RGB = BORDER, lw = 0.6) {
+    sd(col); doc.setLineWidth(lw)
+    doc.line(L, yPos, R, yPos)
+  }
+ 
+  // ─── Page management ─────────────────────────────────────────────────────────
   function addPage() {
     doc.addPage()
-    doc.setFillColor(...WHITE);  doc.rect(0, 0, W, PH, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(0, 0, SW, PH, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(SW, 0, W - SW, 2.5, 'F')
-    y = 22
+    sf(WHITE); doc.rect(0, 0, W, PH, 'F')
+    y = 0
   }
-
-  // Start new page if less than `need` mm of space remains
-  function np(need = 24) { if (y + need > 273) addPage() }
-
-  // Force new page if less than minSpace remains — prevents sub-sections
-  // from orphaning their heading at the bottom of a page
-  function sectionBreak(minSpace = 70) {
+ 
+  function np(need = 24) { if (y + need > 275) addPage() }
+ 
+  function sectionBreak(minSpace = 60) {
     if (y > PH - 24 - minSpace) addPage()
   }
-
-  // ─── Text & layout primitives ──────────────────────────────────────────────
-
-  function secHeader(title: string) {
+ 
+  // ─── Section header (dark bg + gradient strip) ───────────────────────────────
+  function secHeader(title: string, c1: RGB, c2: RGB) {
+    const stripH = 5; const hdrH = 60
+    gradStrip(c1, c2, 0, stripH)
+    sf(DARK); doc.rect(0, stripH, W, hdrH, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(160, 163, 200)
+    doc.text('SECTION', L, stripH + 18)
+    doc.setFontSize(22); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(255, 255, 255)
+    doc.text(title, L, stripH + 48)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 105, 140)
+    doc.text(audit.label || audit.url, R, stripH + 50, { align: 'right' })
+    y = stripH + hdrH + 14
+  }
+ 
+  // ─── Continuation header (thin dark bar) ─────────────────────────────────────
+  function contHeader(label: string, c1: RGB, c2: RGB) {
+    const stripH = 3; const hdrH = 26
+    gradStrip(c1, c2, 0, stripH)
+    sf(DARK); doc.rect(0, stripH, W, hdrH, 'F')
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(190, 195, 225)
+    doc.text(`${label.toUpperCase()} — CONTINUED`, L, stripH + 18)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 105, 140)
+    doc.text(audit.label || audit.url, R, stripH + 18, { align: 'right' })
+    y = stripH + hdrH + 12
+  }
+ 
+  // ─── Sub-heading (dot + underline) ───────────────────────────────────────────
+  function subHead(text: string, dotCol: RGB) {
     np(22)
-    doc.setFillColor(...YELLOW); doc.rect(M, y, CW, 12, 'F')
-    doc.setTextColor(...BLACK); doc.setFontSize(10); doc.setFont('helvetica', 'bold')
-    doc.text(title.toUpperCase(), M + 5, y + 8.5)
-    y += 19
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
+    y += 10
+    sf(dotCol); doc.circle(L + 3.5, y - 3, 3, 'F')
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(text, L + 12, y)
+    hline(y + 6, BORDER, 1.2)
+    y += 22
   }
-
-  function subHead(title: string) {
-    np(18)
-    doc.setFillColor(...BG_GREY); doc.rect(M, y - 1, CW, 11, 'F')
-    doc.setFillColor(...YELLOW);  doc.rect(M, y - 1, 4, 11, 'F')
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(title, M + 8, y + 6.5)
-    y += 16
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-  }
-
-  function bodyText(text: string, indent = 0, color: [number,number,number] = DARK, size = 10) {
-    doc.setFontSize(size); doc.setFont('helvetica', 'normal'); doc.setTextColor(...color)
+ 
+  // ─── Body text ────────────────────────────────────────────────────────────────
+  function bodyText(text: string, indent = 0, col: RGB = BODY, sz = 10) {
+    doc.setFontSize(sz); doc.setFont('helvetica', 'normal'); st(col)
     const lines = doc.splitTextToSize(text, CW - indent) as string[]
     np(lines.length * LH + PG)
-    doc.text(lines, M + indent, y)
+    doc.text(lines, L + indent, y)
     y += lines.length * LH + PG
   }
-
-  function smartBody(text: string, indent = 0, color: [number,number,number] = DARK) {
-    bodyText(splitSentences(text).join(' '), indent, color)
+ 
+  // ─── Callout box ─────────────────────────────────────────────────────────────
+  function calloutBox(text: string, borderCol: RGB, labelCol: RGB, label: string, bg: RGB = INDIGO_BG) {
+    const lines = doc.splitTextToSize(text, CW - 22) as string[]
+    const h = lines.length * LH + 30
+    np(h + 8)
+    sf(bg); doc.roundedRect(L, y, CW, h, 4, 4, 'F')
+    sf(borderCol); doc.rect(L, y, 3, h, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(labelCol)
+    doc.text(label, L + 11, y + 11)
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(lines, L + 11, y + 22)
+    y += h + 12
   }
-
-  function divider(gap = 6) {
-    np(8)
-    doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
-    doc.line(M, y, M + CW, y)
-    y += gap
+ 
+  // ─── Issue card ───────────────────────────────────────────────────────────────
+  function issueCard(accent: RGB, title: string, impact: string, fix: string,
+    effortText: string, efBg: RGB, efFg: RGB) {
+    const tLines  = doc.splitTextToSize(title,  CW - 50) as string[]
+    const imLines = doc.splitTextToSize(impact, CW - 22) as string[]
+    const fxLines = doc.splitTextToSize(fix,    CW - 22) as string[]
+    const cardH   = tLines.length * 6.5 + imLines.length * LH + fxLines.length * LH + 56
+    np(cardH + 10)
+    sf(WHITE); doc.roundedRect(L, y, CW, cardH, 5, 5, 'F')
+    sd(BORDER); doc.setLineWidth(0.6); doc.roundedRect(L, y, CW, cardH, 5, 5, 'S')
+    sf(accent); doc.roundedRect(L, y, 4, cardH, 2, 2, 'F')
+    // effort tag top-right
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    const efW = doc.getTextWidth(effortText) + 10 + 6
+    drawTag(effortText, efBg, efFg, R - efW, y + 12)
+    // title
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(tLines, L + 12, y + 14)
+    let cy = y + tLines.length * 6.5 + 20
+    // impact
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text('IMPACT', L + 12, cy); cy += 9
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(imLines, L + 12, cy); cy += imLines.length * LH + 8
+    // fix
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text('FIX', L + 12, cy); cy += 9
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(fxLines, L + 12, cy)
+    y += cardH + 10
   }
-
-  // Draws a coloured pill badge — returns the pill width for layout
-  function pill(label: string, bg: [number,number,number], x: number, py: number): number {
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold')
-    const tw = doc.getTextWidth(label)
-    const pw = tw + 8; const ph = 5.5
-    doc.setFillColor(...bg); doc.roundedRect(x, py - 4, pw, ph, 1.5, 1.5, 'F')
-    doc.setTextColor(...WHITE); doc.text(label, x + 4, py - 0.2)
-    doc.setFont('helvetica', 'normal')
-    return pw + 3
+ 
+  // ─── Fix card ─────────────────────────────────────────────────────────────────
+  function fixCard(accent: RGB, num: number, title: string, problem: string, fix: string,
+    effortText: string, efBg: RGB, efFg: RGB, uplift: string, timeline: string) {
+    const AW     = 34
+    const tLines = doc.splitTextToSize(title,   CW - AW - 22) as string[]
+    const pLines = doc.splitTextToSize(problem, CW - AW - 22) as string[]
+    const fLines = doc.splitTextToSize(fix,     CW - AW - 22) as string[]
+    const cardH  = tLines.length * 7 + pLines.length * LH + fLines.length * LH + 70
+    np(cardH + 10)
+    // side accent panel (light tint)
+    const la: RGB = [
+      Math.round(accent[0] * 0.15 + 255 * 0.85),
+      Math.round(accent[1] * 0.15 + 255 * 0.85),
+      Math.round(accent[2] * 0.15 + 255 * 0.85),
+    ]
+    sf(la); doc.roundedRect(L, y, AW, cardH, 5, 5, 'F')
+    // number circle
+    sf(accent); doc.circle(L + AW / 2, y + 20, 10, 'F')
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text(String(num), L + AW / 2, y + 24, { align: 'center' })
+    // body panel
+    sf(WHITE); doc.roundedRect(L + AW, y, CW - AW, cardH, 5, 5, 'F')
+    sd(BORDER); doc.setLineWidth(0.6); doc.roundedRect(L + AW, y, CW - AW, cardH, 5, 5, 'S')
+    const ix = L + AW + 12; let cy = y + 16
+    doc.setFontSize(11.5); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(tLines, ix, cy); cy += tLines.length * 7 + 8
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text('PROBLEM', ix, cy); cy += 9
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(pLines, ix, cy); cy += pLines.length * LH + 8
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text('FIX', ix, cy); cy += 9
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(fLines, ix, cy); cy += fLines.length * LH + 12
+    const tagW = drawTag(effortText, efBg, efFg, ix, cy + 5)
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(INDIGO)
+    doc.text((doc.splitTextToSize(uplift, CW * 0.38) as string[])[0], ix + tagW + 4, cy + 5)
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(timeline, R - doc.getTextWidth(timeline) - 2, cy + 5)
+    y += cardH + 12
   }
-
+ 
+  // ─── Check item (SEO) ─────────────────────────────────────────────────────────
+  function checkItem(dotCol: RGB, label: string, tagText: string, tagBg: RGB, tagFg: RGB, detail: string) {
+    const textW    = CW * 0.68
+    const detLines = doc.splitTextToSize(detail, textW - 10) as string[]
+    const itemH    = detLines.length * 5.5 + 24
+    np(itemH + 6)
+    // dot
+    sf(dotCol); doc.circle(L + 3.5, y - 3, 3, 'F')
+    // label
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(label, L + 12, y)
+    // centred tag in right zone
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    const tw2   = doc.getTextWidth(tagText) + 10 + 6
+    const tagX  = (L + textW + R) / 2 - tw2 / 2
+    drawTag(tagText, tagBg, tagFg, tagX, y)
+    y += 12
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(detLines, L + 12, y)
+    y += detLines.length * 5.5 + 8
+  }
+ 
+  // ─── Quick-win item ───────────────────────────────────────────────────────────
+  function qwItem(title: string, timeTag: string, detail: string) {
+    const detLines = doc.splitTextToSize(detail, CW - 20) as string[]
+    const h = detLines.length * LH + 30
+    np(h + 8)
+    sf(LIGHT_BG2); doc.roundedRect(L, y, CW, h, 5, 5, 'F')
+    doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(title, L + 12, y + 14)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    const tTagW = doc.getTextWidth(timeTag) + 10 + 6
+    drawTag(timeTag, TAG_BLU_BG, TAG_BLU_FG, R - tTagW, y + 9)
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(detLines, L + 12, y + 24)
+    y += h + 8
+  }
+ 
+  // ─── Top recommendation box ───────────────────────────────────────────────────
+  function topRecBox(text: string) {
+    const lines = doc.splitTextToSize(text, CW - 20) as string[]
+    const h = lines.length * LH + 40
+    np(h + 10)
+    sf(INDIGO); doc.roundedRect(L, y, CW, 20, 4, 4, 'F')
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text('★  TOP RECOMMENDATION', L + 10, y + 13)
+    sf(INDIGO_L); doc.roundedRect(L, y + 20, CW, h - 20, 4, 4, 'F')
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(INDIGO_D)
+    doc.text(lines, L + 10, y + 34)
+    y += h + 12
+  }
+ 
+  // ─── Anxiety item ─────────────────────────────────────────────────────────────
+  function anxietyItem(addressed: boolean, title: string, note: string) {
+    const nLines = doc.splitTextToSize(note, CW - 32) as string[]
+    const h = nLines.length * LH + 30
+    np(h + 8)
+    const bg: RGB  = addressed ? [236, 253, 245] : [255, 241, 242]
+    const col: RGB = addressed ? GREEN : CORAL
+    sf(bg); doc.roundedRect(L, y, CW, h, 5, 5, 'F')
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); st(col)
+    doc.text(addressed ? '✓' : '✗', L + 10, y + 16)
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(title, L + 26, y + 16)
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(nLines, L + 26, y + 26)
+    y += h + 8
+  }
+ 
+  // ─── Table helpers ────────────────────────────────────────────────────────────
+  function tblHeader(cols: number[], headers: string[], colBgs?: RGB[]) {
+    const rh = 22; let x = L
+    headers.forEach((h, i) => {
+      const bg = colBgs?.[i] ?? DARK
+      sf(bg); doc.rect(x, y, cols[i], rh, 'F')
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(WHITE)
+      doc.text(h, x + 8, y + 14)
+      x += cols[i]
+    })
+    y += rh
+  }
+ 
+  function tblRow(cols: number[], cells: string[], even = false, cellCols?: (RGB | null)[]) {
+    const rowLH = 5; let maxLines = 1
+    cells.forEach((cell, i) => {
+      const l = (doc.splitTextToSize(cell, cols[i] - 16) as string[]).length
+      maxLines = Math.max(maxLines, l)
+    })
+    const rh = maxLines * rowLH + 14
+    np(rh + 4)
+    const bg: RGB = even ? [249, 250, 252] : WHITE
+    let x = L
+    cells.forEach((cell, i) => {
+      sf(bg); doc.rect(x, y, cols[i], rh, 'F')
+      const col: RGB = cellCols?.[i] ?? BODY
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(col)
+      const lines = doc.splitTextToSize(cell, cols[i] - 16) as string[]
+      doc.text(lines, x + 8, y + 10)
+      x += cols[i]
+    })
+    sd(BORDER); doc.setLineWidth(0.5)
+    doc.line(L, y + rh, R, y + rh)
+    y += rh
+  }
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // COVER PAGE
   // ════════════════════════════════════════════════════════════════════════════
-
-  // Full-width yellow band at top of page
-  doc.setFillColor(...YELLOW); doc.rect(0, 0, W, COVER_BAND, 'F')
-  // White body below band
-  doc.setFillColor(...WHITE);  doc.rect(0, COVER_BAND, W, PH - COVER_BAND, 'F')
-  // Yellow left stripe runs full height (merges with band above, visible accent below)
-  doc.setFillColor(...YELLOW); doc.rect(0, 0, SW, PH, 'F')
-
-  // ── Branding in yellow band ──────────────────────────────────────────────
-
-  // Logo mark — small black rounded square with yellow cutout dot
-  doc.setFillColor(...BLACK); doc.roundedRect(M, 18, 7, 7, 1.2, 1.2, 'F')
-  doc.setFillColor(...YELLOW); doc.circle(M + 3.5, 21.5, 1.8, 'F')
-
-  // Wordmark
-  doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-  doc.text('BEAL', M + 12, 27)
-  doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(70, 50, 0)
-  doc.text('Creative.', M + 12, 34)
-
-  // Thin dark rule across band
-  doc.setDrawColor(...BLACK); doc.setLineWidth(0.4)
-  doc.line(M, 42, W - RT, 42)
-
-  // "PAGE AUDIT REPORT" label
-  doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-  doc.text('PAGE AUDIT REPORT', M, 50)
-
-  // Report title — large type in band
+  gradStrip(INDIGO, PINK, 0, 5)
+  sf(DARK); doc.rect(0, 5, W, 103, 'F')
+ 
+  // BEAL Creative brand block
+  const pillX = L, pillY = 30, pillW = 4, pillH = 28
+  sf(YELLOW); doc.roundedRect(pillX, pillY, pillW, pillH, pillW / 2, pillW / 2, 'F')
+  const tx = L + 10
+  doc.setFontSize(16); doc.setFont('helvetica', 'bold'); st(WHITE)
+  doc.text('BEAL', tx, 44)
+  const bealW = doc.getTextWidth('BEAL')
+  doc.setFont('helvetica', 'normal')
+  doc.text(' Creative.', tx + bealW, 44)
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+  doc.setTextColor(120, 123, 155)
+  doc.text('AUDIT MACHINE', tx, 54)
+ 
+  // Date top-right
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100, 105, 140)
+  const dateStr = new Date(audit.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+  doc.text(dateStr, R, 50, { align: 'right' })
+ 
+  // Cover body — large title below header
+  y = 5 + 103 + 42
   const titleText  = audit.label || r.overview.pageType || 'Page Audit'
   const titleLines = doc.splitTextToSize(titleText, CW) as string[]
-  doc.setFontSize(26); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-  titleLines.slice(0, 2).forEach((l, i) => doc.text(l, M, 62 + i * 12))
-  const titleEndY = 62 + Math.min(titleLines.length, 2) * 12
-
-  // URL — bottom of band
-  const urlY = Math.max(titleEndY + 5, COVER_BAND - 10)
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(70, 50, 0)
-  if (urlY < COVER_BAND - 2) doc.text(audit.url, M, urlY)
-
-  // ── Score cards in white area ──────────────────────────────────────────────
-  const cardTopY = COVER_BAND + 10
-  const cardW    = (CW - 12) / 4   // 4 cards with 4mm gaps
-  const cardH    = 28
-
+  doc.setFontSize(42); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+  titleLines.slice(0, 2).forEach((line, i) => doc.text(line, L, y + i * 44))
+  y += Math.min(titleLines.length, 2) * 44 + 6
+ 
+  doc.setFontSize(13); doc.setFont('helvetica', 'normal'); st(MUTED)
+  doc.text(r.overview.pageType || 'Page Audit', L, y); y += 11
+ 
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(LABEL)
+  doc.text(audit.url, L, y); y += 12
+ 
+  hline(y, BORDER, 0.5); y += 12
+ 
+  // Score cards with donut rings
+  const CARD_W = (CW - 42) / 4
+  const OR = 13, IR = 9
+  const CARD_H = OR * 2 + 30
   const scoreDefs = [
-    { label: 'SEO Score', num: r.scores.seo,     grade: null           },
-    { label: 'LP Score',  num: r.scores.lp,       grade: null          },
-    { label: 'Overall',   num: r.scores.overall,   grade: null         },
-    { label: 'Grade',     num: null,               grade: r.scores.grade },
+    { label: 'SEO SCORE', num: r.scores.seo,     grade: null           },
+    { label: 'LP SCORE',  num: r.scores.lp,       grade: null          },
+    { label: 'OVERALL',   num: r.scores.overall,   grade: null         },
+    { label: 'GRADE',     num: null,               grade: r.scores.grade },
   ]
-  scoreDefs.forEach((c, i) => {
-    const cx  = M + i * (cardW + 4)
-    const col = c.num !== null ? scol(c.num) : scol(r.scores.overall)
-    doc.setFillColor(...BG_GREY); doc.roundedRect(cx, cardTopY, cardW, cardH, 2.5, 2.5, 'F')
-    doc.setFillColor(...col);     doc.roundedRect(cx, cardTopY, cardW, 3.5, 1.5, 1.5, 'F')
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    doc.text(c.label, cx + cardW / 2, cardTopY + 12, { align: 'center' })
-    const val = c.num !== null ? String(c.num) : (c.grade ?? '')
-    doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(...col)
-    doc.text(val, cx + cardW / 2, cardTopY + 23, { align: 'center' })
+  scoreDefs.forEach((s, i) => {
+    const cx  = L + i * (CARD_W + 14) + CARD_W / 2
+    const col = s.num !== null ? scol(s.num) : scol(r.scores.overall)
+    const pct = s.num !== null ? s.num / 100 : r.scores.overall / 100
+    // Accent bar
+    sf(col); doc.roundedRect(L + i * (CARD_W + 14), y, CARD_W, 4, 2, 2, 'F')
+    // Card bg
+    sf(LIGHT_BG); doc.roundedRect(L + i * (CARD_W + 14), y + 4, CARD_W, CARD_H, 2, 2, 'F')
+    sd(BORDER); doc.setLineWidth(0.5)
+    doc.roundedRect(L + i * (CARD_W + 14), y + 4, CARD_W, CARD_H, 2, 2, 'S')
+    // Donut
+    drawDonut(cx, y + 4 + OR + 10, OR, IR, pct, col, LIGHT_BG)
+    // Score value
+    const val = s.num !== null ? String(s.num) : (s.grade ?? '')
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); st(col)
+    doc.text(val, cx, y + 4 + OR + 10 + 4.5, { align: 'center' })
+    // Label
+    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text(s.label, cx, y + 4 + OR * 2 + 20, { align: 'center' })
   })
-
-  // ── Stats strip ────────────────────────────────────────────────────────────
-  const statsTopY = cardTopY + cardH + 8
-  doc.setFillColor(...BG_GREY); doc.rect(M, statsTopY, CW, 20, 'F')
-  const statsData: [string, string][] = [
-    ['Type',       r.overview.pageType              ],
-    ['Words',      String(r.overview.wordCount)      ],
-    ['Response',   r.overview.responseTime           ],
-    ['Int. Links', String(r.overview.internalLinks)  ],
-    ['File Size',  r.overview.fileSize               ],
+  y += CARD_H + 12
+ 
+  // Stats strip
+  const statsH = 28
+  sf(LIGHT_BG2); sd(BORDER); doc.setLineWidth(0.5)
+  doc.roundedRect(L, y, CW, statsH, 5, 5, 'FD')
+  const statsDefs: [string, string][] = [
+    ['PAGE TYPE',  r.overview.pageType],
+    ['WORD COUNT', String(r.overview.wordCount)],
+    ['RESPONSE',   r.overview.responseTime],
+    ['INT. LINKS', String(r.overview.internalLinks)],
+    ['FILE SIZE',  r.overview.fileSize],
   ]
-  const colWidths = [40, 20, 28, 24, 24]
-  let sx = M + 5
-  statsData.forEach(([lbl, val], i) => {
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    doc.text(lbl, sx, statsTopY + 6)
-    doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
-    doc.text((doc.splitTextToSize(val, colWidths[i] - 3) as string[])[0], sx, statsTopY + 14)
-    if (i < statsData.length - 1) {
-      doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
-      doc.line(sx + colWidths[i] - 2, statsTopY + 3, sx + colWidths[i] - 2, statsTopY + 17)
-    }
-    sx += colWidths[i]
+  const statColW = CW / statsDefs.length
+  statsDefs.forEach(([lbl, val], i) => {
+    const sx = L + i * statColW
+    if (i > 0) { sd(BORDER); doc.setLineWidth(0.5); doc.line(sx, y + 5, sx, y + statsH - 5) }
+    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text(lbl, sx + 10, y + 10)
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(BODY)
+    doc.text((doc.splitTextToSize(val, statColW - 14) as string[])[0], sx + 10, y + 20)
   })
-
-  // ── Summary ────────────────────────────────────────────────────────────────
-  const sumTopY = statsTopY + 26
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-  const sumLines = doc.splitTextToSize(r.overview.summary, CW) as string[]
-  if (sumTopY + sumLines.length * LH < 265) {
-    doc.text(sumLines, M, sumTopY)
+  y += statsH + 12
+ 
+  // Summary
+  if (r.overview.summary) {
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+    const sumLines = doc.splitTextToSize(r.overview.summary, CW) as string[]
+    if (y + sumLines.length * LH < 278) doc.text(sumLines, L, y)
   }
-
-  // ── Cover footer ───────────────────────────────────────────────────────────
-  doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.3); doc.line(M, 272, W - RT, 272)
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-  doc.text('Prepared by BEAL Creative — Audit Machine', M, 278)
-  doc.text(
-    new Date(audit.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }),
-    W - RT, 278, { align: 'right' }
-  )
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // 1. GAP ANALYSIS
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Gap Analysis')
+  secHeader('Gap Analysis', INDIGO, PURPLE)
   const g = r.gapAnalysis
-
+ 
   if (g) {
-    np(36)
-
-    // Score comparison cards
-    const sbW = 50, sbH = 28
-    const scoreBoxDefs = [
-      { l: 'Current Score', v: g.beforeScore, grade: g.beforeGrade, col: scol(g.beforeScore) },
-      { l: 'After Fixes',   v: g.afterScore,  grade: g.afterGrade,  col: GREEN              },
+    // Score comparison boxes
+    const bw = 52
+    const scorePairs = [
+      { l: 'CURRENT SCORE',   v: String(g.beforeScore), grade: `(${g.beforeGrade})`, col: scol(g.beforeScore), isUplift: false },
+      { l: 'PROJECTED SCORE', v: String(g.afterScore),  grade: `(${g.afterGrade})`,  col: GREEN,               isUplift: false },
+      { l: 'POTENTIAL UPLIFT', v: `+${g.afterScore - g.beforeScore}`, grade: 'pts',  col: GREEN,               isUplift: true  },
     ]
-    scoreBoxDefs.forEach((b, i) => {
-      const bx = M + i * (sbW + 6)
-      doc.setFillColor(...BG_GREY); doc.roundedRect(bx, y, sbW, sbH, 2.5, 2.5, 'F')
-      doc.setFillColor(...b.col);   doc.roundedRect(bx, y, sbW, 3.5, 1.5, 1.5, 'F')
-      doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
-      doc.text(b.l, bx + 5, y + 12)
-      doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(...b.col)
-      doc.text(`${b.v}`, bx + 5, y + 23)
-      const nw = doc.getTextWidth(`${b.v}`)
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      doc.text(`(${b.grade})`, bx + 5 + nw + 2, y + 23)
+    scorePairs.forEach((b, i) => {
+      const bx = L + i * (bw + 10)
+      sf(b.col); doc.roundedRect(bx, y, bw, 4, 2, 2, 'F')
+      const boxBg: RGB = b.isUplift ? [236, 253, 245] : LIGHT_BG
+      sf(boxBg); sd(BORDER); doc.setLineWidth(0.5)
+      doc.roundedRect(bx, y + 4, bw, 46, 2, 2, 'FD')
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(MUTED)
+      doc.text(b.l, bx + 10, y + 16)
+      doc.setFontSize(26); doc.setFont('helvetica', 'bold'); st(b.col)
+      doc.text(b.v, bx + 10, y + 43)
+      const numW = doc.getTextWidth(b.v)
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(MUTED)
+      doc.text(b.grade, bx + 10 + numW + 2, y + 43)
     })
-
-    // Uplift card
-    const ux = M + 2 * (sbW + 6)
-    doc.setFillColor(220, 252, 231); doc.roundedRect(ux, y, 48, sbH, 2.5, 2.5, 'F')
-    doc.setFillColor(...GREEN);       doc.roundedRect(ux, y, 48, 3.5, 1.5, 1.5, 'F')
-    doc.setFontSize(8); doc.setTextColor(...GREEN); doc.setFont('helvetica', 'normal')
-    doc.text('Potential Uplift', ux + 4, y + 12)
-    doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREEN)
-    const upliftStr = `+${g.afterScore - g.beforeScore}`
-    doc.text(upliftStr, ux + 4, y + 23)
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal')
-    doc.text('pts', ux + 4 + doc.getTextWidth(upliftStr) + 2, y + 23)
-    y += sbH + 12
-
-    // Executive summary callout box
-    np(34)
-    const eLines = doc.splitTextToSize(splitSentences(g.executiveSummary).join(' '), CW - 18) as string[]
-    const eH     = eLines.length * LH + 20
-    doc.setFillColor(...BG_GREY); doc.roundedRect(M, y, CW, eH, 2.5, 2.5, 'F')
-    doc.setFillColor(...YELLOW);  doc.rect(M, y, 4, eH, 'F')
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREY)
-    doc.text('EXECUTIVE SUMMARY', M + 9, y + 8)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    doc.text(eLines, M + 9, y + 15)
-    y += eH + 12
-
-    // Critical Issues — card-based layout
-    sectionBreak(60)
-    subHead('Critical Issues')
-    y += 2
-
-    g.criticalIssues.forEach((item, i) => {
-      const efCol: [number,number,number] = item.effort === 'Easy' ? GREEN : item.effort === 'Medium' ? AMBER : RED
-      const issueLines  = doc.splitTextToSize(`${i + 1}.  ${item.issue}`, CW - 30) as string[]
-      const impactLines = doc.splitTextToSize(item.impact, CW - 16) as string[]
-      const fixLines    = doc.splitTextToSize(item.fix,    CW - 16) as string[]
-      const cardH       = issueLines.length * 7 + impactLines.length * LH + fixLines.length * LH + 38
-
-      np(cardH + 6)
-      doc.setFillColor(...BG_GREY); doc.roundedRect(M, y, CW, cardH, 2.5, 2.5, 'F')
-      doc.setFillColor(...efCol);   doc.roundedRect(M, y, 4, cardH, 1, 1, 'F')
-
-      // Title row
-      doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      doc.text(issueLines, M + 9, y + 9)
-      const efLabel = `${item.effort} effort`
-      const etw     = doc.getTextWidth(efLabel) + 9
-      pill(efLabel, efCol, W - RT - etw, y + 9)
-
-      let cy = y + issueLines.length * 7 + 10
-
-      // Impact
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREY)
-      doc.text('IMPACT', M + 9, cy)
-      cy += 6
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-      doc.text(impactLines, M + 9, cy)
-      cy += impactLines.length * LH + 5
-
-      // Fix
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...efCol)
-      doc.text('FIX', M + 9, cy)
-      cy += 6
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-      doc.text(fixLines, M + 9, cy)
-
-      y += cardH + 8
+    y += 62
+ 
+    calloutBox(g.executiveSummary, INDIGO, INDIGO, 'EXECUTIVE SUMMARY', INDIGO_BG)
+ 
+    subHead('Critical Issues', CORAL)
+    g.criticalIssues.forEach(item => {
+      const efCol: RGB = item.effort === 'Easy' ? GREEN : item.effort === 'Medium' ? AMBER : CORAL
+      const [efBg, efFg]: [RGB, RGB] =
+        item.effort === 'Easy'   ? [TAG_GRN_BG, TAG_GRN_FG] :
+        item.effort === 'Medium' ? [TAG_AMB_BG, TAG_AMB_FG] :
+                                   [TAG_RED_BG, TAG_RED_FG]
+      issueCard(efCol, item.issue, item.impact, item.fix, `${item.effort} Effort`, efBg, efFg)
     })
-
+ 
+    // Quick Wins — force new page if cramped
+    const qwEstH = g.quickWins.length * 36 + 80
+    if (y + qwEstH > 262) {
+      addPage()
+      contHeader('Gap Analysis', INDIGO, PURPLE)
+    } else {
+      y += 4
+    }
+ 
+    subHead('Quick Wins', GREEN)
+    g.quickWins.forEach(item => qwItem(item.win, item.timeEstimate, item.action))
+ 
     y += 4
     sectionBreak(50)
-    subHead('Quick Wins')
-    y += 2
-
-    g.quickWins.forEach((item, i) => {
-      np(26)
-      doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      const wLines = doc.splitTextToSize(`${i + 1}.  ${item.win}`, CW - 36) as string[]
-      doc.text(wLines, M + 2, y)
-      const teTw = doc.getTextWidth(item.timeEstimate) + 9
-      pill(item.timeEstimate, BLUE, W - RT - teTw, y + 1)
-      y += wLines.length * LH + 4
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      smartBody(item.action, 5)
-      y += 4
-      divider(4)
-    })
-
+    subHead('Positioning Gap', INDIGO)
+    bodyText(g.positioningGap, 0, MUTED)
     y += 4
-    sectionBreak(40)
-    subHead('Positioning Gap')
-    y += 2
-    smartBody(g.positioningGap, 0, GREY)
-    y += 4
-
-    // Top recommendation callout
-    np(38)
-    const recLines = doc.splitTextToSize(g.topRecommendation, CW - 18) as string[]
-    const recH     = recLines.length * LH + 24
-    doc.setFillColor(...Y_PALE); doc.roundedRect(M, y, CW, recH, 2.5, 2.5, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(M, y, 4, recH, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(M + 4, y, CW - 4, 12, 'F')
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text('★  TOP RECOMMENDATION', M + 9, y + 8.5)
-    y += 15
-    doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(70, 45, 0)
-    doc.text(recLines, M + 9, y)
-    y += recLines.length * LH + 10
+ 
+    topRecBox(g.topRecommendation)
   }
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // 2. SEO ANALYSIS
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('SEO Analysis')
-
+  secHeader('SEO Analysis', CORAL, ORANGE)
+ 
   const catLabels: Record<string, string> = {
     metaInformation: 'Meta Information',
     pageQuality:     'Page Quality',
@@ -383,307 +566,171 @@ export async function exportPDF(audit: Audit): Promise<void> {
     serverTechnical: 'Server & Technical',
     externalFactors: 'External Factors',
   }
-
-  subHead('Category Overview')
-  y += 5
-
+ 
+  subHead('Category Scores', INDIGO)
   Object.entries(r.seoCategories).forEach(([k, cat]) => {
-    np(15)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    doc.text(catLabels[k] ?? k, M, y + 4.5)
-    const barX = M + 56, barW = 96
-    doc.setFillColor(225, 225, 232); doc.rect(barX, y + 1.5, barW, 6, 'F')
-    doc.setFillColor(...scol(cat.score)); doc.rect(barX, y + 1.5, barW * cat.score / 100, 6, 'F')
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...scol(cat.score))
-    doc.text(`${cat.score}%`, barX + barW + 4, y + 6)
+    np(14)
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(catLabels[k] ?? k, L, y + 4)
+    const barX = L + 110; const barW = CW - 120; const barH = 8
+    sf(BORDER); doc.roundedRect(barX, y - 2, barW, barH, 3, 3, 'F')
+    sf(scol(cat.score)); doc.roundedRect(barX, y - 2, barW * cat.score / 100, barH, 3, 3, 'F')
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); st(scol(cat.score))
+    doc.text(`${cat.score}%`, R - 2, y + 4, { align: 'right' })
     y += 14
   })
-
-  y += 8
-
+  y += 6
+ 
+  const critMap: Record<string, string> = {
+    critical: 'Critical', important: 'Important', somewhat: 'Somewhat', nice: 'Nice to have',
+  }
+ 
   Object.entries(r.seoCategories).forEach(([k, cat]) => {
-    sectionBreak(55)
-    subHead(`${catLabels[k] ?? k} — ${cat.score}%`)
-    y += 3
-
-    cat.checks.forEach((c: { label: string; status: string; detail: string; criticality: string }) => {
-      np(20)
-      const dotCol: [number,number,number]           = c.status === 'pass' ? GREEN : c.status === 'fail' ? RED : AMBER
-      const critMap: Record<string, string>          = { critical: 'Critical', important: 'Important', somewhat: 'Somewhat', nice: 'Nice to have' }
-      const critColMap: Record<string, [number,number,number]> = { critical: RED, important: AMBER, somewhat: BLUE, nice: LIGHT_GREY }
-
-      doc.setFillColor(...dotCol); doc.circle(M + 3, y + 4, 2.2, 'F')
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      doc.text(c.label, M + 8, y + 6)
-
-      const critLabel = critMap[c.criticality] ?? ''
-      const critColor = critColMap[c.criticality] ?? LIGHT_GREY
-      if (critLabel) {
-        const ctw = doc.getTextWidth(critLabel) + 9
-        pill(critLabel, critColor, W - RT - ctw, y + 6)
-      }
-      y += 10
-
-      doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      const dLines = doc.splitTextToSize(c.detail, CW - 12) as string[]
-      np(dLines.length * 5.5 + PG)
-      doc.text(dLines, M + 8, y)
-      y += dLines.length * 5.5 + PG + 2
+    sectionBreak(50)
+    subHead(`${catLabels[k] ?? k} — ${cat.score}%`, scol(cat.score))
+    cat.checks.forEach((c: SeoCheck) => {
+      const dotCol: RGB = c.status === 'pass' ? GREEN : c.status === 'fail' ? CORAL : AMBER
+      const [tBg, tFg]: [RGB, RGB] =
+        c.criticality === 'critical'  ? [TAG_RED_BG, TAG_RED_FG] :
+        c.criticality === 'important' ? [TAG_AMB_BG, TAG_AMB_FG] :
+        c.criticality === 'somewhat'  ? [TAG_BLU_BG, TAG_BLU_FG] :
+                                        [TAG_GRN_BG, TAG_GRN_FG]
+      checkItem(dotCol, c.label, critMap[c.criticality] ?? c.criticality, tBg, tFg, c.detail)
     })
-
-    y += 5
+    y += 6
   })
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // 3. LP SCORING
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Landing Page Scoring')
-
+  secHeader('Landing Page Scoring', PURPLE, PINK)
+ 
   const lpLabels: Record<string, string> = {
-    messageClarity:      'Message & Value Clarity',
-    trustSocialProof:    'Trust & Social Proof',
-    ctaForms:            'CTA & Forms',
-    technicalPerformance:'Technical Performance',
-    visualUX:            'Visual Design & UX',
+    messageClarity:       'Message & Value Clarity',
+    trustSocialProof:     'Trust & Social Proof',
+    ctaForms:             'CTA & Forms',
+    technicalPerformance: 'Technical Performance',
+    visualUX:             'Visual Design & UX',
   }
-
-  autoTable(doc, {
-    startY: y,
-    head:   [['Category', 'Score', '%', 'Assessment']],
-    body:   Object.entries(r.lpScoring).map(([k, c]) => [lpLabels[k] ?? k, `${c.score}/${c.maxScore}`, `${c.percentage}%`, c.assessment]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 4.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: 56 }, 1: { cellWidth: 22 }, 2: { cellWidth: 16 }, 3: { cellWidth: CW - 94 } },
+ 
+  subHead('Category Overview', INDIGO)
+  const lpCols = [CW * 0.38, CW * 0.16, CW * 0.14, CW * 0.32]
+  tblHeader(lpCols, ['Category', 'Score', '%', 'Assessment'])
+  Object.entries(r.lpScoring).forEach(([k, c], i) => {
+    tblRow(lpCols, [lpLabels[k] ?? k, `${c.score}/${c.maxScore}`, `${c.percentage}%`, c.assessment], i % 2 === 1)
   })
-  y = lastY()
-  y += 4
-
+  y += 8
+ 
   Object.entries(r.lpScoring).forEach(([k, cat]) => {
-    sectionBreak(55)
-    subHead(`${lpLabels[k] ?? k} — ${cat.score}/${cat.maxScore}`)
-    y += 3
-
+    sectionBreak(50)
+    subHead(`${lpLabels[k] ?? k} — ${cat.score}/${cat.maxScore}`, scol(cat.percentage))
     cat.subScores.forEach((s: { label: string; score: number; max: number; note: string }) => {
-      np(20)
-      const sCol: [number,number,number] = s.score >= 2 ? GREEN : s.score >= 1 ? AMBER : RED
-      const spw = pill(`${s.score}/${s.max}`, sCol, M, y + 5)
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      doc.text(s.label, M + spw, y + 5)
-      y += 10
-      doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      const nLines = doc.splitTextToSize(s.note, CW - 14) as string[]
+      np(22)
+      const sCol: RGB = s.score >= 2 ? GREEN : s.score >= 1 ? AMBER : CORAL
+      const tgW = drawTag(`${s.score}/${s.max}`, sCol, WHITE, L, y + 5)
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+      doc.text(s.label, L + tgW, y + 5)
+      y += 11
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(MUTED)
+      const nLines = doc.splitTextToSize(s.note, CW - 10) as string[]
       np(nLines.length * 5.5 + PG)
-      doc.text(nLines, M + 5, y)
-      y += nLines.length * 5.5 + PG + 2
+      doc.text(nLines, L + 6, y)
+      y += nLines.length * 5.5 + PG + 4
     })
-
-    y += 5
+    y += 4
   })
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // 4. PRIORITY FIXES
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Priority Fixes')
+  secHeader('Priority Fixes', AMBER, AMBER_L)
   y += 2
-
+ 
   r.priorityFixes.forEach(f => {
-    const efCol: [number,number,number] = f.difficulty === 'Easy' ? GREEN : f.difficulty === 'Medium' ? AMBER : RED
-
-    const titleLines   = doc.splitTextToSize(f.title,   CW - 22) as string[]
-    const problemLines = doc.splitTextToSize(f.problem, CW - 16) as string[]
-    const fixLines     = doc.splitTextToSize(f.fix,     CW - 16) as string[]
-    const cardH        = titleLines.length * 7.5 + problemLines.length * LH + fixLines.length * LH + 44
-
-    np(cardH + 8)
-
-    // Card background
-    doc.setFillColor(...BG_GREY); doc.roundedRect(M, y, CW, cardH, 3, 3, 'F')
-    // Coloured left border
-    doc.setFillColor(...efCol); doc.roundedRect(M, y, 5, cardH, 2, 2, 'F')
-    // Rank circle
-    doc.setFillColor(...YELLOW); doc.circle(M + 17, y + 12, 8, 'F')
-    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(String(f.rank), M + 17, y + 15.5, { align: 'center' })
-
-    // Title
-    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(titleLines, M + 28, y + 10)
-
-    let cy = y + Math.max(titleLines.length * 7.5 + 10, 28)
-
-    // Problem block
-    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREY)
-    doc.text('PROBLEM', M + 9, cy)
-    cy += 6
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    doc.text(problemLines, M + 9, cy)
-    cy += problemLines.length * LH + 6
-
-    // Fix block
-    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...efCol)
-    doc.text('FIX', M + 9, cy)
-    cy += 6
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    doc.text(fixLines, M + 9, cy)
-    cy += fixLines.length * LH + 6
-
-    // Footer metadata strip inside card
-    const efLabel = `${f.difficulty} fix`
-    const efW     = pill(efLabel, efCol, M + 9, cy + 4)
-    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLUE)
-    const upliftTrunc = (doc.splitTextToSize(f.uplift, CW * 0.5) as string[])[0]
-    doc.text(upliftTrunc, M + 9 + efW + 3, cy + 4)
-    doc.setTextColor(...GREY)
-    doc.text(f.timeline, W - RT - doc.getTextWidth(f.timeline), cy + 4)
-
-    y += cardH + 10
+    const efCol: RGB = f.difficulty === 'Easy' ? GREEN : f.difficulty === 'Medium' ? AMBER : CORAL
+    const [efBg, efFg]: [RGB, RGB] =
+      f.difficulty === 'Easy'   ? [TAG_GRN_BG, TAG_GRN_FG] :
+      f.difficulty === 'Medium' ? [TAG_AMB_BG, TAG_AMB_FG] :
+                                  [TAG_RED_BG, TAG_RED_FG]
+    fixCard(efCol, f.rank, f.title, f.problem, f.fix, `${f.difficulty} Fix`, efBg, efFg, f.uplift, f.timeline)
   })
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
   // 5. POSITIONING & COMPETITOR ANALYSIS
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Positioning & Competitor Analysis')
-  y += 5
-
+  secHeader('Positioning & Competitor Analysis', PURPLE, PINK)
+  y += 2
+ 
   const ca = r.competitorAnalysis
-
-  subHead('Hook Type & Approach')
-  y += 3
-
-  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
-  doc.text('Hook Type: ', M, y)
-  doc.setFont('helvetica', 'bold'); doc.setTextColor(...AMBER)
-  doc.text(ca.hookType, M + doc.getTextWidth('Hook Type: '), y)
-  y += 9
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-  smartBody(ca.hookAnalysis, 0, GREY)
+ 
+  subHead('Hook Type & Approach', PURPLE)
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+  doc.text('Hook Type: ', L, y)
+  st(AMBER_D)
+  doc.text(ca.hookType, L + doc.getTextWidth('Hook Type: '), y)
+  y += 10
+  bodyText(ca.hookAnalysis, 0, MUTED)
   y += 4
-
-  const posCol: [number,number,number] = ca.positioningStrength === 'Strong' ? GREEN : ca.positioningStrength === 'Moderate' ? AMBER : RED
-  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
-  doc.text('Positioning Strength: ', M, y)
-  doc.setTextColor(...posCol)
-  doc.text(ca.positioningStrength, M + doc.getTextWidth('Positioning Strength: '), y)
-  y += 9
-  smartBody(ca.positioningNote, 0, GREY)
-  y += PG
-
-  sectionBreak(55)
-  subHead('Buyer Anxieties')
-  y += 3
-
-  ca.buyerAnxieties.forEach(b => {
-    np(18)
-    const bCol: [number,number,number] = b.addressed ? GREEN : RED
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...bCol)
-    doc.text(b.addressed ? '✓' : '✗', M + 2, y + 4)
-    doc.setFontSize(10); doc.setTextColor(...BLACK)
-    doc.text(b.anxiety, M + 10, y + 4)
-    y += 8
-    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    const nLines = doc.splitTextToSize(b.note, CW - 14) as string[]
-    np(nLines.length * 5.5 + PG)
-    doc.text(nLines, M + 10, y)
-    y += nLines.length * 5.5 + PG
-  })
-
+ 
+  const posCol: RGB = ca.positioningStrength === 'Strong' ? GREEN : ca.positioningStrength === 'Moderate' ? AMBER : CORAL
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+  doc.text('Positioning Strength: ', L, y)
+  st(posCol)
+  doc.text(ca.positioningStrength, L + doc.getTextWidth('Positioning Strength: '), y)
+  y += 10
+  bodyText(ca.positioningNote, 0, MUTED)
+ 
+  sectionBreak(60)
+  subHead('Buyer Anxiety Audit', AMBER)
+  ca.buyerAnxieties.forEach(b => anxietyItem(b.addressed, b.anxiety, b.note))
+ 
   y += 4
-
-  autoTable(doc, {
-    startY: y,
-    head:   [['Table Stakes — Everyone Claims This', 'White Space — Unclaimed Opportunities']],
-    body: (() => {
-      const max = Math.max(ca.tableStakes.length, ca.whiteSpace.length)
-      return Array.from({ length: max }, (_, i) => [
-        ca.tableStakes[i] ?? '',
-        ca.whiteSpace[i] ? `${ca.whiteSpace[i].opportunity}: ${ca.whiteSpace[i].rationale}` : '',
-      ])
-    })(),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 4.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: CW / 2 }, 1: { cellWidth: CW / 2 } },
+  sectionBreak(60)
+  subHead('Market Positioning Map', INDIGO)
+  const posMapCols: number[] = [CW / 2, CW / 2]
+  tblHeader(posMapCols, ['Table Stakes — Everyone Claims This', 'White Space — Unclaimed Opportunities'])
+  const maxPos = Math.max(ca.tableStakes.length, ca.whiteSpace.length)
+  Array.from({ length: maxPos }, (_, i) => {
+    tblRow(posMapCols, [
+      ca.tableStakes[i] ?? '',
+      ca.whiteSpace[i] ? `${ca.whiteSpace[i].opportunity}: ${ca.whiteSpace[i].rationale}` : '',
+    ], i % 2 === 1)
   })
-  y = lastY()
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
-  // 6. STRENGTHS & GAPS — always on its own page
+  // 6. STRENGTHS, WEAKNESSES & OPPORTUNITIES
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Strengths, Weaknesses & Opportunities')
-
-  const sw = r.strengthsWeaknesses
-  autoTable(doc, {
-    startY: y,
-    head:   [['Strengths', 'Weaknesses', 'Missed Opportunities']],
-    body: (() => {
-      const max = Math.max(sw.strengths.length, sw.weaknesses.length, sw.missedOpportunities.length)
-      return Array.from({ length: max }, (_, i) => [sw.strengths[i] ?? '', sw.weaknesses[i] ?? '', sw.missedOpportunities[i] ?? ''])
-    })(),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 4.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW as [number,number,number], textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: CW / 3 }, 1: { cellWidth: CW / 3 }, 2: { cellWidth: CW / 3 } },
-    didParseCell: (d) => {
-      if (d.section === 'head') {
-        if (d.column.index === 0) d.cell.styles.textColor = [20, 120, 60]  as [number,number,number]
-        if (d.column.index === 1) d.cell.styles.textColor = [180, 40, 40]  as [number,number,number]
-        if (d.column.index === 2) d.cell.styles.textColor = [20, 80, 180]  as [number,number,number]
-      }
-    },
+  secHeader('Strengths, Weaknesses & Opportunities', GREEN, MINT)
+ 
+  const sw2 = r.strengthsWeaknesses
+  const swCols: number[] = [CW / 3, CW / 3, CW / 3]
+  tblHeader(swCols, ['Strengths', 'Weaknesses', 'Missed Opportunities'], [
+    [6, 95, 70], [127, 29, 29], [30, 58, 138],
+  ])
+  const maxSW = Math.max(sw2.strengths.length, sw2.weaknesses.length, sw2.missedOpportunities.length)
+  Array.from({ length: maxSW }, (_, i) => {
+    tblRow(swCols, [sw2.strengths[i] ?? '', sw2.weaknesses[i] ?? '', sw2.missedOpportunities[i] ?? ''], i % 2 === 1)
   })
-  y = lastY()
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
-  // 7. RECOMMENDATIONS — always on its own page
+  // 7. RECOMMENDATIONS
   // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Recommendations')
-
-  autoTable(doc, {
-    startY: y,
-    head:   [['Priority', 'Area', 'Action']],
-    body:   r.recommendations.map(rec => [rec.priority, rec.area, rec.action]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 4.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 34 }, 2: { cellWidth: CW - 56 } },
-    didParseCell: (d) => {
-      if (d.section === 'body' && d.column.index === 0) {
-        const p = String(d.cell.raw)
-        d.cell.styles.textColor = p === 'High' ? [200, 40, 40] : p === 'Medium' ? [180, 110, 0] : [30, 80, 180]
-        d.cell.styles.fontStyle = 'bold'
-      }
-    },
+  secHeader('Recommendations', INDIGO, BLUE)
+ 
+  const recCols: number[] = [20, Math.round(CW * 0.22), CW - 20 - Math.round(CW * 0.22)]
+  tblHeader(recCols, ['Priority', 'Area', 'Action'])
+  r.recommendations.forEach((rec, i) => {
+    const pCol: RGB = rec.priority === 'High' ? CORAL : rec.priority === 'Medium' ? AMBER : INDIGO
+    tblRow(recCols, [rec.priority, rec.area, rec.action], i % 2 === 1, [pCol, null, null])
   })
-
+ 
   // ════════════════════════════════════════════════════════════════════════════
-  // FOOTER — redraw stripe + page numbers on every page
+  // Save
   // ════════════════════════════════════════════════════════════════════════════
-  const pages = doc.getNumberOfPages()
-  for (let p = 1; p <= pages; p++) {
-    doc.setPage(p)
-    // Yellow left stripe (on cover it merges seamlessly with the top band)
-    doc.setFillColor(...YELLOW); doc.rect(0, 0, SW, PH, 'F')
-    if (p > 1) {
-      // Thin yellow top rule on interior pages
-      doc.setFillColor(...YELLOW); doc.rect(SW, 0, W - SW, 2.5, 'F')
-      // Footer line + text
-      doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
-      doc.line(M, 286, W - RT, 286)
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      doc.text(`Audit Machine — BEAL Creative — ${audit.url}`, M, 290)
-      doc.text(`Page ${p} of ${pages}`, W - RT, 290, { align: 'right' })
-    }
-  }
-
   doc.save(`audit-machine-${audit.url.replace(/[^a-z0-9]/gi, '-').slice(0, 40)}-${Date.now()}.pdf`)
 }
