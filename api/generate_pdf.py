@@ -175,7 +175,7 @@ def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg
     light = lc(accent, WHITE, 0.82)
     rect(cv, L, y, AW, total_h, fill=light)
     cv.setFillColor(accent); cv.circle(L+26, ry(y+24), 17, fill=1, stroke=0)
-    cv.saveState(); cv.setFillColor(WHITE); cv.setFont('Helvetica-Bold', 15)
+    cv.saveState(); cv.setFillColor(WHITE); cv.setFont('Helvetica-Bold', 10.5)
     cv.drawCentredString(L+26, ry(y+29), str(num)); cv.restoreState()
     rect(cv, L+AW, y, CW-AW, total_h, fill=WHITE, stroke=BORDER)
     ix = L+AW+16; cy = y+22
@@ -192,8 +192,12 @@ def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg
         txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     cy += 12
     tag_w = tag(cv, ix, cy, eff_text, eff_bg, eff_fg)
-    txt(cv, ix+tag_w+10, cy+10, uplift,   bold=True, sz=8.5, col=INDIGO)
-    txt(cv, R-8,         cy+10, time_str, sz=8,      col=MUTED, align='right')
+    # Constrain uplift text so it doesn't overflow card boundary
+    time_w = cv.stringWidth(time_str, 'Helvetica', 8) + 16
+    uplift_max_w = R - ix - tag_w - 10 - time_w - 8
+    uplift_line = simpleSplit(uplift, 'Helvetica-Bold', 8.5, uplift_max_w)[0] if uplift else ''
+    txt(cv, ix+tag_w+10, cy+10, uplift_line, bold=True, sz=8.5, col=INDIGO)
+    txt(cv, R-8,         cy+10, time_str,   sz=8,      col=MUTED, align='right')
     return y + total_h + 16
 
 def cat_bar(cv, y, label, pct, fill_col, pct_col):
@@ -218,11 +222,13 @@ def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail):
     return cy + 8
 
 def qw_item(cv, y, title, tg_text, tg_bg, tg_fg, detail):
-    det_lines = simpleSplit(detail, 'Helvetica', 9.5, CW-32)
+    body_w = int(CW * 0.70)
+    det_lines = simpleSplit(detail, 'Helvetica', 9.5, body_w - 32)
     total_h = len(det_lines)*13 + 46
     rect(cv, L, y, CW, total_h, fill=LIGHT_BG2, r=8)
     txt(cv, L+16, y+18, title, bold=True, sz=10.5, col=DARK_TEXT)
-    tag(cv, R-115, y+13, tg_text, tg_bg, tg_fg)
+    tag_w = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
+    tag(cv, R - tag_w - 16, y+13, tg_text, tg_bg, tg_fg)
     cy = y + 33
     for ln in det_lines:
         txt(cv, L+16, cy, ln, sz=9.5, col=MUTED); cy += 13
@@ -254,29 +260,29 @@ def anxiety_item(cv, y, yes, title, note):
     return y + total_h + 10
 
 def tbl_header(cv, y, cols, headers, bg=None, col_bgs=None):
-    bg = bg or DARK; rh = 26; x = L
+    bg = bg or DARK; rh = 30; x = L
     for i, (w, h) in enumerate(zip(cols, headers)):
         cell_bg = (col_bgs[i] if col_bgs else None) or bg
         rect(cv, x, y, w, rh, fill=cell_bg)
-        txt(cv, x+10, y+17, h, bold=True, sz=9, col=WHITE)
+        txt(cv, x+14, y+20, h, bold=True, sz=9, col=WHITE)
         x += w
     return y + rh
 
 def tbl_row(cv, y, cols, cells, even=False, cell_cols=None):
-    lh = 13; maxl = 1
+    lh = 14; maxl = 1
     for w, cell in zip(cols, cells):
-        lines = simpleSplit(cell, 'Helvetica', 9.5, w-20)
+        lines = simpleSplit(cell, 'Helvetica', 9.5, w-28)
         maxl = max(maxl, len(lines))
-    rh = maxl*lh + 16
+    rh = maxl*lh + 24
     bg = HexColor('#F9FAFC') if even else WHITE
     x = L
     for i, (w, cell) in enumerate(zip(cols, cells)):
         rect(cv, x, y, w, rh, fill=bg)
         col = (cell_cols[i] if cell_cols else None) or BODY
-        lines = simpleSplit(cell, 'Helvetica', 9.5, w-20)
-        cy = y+12
+        lines = simpleSplit(cell, 'Helvetica', 9.5, w-28)
+        cy = y+16
         for ln in lines:
-            txt(cv, x+10, cy, ln, sz=9.5, col=col); cy += lh
+            txt(cv, x+14, cy, ln, sz=9.5, col=col); cy += lh
         x += w
     cv.saveState(); cv.setStrokeColor(BORDER); cv.setLineWidth(0.75)
     cv.line(L, ry(y+rh), R, ry(y+rh)); cv.restoreState()
@@ -337,7 +343,7 @@ def generate_pdf(audit):
     cv.restoreState()
 
     # Cover body
-    y = 6 + 108 + 56
+    y = 6 + 108 + 90
     business_name = label
     name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
     for ln in name_lines[:2]:
@@ -346,7 +352,7 @@ def generate_pdf(audit):
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
     # Reset properly:
-    y = 6 + 108 + 56
+    y = 6 + 108 + 90
     for i, ln in enumerate(name_lines[:2]):
         txt(cv, L, y, ln, bold=True, sz=52, col=DARK_TEXT)
         y += 56
@@ -446,6 +452,15 @@ def generate_pdf(audit):
         ef_map = {'Easy': (TAG_GRN_BG, TAG_GRN_FG), 'Medium': (TAG_AMB_BG, TAG_AMB_FG), 'Hard': (TAG_RED_BG, TAG_RED_FG)}
         eff_bg, eff_fg = ef_map.get(effort, (TAG_AMB_BG, TAG_AMB_FG))
         eff_accent = {'Easy': GREEN, 'Medium': AMBER, 'Hard': CORAL}.get(effort, AMBER)
+        # Estimate card height and push to continuation page if needed
+        t_est = simpleSplit(issue.get('issue',''),  'Helvetica-Bold', 11.5, CW-90)
+        i_est = simpleSplit(issue.get('impact',''), 'Helvetica',      10,   CW-36)
+        f_est = simpleSplit(issue.get('fix',''),    'Helvetica',      10,   CW-36)
+        card_est = len(t_est)*15 + len(i_est)*14 + len(f_est)*14 + 80
+        if y + card_est > H - 60:
+            new_page()
+            cont_header(cv, INDIGO, PURPLE, 'Gap Analysis', pg_of(3), audit_lbl)
+            y = 4 + 36 + 20
         y = issue_card(cv, y, eff_accent, issue.get('issue',''), issue.get('impact',''), issue.get('fix',''),
                        f'{effort} Effort', eff_bg, eff_fg)
 
@@ -581,17 +596,23 @@ def generate_pdf(audit):
         y = anxiety_item(cv, y, ba.get('addressed', False), ba.get('anxiety',''), ba.get('note',''))
     y += 4
 
-    y = sub_head(cv, y, 'Market Positioning Map', INDIGO)
     table_stakes = ca.get('tableStakes', [])
     white_space   = ca.get('whiteSpace', [])
-    cols_5 = [CW//2, CW - CW//2]
-    y = tbl_header(cv, y, cols_5, ['Table Stakes — Everyone Claims This', 'White Space — Unclaimed Opportunities'])
-    max_rows = max(len(table_stakes), len(white_space))
-    for i in range(max_rows):
-        ts = table_stakes[i] if i < len(table_stakes) else ''
-        ws = white_space[i] if i < len(white_space) else {}
-        ws_text = f"{ws.get('opportunity','')} — {ws.get('rationale','')}" if ws else ''
-        y = tbl_row(cv, y, cols_5, [ts, ws_text], even=(i%2==1))
+    if table_stakes or white_space:
+        # Push to new page if not enough space for header + at least 2 rows
+        if y + 120 > H - 60:
+            new_page()
+            cont_header(cv, PURPLE, PINK, 'Positioning & Competitor Analysis', pg_of(7), audit_lbl)
+            y = 4 + 36 + 20
+        y = sub_head(cv, y, 'Market Positioning Map', INDIGO)
+        cols_5 = [CW//2, CW - CW//2]
+        y = tbl_header(cv, y, cols_5, ['Table Stakes — Everyone Claims This', 'White Space — Unclaimed Opportunities'])
+        max_rows = max(len(table_stakes), len(white_space))
+        for i in range(max_rows):
+            ts = table_stakes[i] if i < len(table_stakes) else ''
+            ws = white_space[i] if i < len(white_space) else {}
+            ws_text = f"{ws.get('opportunity','')} — {ws.get('rationale','')}" if ws else ''
+            y = tbl_row(cv, y, cols_5, [ts, ws_text], even=(i%2==1))
 
     # ─────────────── STRENGTHS / WEAKNESSES ──────────────────────────────────
     new_page()
@@ -617,15 +638,15 @@ def generate_pdf(audit):
     sec_header(cv, INDIGO, BLUE, 'SECTION', 'Recommendations', pg_of(9), audit_lbl)
     y = 6 + 72 + 20
 
-    cols_7 = [65, 105, 193, 60, 60]
-    y = tbl_header(cv, y, cols_7, ['Priority', 'Area', 'Recommended Action', 'Effort', 'Uplift'])
+    cols_7 = [70, 140, CW-210]
+    y = tbl_header(cv, y, cols_7, ['Priority', 'Area', 'Recommended Action'])
     prio_col_map = {'High': TAG_RED_FG, 'Medium': AMBER_D, 'Low': MUTED}
     for i, rec in enumerate(r.get('recommendations', [])):
         prio = rec.get('priority','')
         pcol = prio_col_map.get(prio, BODY)
         y = tbl_row(cv, y, cols_7,
-                    [prio, rec.get('area',''), rec.get('action',''), '', ''],
-                    even=(i%2==1), cell_cols=[pcol, DARK_TEXT, BODY, BODY, GREEN_DARK])
+                    [prio, rec.get('area',''), rec.get('action','')],
+                    even=(i%2==1), cell_cols=[pcol, DARK_TEXT, BODY])
 
     cv.save()
     buf.seek(0)
