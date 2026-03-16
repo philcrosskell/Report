@@ -42,6 +42,7 @@ export interface ScrapedPage {
   ctaButtonCount: number
   phoneNumbers: string[]
   emailAddresses: string[]
+  isSinglePageSite: boolean
   error?: string
 }
 
@@ -57,6 +58,7 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     responseTimeMs: 0, htmlSizeBytes: 0, hasGoogleAnalytics: false, hasGTM: false,
     hasFavicon: false, hasCanonical: false, robots: '', charset: '', serverHeader: '',
     hasHreflang: false, navLinksCount: 0, ctaButtonCount: 0, phoneNumbers: [], emailAddresses: [],
+    isSinglePageSite: false,
   }
 
   try {
@@ -200,8 +202,17 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
       blank.navLinksCount = (navMatch[1].match(/<a\s/gi) ?? []).length
     }
 
-    // Phone numbers
-    const phoneMatches = html.match(/(?:tel:|href=["']tel:)[^"'\s<>]+/gi) ?? []
+    // Single page site detection
+    // Signals: very few unique internal paths, low word count, minimal heading structure
+    const uniquePaths = new Set(
+      allLinks
+        .filter(l => l.startsWith('/') || l.includes(domain))
+        .map(l => {
+          try { return new URL(l.startsWith('http') ? l : `https://${domain}${l}`).pathname } catch { return l }
+        })
+        .filter(p => p !== '/' && p !== '')
+    )
+    blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
     blank.phoneNumbers = [...new Set(phoneMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim()))].slice(0, 3)
 
     // Email addresses
@@ -223,6 +234,7 @@ export function scraperSummary(s: ScrapedPage): string {
   const lines: string[] = [
     `=== REAL PAGE DATA (fetched live) ===`,
     `URL: ${s.finalUrl}`,
+    s.isSinglePageSite ? `⚠ SINGLE PAGE SITE DETECTED — very few unique internal paths (${s.internalLinks} internal links). Flag all single-page SEO disadvantages explicitly in the audit.` : `Multi-page site (${s.internalLinks} internal links detected)`,
     `Response time: ${s.responseTimeMs}ms (${s.responseTimeMs < 400 ? 'FAST' : s.responseTimeMs < 1000 ? 'ACCEPTABLE' : 'SLOW — flagging this'})`,
     `HTML size: ${Math.round(s.htmlSizeBytes / 1024)}kB`,
     ``,

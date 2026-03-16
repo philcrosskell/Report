@@ -25,7 +25,15 @@ Forms: ${scraped.hasForms ? `YES — ${scraped.formCount} form(s), ~${scraped.fo
 CTAs: ${scraped.ctaButtonCount} | Phone: ${scraped.phoneNumbers[0] ?? 'none'} | Email: ${scraped.emailAddresses[0] ?? 'none'}
 HTTPS: ${scraped.hasHttps ? 'yes' : 'NO'} | Response: ${scraped.responseTimeMs}ms | Size: ${Math.round(scraped.htmlSizeBytes/1024)}kB
 Canonical: ${scraped.canonicalUrl || 'missing'} | Lang: ${scraped.language || 'not set'} | Viewport: ${scraped.hasViewport ? 'yes' : 'MISSING'}
-Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'}` : 'No live page data — infer from URL and domain context only.'}
+Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'}
+${scraped.isSinglePageSite ? `
+⚠ SINGLE PAGE SITE — This appears to be a single page website. You MUST flag the following as critical SEO issues in pageQuality and linkStructure checks:
+- Limited keyword targeting: can only rank for one primary topic
+- No topical authority: Google cannot index depth of expertise
+- Missing location pages: cannot rank for multiple cities/regions
+- No internal linking structure: limits crawlability and authority distribution
+- No content strategy possible: organic traffic growth permanently capped
+- Recommend migration to multi-page structure as highest-impact SEO change` : ''}` : 'No live page data — infer from URL and domain context only.'}
 
 LP weights: messageClarity=${w.messageClarity}, trustSocialProof=${w.trustSocialProof}, ctaForms=${w.ctaForms}, technicalPerformance=${w.technicalPerformance}, visualUX=${w.visualUX}
 Grades: A=90-100 B=70-89 C=50-69 D=30-49 F=0-29
@@ -70,7 +78,7 @@ ${competitors.length ? `Competitors: ${competitors.map(c => `${c.name} (${c.url}
 
 Part 1 scores: ${part1Summary}
 
-${hasReal ? `Key facts: Forms=${scraped.hasForms ? `YES (${scraped.formCount}, ~${scraped.formFields} fields)` : 'NONE'} | H1="${scraped.h1[0] ?? 'missing'}" | Words=${scraped.wordCount} | Phone=${scraped.phoneNumbers[0] ?? 'none'} | Schema=${scraped.hasSchema ? scraped.schemaTypes.join(',') : 'none'} | Missing alt=${scraped.imagesMissingAlt}` : ''}
+${hasReal ? `Key facts: Forms=${scraped.hasForms ? `YES (${scraped.formCount}, ~${scraped.formFields} fields)` : 'NONE'} | H1="${scraped.h1[0] ?? 'missing'}" | Words=${scraped.wordCount} | Phone=${scraped.phoneNumbers[0] ?? 'none'} | Schema=${scraped.hasSchema ? scraped.schemaTypes.join(',') : 'none'} | Missing alt=${scraped.imagesMissingAlt}${scraped.isSinglePageSite ? ' | ⚠ SINGLE PAGE SITE — include migration to multi-page as a High priority fix and critical issue in gap analysis' : ''}` : ''}
 
 Return ONLY valid complete JSON for Part 2. Start your response with { and end with }. No markdown. No preamble. No explanation. No truncation.
 
