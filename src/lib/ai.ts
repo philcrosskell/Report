@@ -55,12 +55,27 @@ function normaliseJSON(raw: string): string {
   // Remove JavaScript-style comments (// and /* */)
   s = s.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
 
-  // Replace single-quoted strings with double-quoted
-  // Only do this outside of already double-quoted strings
-  s = s.replace(/'([^'\\]*(\\.[^'\\]*)*)'/g, (match, inner) => {
-    // Don't replace if this looks like a contraction inside a value
-    return `"${inner.replace(/"/g, '\\"')}"`
-  })
+  // Fix bad control characters inside JSON strings
+  // Walk char by char and replace unescaped control chars inside strings
+  let result = ''
+  let inStr = false
+  let esc = false
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    const code = s.charCodeAt(i)
+    if (esc) { esc = false; result += ch; continue }
+    if (ch === '\\' && inStr) { esc = true; result += ch; continue }
+    if (ch === '"') { inStr = !inStr; result += ch; continue }
+    if (inStr && code < 0x20) {
+      // Replace illegal control characters with safe equivalents
+      if (code === 0x09) { result += '\\t'; continue }  // tab
+      if (code === 0x0a) { result += ' '; continue }    // newline → space
+      if (code === 0x0d) { result += ' '; continue }    // carriage return → space
+      result += ' '; continue                            // other control chars → space
+    }
+    result += ch
+  }
+  s = result
 
   // Fix trailing commas before } or ]
   s = s.replace(/,(\s*[}\]])/g, '$1')
