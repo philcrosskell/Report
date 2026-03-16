@@ -123,11 +123,15 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     // Hreflang
     blank.hasHreflang = /<link[^>]+rel=["']alternate["'][^>]+hreflang/i.test(html)
 
-    // Headings
+    // Headings — use non-greedy match then strip inner tags to handle
+    // nested elements like <h1><span>Text</span></h1> (common in Webflow/Framer)
     const extractHeadings = (tag: string) => {
-      const re = new RegExp(`<${tag}[^>]*>([^<]+(?:<(?!\/${tag})[^>]*>[^<]*)*)<\/${tag}>`, 'gi')
+      const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'gi')
       const matches = [...html.matchAll(re)]
-      return matches.map(m => m[1].replace(/<[^>]+>/g, '').trim()).filter(Boolean).slice(0, 10)
+      return matches
+        .map(m => m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+        .slice(0, 10)
     }
     blank.h1 = extractHeadings('h1')
     blank.h2 = extractHeadings('h2')
@@ -254,7 +258,7 @@ export function scraperSummary(s: ScrapedPage): string {
     `Favicon: ${s.hasFavicon ? 'YES' : 'MISSING'}`,
     ``,
     `--- CONTENT ---`,
-    `H1 tags (${s.h1.length}): ${s.h1.join(' | ') || 'NONE FOUND'}`,
+    `H1 tags (${s.h1.length}): ${s.h1.join(' | ') || 'NONE FOUND IN STATIC HTML — may be JS-rendered; flag as possible issue, not definitive fail'}`,
     `H2 tags (${s.h2.length}): ${s.h2.slice(0, 5).join(' | ') || 'none'}`,
     `H3 tags (${s.h3.length}): ${s.h3.slice(0, 4).join(' | ') || 'none'}`,
     `Word count: ${s.wordCount} (${s.wordCount < 300 ? 'VERY LOW — flag this' : s.wordCount < 600 ? 'below 800 target' : s.wordCount >= 800 ? 'good' : 'borderline'})`,
