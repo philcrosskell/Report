@@ -1,4 +1,4 @@
-import type { Audit } from './types'
+import type { Audit, SeoCheck } from './types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -225,7 +225,7 @@ export function exportHTML(audit: Audit) {
     const dotCol = cat.score >= 70 ? '#10B981' : cat.score >= 50 ? '#F59E0B' : '#EF4444'
     return `
     ${subHead(lbl + ' — ' + cat.score + '%', dotCol)}
-    ${cat.checks.map(ch => `
+    ${cat.checks.map((ch: SeoCheck) => `
     <div style="display:flex;gap:16px;margin-bottom:14px">
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
