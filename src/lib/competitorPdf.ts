@@ -15,12 +15,12 @@ const WHITE:      RGB = [255, 255, 255]
 const YELLOW:     RGB = [255, 230, 0  ]
 const INDIGO:     RGB = [99,  102, 241]
 const INDIGO_D:   RGB = [45,  31,  163]
-const INDIGO_BG:  RGB = [245, 246, 255]
+ 
 const INDIGO_L:   RGB = [238, 237, 254]
 const PURPLE:     RGB = [139, 92,  246]
 const CORAL:      RGB = [239, 68,  68 ]
 const AMBER:      RGB = [245, 158, 11 ]
-const AMBER_D:    RGB = [217, 119, 6  ]
+ 
 const GREEN:      RGB = [16,  185, 129]
 const GREEN_D:    RGB = [5,   150, 105]
 const MINT:       RGB = [6,   182, 212]
@@ -107,16 +107,6 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLo
     y = stripH + hdrH + 14
   }
  
-  function contHeader(label: string, c1: RGB, c2: RGB) {
-    const stripH = 3; const hdrH = 26
-    gradStrip(c1, c2, 0, stripH)
-    sf(DARK); doc.rect(0, stripH, W, hdrH, 'F')
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-    doc.setTextColor(190, 195, 225)
-    doc.text(`${label.toUpperCase()} — CONTINUED`, L, stripH + 18)
-    y = stripH + hdrH + 12
-  }
- 
   function subHead(text: string, dotCol: RGB) {
     np(22); y += 10
     sf(dotCol); doc.circle(L + 3.5, y - 3, 3, 'F')
@@ -132,19 +122,6 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLo
     np(lines.length * LH + PG)
     doc.text(lines, L + indent, y)
     y += lines.length * LH + PG
-  }
- 
-  function calloutBox(text: string, borderCol: RGB, labelCol: RGB, label: string, bg: RGB = INDIGO_BG) {
-    const lines = doc.splitTextToSize(text, CW - 22) as string[]
-    const h = lines.length * LH + 30
-    np(h + 8)
-    sf(bg); doc.roundedRect(L, y, CW, h, 4, 4, 'F')
-    sf(borderCol); doc.rect(L, y, 3, h, 'F')
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(labelCol)
-    doc.text(label, L + 11, y + 11)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
-    doc.text(lines, L + 11, y + 22)
-    y += h + 12
   }
  
   function tblHeader(cols: number[], headers: string[], colBgs?: RGB[]) {
@@ -290,7 +267,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLo
     // Title + detail
     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
     doc.text(titleLines, L + 32, y + 12)
-    let cy = y + titleLines.length * 7 + 16
+    const cy = y + titleLines.length * 7 + 16
     doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
     doc.text(detLines, L + 32, cy)
     y += cardH + 8
@@ -434,9 +411,9 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLo
     doc.text(String(s.number), L + 18, y + 17.5, { align: 'center' })
     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
     doc.text(titleLines, L + 32, y + 12)
-    let cy = y + titleLines.length * 7 + 16
+    const cy2 = y + titleLines.length * 7 + 16
     doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
-    doc.text(detLines, L + 32, cy)
+    doc.text(detLines, L + 32, cy2)
     y += cardH + 8
   })
  
