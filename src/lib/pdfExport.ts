@@ -1,7 +1,7 @@
 import { Audit } from './types'
 
 // ─── Shared design constants ──────────────────────────────────────────────────
-const SIDEBAR: [number,number,number] = [34, 34, 34]   // #222 sidebar
+const SIDEBAR: [number,number,number] = [255, 229, 0]  // yellow brand stripe
 const BLACK: [number,number,number] = [20, 20, 20]
 const DARK: [number,number,number] = [40, 40, 40]
 const GREY: [number,number,number] = [100, 100, 110]
@@ -75,12 +75,15 @@ export async function exportPDF(audit: Audit): Promise<void> {
 
   function subHead(title: string) {
     np(14)
-    doc.setFillColor(30, 30, 30)
+    // Light grey fill with yellow left accent — no dark backgrounds
+    doc.setFillColor(...BG_GREY)
     doc.rect(M, y - 1, CW, 9, 'F')
+    doc.setFillColor(...YELLOW)
+    doc.rect(M, y - 1, 3, 9, 'F')
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...WHITE)
-    doc.text(title, M + 3, y + 5.5)
+    doc.setTextColor(...BLACK)
+    doc.text(title, M + 6, y + 5.5)
     y += 13
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...DARK)
@@ -143,7 +146,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
   doc.setFillColor(...WHITE)
   doc.rect(0, 0, W, 297, 'F')
 
-  // Dark #222 left stripe — NO top yellow bar
+  // Yellow brand stripe — full height left edge
   doc.setFillColor(...SIDEBAR)
   doc.rect(0, 0, STRIPE_W, 297, 'F')
 
@@ -229,7 +232,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
   })
 
   // Cover footer
-  doc.setFontSize(8); doc.setTextColor(...LIGHT_GREY); doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
   doc.text('Prepared by BEAL Creative — Audit Machine', M, 278)
   doc.text(new Date(audit.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }), W - RT, 278, { align: 'right' })
   doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.3)
@@ -316,11 +319,11 @@ export async function exportPDF(audit: Audit): Promise<void> {
     const recLines = doc.splitTextToSize(recText, CW - 16) as string[]
     const boxH = recLines.length * 5.8 + 22
     doc.setFillColor(255, 249, 180); doc.roundedRect(M, y, CW, boxH, 2, 2, 'F')
-    // Dark left accent
-    doc.setFillColor(30, 30, 30); doc.rect(M, y, 3, boxH, 'F')
-    // Dark heading strip
-    doc.setFillColor(30, 30, 30); doc.rect(M + 3, y, CW - 3, 11, 'F')
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    // Yellow left accent
+    doc.setFillColor(...YELLOW); doc.rect(M, y, 3, boxH, 'F')
+    // Yellow heading strip
+    doc.setFillColor(...YELLOW); doc.rect(M + 3, y, CW - 3, 11, 'F')
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
     doc.text('TOP RECOMMENDATION', M + 8, y + 7.5)
     y += 14
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(60, 40, 0)
@@ -531,14 +534,14 @@ export async function exportPDF(audit: Audit): Promise<void> {
     })(),
     margin: { left: M, right: RT },
     styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: [30, 30, 30] as [number,number,number], textColor: WHITE, fontStyle: 'bold' },
+    headStyles: { fillColor: YELLOW as [number,number,number], textColor: BLACK, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: BG_GREY },
     columnStyles: { 0: { cellWidth: CW / 3 }, 1: { cellWidth: CW / 3 }, 2: { cellWidth: CW / 3 } },
     didParseCell: (d) => {
       if (d.section === 'head') {
-        if (d.column.index === 0) d.cell.styles.textColor = [100, 220, 140] as [number,number,number]
-        if (d.column.index === 1) d.cell.styles.textColor = [255, 120, 120] as [number,number,number]
-        if (d.column.index === 2) d.cell.styles.textColor = [100, 160, 255] as [number,number,number]
+        if (d.column.index === 0) d.cell.styles.textColor = [20, 120, 60] as [number,number,number]
+        if (d.column.index === 1) d.cell.styles.textColor = [180, 40, 40] as [number,number,number]
+        if (d.column.index === 2) d.cell.styles.textColor = [20, 80, 180] as [number,number,number]
       }
     },
   })
@@ -573,10 +576,11 @@ export async function exportPDF(audit: Audit): Promise<void> {
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p)
     doc.setFillColor(...SIDEBAR); doc.rect(0, 0, STRIPE_W, 297, 'F')
-    doc.setFontSize(8); doc.setTextColor(...LIGHT_GREY); doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal')
     if (p > 1) {
       doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
       doc.line(M, 286, W - RT, 286)
+      doc.setTextColor(...GREY)
       doc.text(`Audit Machine — BEAL Creative — ${audit.url}`, M, 290)
       doc.text(`Page ${p} of ${pages}`, W - RT, 290, { align: 'right' })
     }
