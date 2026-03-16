@@ -1,26 +1,42 @@
 import { Audit } from './types'
 
 // ─── Shared design constants ──────────────────────────────────────────────────
-const YELLOW: [number,number,number] = [255, 229, 0]
+const SIDEBAR: [number,number,number] = [34, 34, 34]   // #222 sidebar
 const BLACK: [number,number,number] = [20, 20, 20]
 const DARK: [number,number,number] = [40, 40, 40]
 const GREY: [number,number,number] = [100, 100, 110]
 const LIGHT_GREY: [number,number,number] = [180, 180, 190]
 const BG_GREY: [number,number,number] = [248, 248, 250]
 const WHITE: [number,number,number] = [255, 255, 255]
+const YELLOW: [number,number,number] = [255, 229, 0]
 const GREEN: [number,number,number] = [34, 197, 94]
 const AMBER: [number,number,number] = [245, 158, 11]
 const RED: [number,number,number] = [239, 68, 68]
 const BLUE: [number,number,number] = [59, 130, 246]
 
-const STRIPE_W = 8   // yellow left stripe width
-const M = 22         // left margin (after stripe)
-const RT = 15        // right margin
+const STRIPE_W = 8
+const M = 22
+const RT = 15
 const W = 210
 const CW = W - M - RT
 
 function scol(n: number): [number,number,number] {
   return n >= 70 ? GREEN : n >= 40 ? AMBER : RED
+}
+
+// Fix sentence splitting so abbreviations like e.g., i.e. don't cause line breaks
+function splitSentences(text: string): string[] {
+  const protected_ = text
+    .replace(/\be\.g\./g, 'e\x00g\x00')
+    .replace(/\bi\.e\./g, 'i\x00e\x00')
+    .replace(/\betc\./g, 'etc\x00')
+    .replace(/\bvs\./g, 'vs\x00')
+    .replace(/\bDr\./g, 'Dr\x00')
+    .replace(/\bMr\./g, 'Mr\x00')
+    .replace(/\bMrs\./g, 'Mrs\x00')
+    .replace(/\bNo\./g, 'No\x00')
+  const sentences = protected_.match(/[^.!?]+[.!?]+[\s]*/g) ?? [protected_]
+  return sentences.map(s => s.trim().replace(/\x00/g, '.')).filter(Boolean)
 }
 
 export async function exportPDF(audit: Audit): Promise<void> {
@@ -35,8 +51,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
 
   function addPage() {
     doc.addPage()
-    // Yellow left stripe on every page
-    doc.setFillColor(...YELLOW)
+    doc.setFillColor(...SIDEBAR)
     doc.rect(0, 0, STRIPE_W, 297, 'F')
     y = 18
   }
@@ -46,26 +61,27 @@ export async function exportPDF(audit: Audit): Promise<void> {
   }
 
   function secHeader(title: string) {
-    np(16)
-    // Yellow bar
+    np(18)
     doc.setFillColor(...YELLOW)
-    doc.rect(M, y, CW, 8, 'F')
+    doc.rect(M, y, CW, 9, 'F')
     doc.setTextColor(...BLACK)
-    doc.setFontSize(9)
+    doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
-    doc.text(title.toUpperCase(), M + 3, y + 5.5)
-    y += 12
+    doc.text(title.toUpperCase(), M + 4, y + 6.2)
+    y += 16
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...DARK)
   }
 
   function subHead(title: string) {
-    np(12)
+    np(14)
+    doc.setFillColor(30, 30, 30)
+    doc.rect(M, y - 1, CW, 9, 'F')
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...BLACK)
-    doc.text(title, M, y)
-    y += 7
+    doc.setTextColor(...WHITE)
+    doc.text(title, M + 3, y + 5.5)
+    y += 13
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...DARK)
   }
@@ -81,10 +97,9 @@ export async function exportPDF(audit: Audit): Promise<void> {
   }
 
   function smartBody(text: string, indent = 0, color: [number,number,number] = DARK) {
-    const sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) ?? [text]
-    const cleaned = sentences.map(s => s.trim()).filter(Boolean)
-    if (cleaned.length <= 1) { bodyText(text, indent, color); return }
-    cleaned.forEach(s => bodyText(s, indent, color))
+    // Join all sentences as flowing text to avoid e.g. / i.e. splitting issues
+    const sentences = splitSentences(text)
+    bodyText(sentences.join(' '), indent, color)
   }
 
   function labelVal(label: string, value: string, indent = 0) {
@@ -96,7 +111,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
     doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
     const lines = doc.splitTextToSize(value, CW - indent - lw - 2) as string[]
     doc.text(lines, M + indent + lw + 1, y)
-    y += lines.length * 5.5 + 2
+    y += lines.length * 5.5 + 3
   }
 
   function divider() {
@@ -107,64 +122,62 @@ export async function exportPDF(audit: Audit): Promise<void> {
     y += 5
   }
 
+  // Draws a coloured pill badge with white text
+  function pill(label: string, bg: [number,number,number], x: number, py: number): number {
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    const tw = doc.getTextWidth(label)
+    const pw = tw + 6
+    const ph = 5.5
+    doc.setFillColor(...bg)
+    doc.roundedRect(x, py - 4, pw, ph, 1.5, 1.5, 'F')
+    doc.setTextColor(...WHITE)
+    doc.text(label, x + 3, py - 0.2)
+    doc.setFont('helvetica', 'normal')
+    return pw + 3
+  }
+
   // ════════════════════════════════════════════════════════════
   // COVER PAGE
   // ════════════════════════════════════════════════════════════
-  // White background
   doc.setFillColor(...WHITE)
   doc.rect(0, 0, W, 297, 'F')
 
-  // Yellow left stripe
-  doc.setFillColor(...YELLOW)
+  // Dark #222 left stripe — NO top yellow bar
+  doc.setFillColor(...SIDEBAR)
   doc.rect(0, 0, STRIPE_W, 297, 'F')
 
-  // Yellow accent bar at top
+  // BEAL logo — yellow pill + wordmark
+  const pillH = 123 * 0.138
+  const pillW = 27.667 * 0.138 * 2
   doc.setFillColor(...YELLOW)
-  doc.rect(STRIPE_W, 0, W - STRIPE_W, 3, 'F')
-
-  // BEAL logo area — draw the wordmark manually using paths approximation
-  // Yellow vertical bar (logo mark)
-  doc.setFillColor(...YELLOW)
-  doc.roundedRect(M, 28, 5, 22, 1, 1, 'F')
-  // "BEAL Creative" text
-  doc.setFontSize(22)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...BLACK)
-  doc.text('BEAL', M + 9, 40)
-  doc.setFontSize(13)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...GREY)
-  doc.text('Creative', M + 9, 49)
+  doc.roundedRect(M, 28, pillW, pillH, 1.5, 1.5, 'F')
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
+  doc.text('BEAL', M + pillW + 3, 38)
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
+  doc.text('Creative.', M + pillW + 3, 45)
 
   // Horizontal rule
-  doc.setDrawColor(...LIGHT_GREY)
-  doc.setLineWidth(0.4)
+  doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.4)
   doc.line(M, 58, W - RT, 58)
 
   // Report type badge
-  doc.setFillColor(...YELLOW)
-  doc.roundedRect(M, 66, 60, 9, 2, 2, 'F')
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...BLACK)
+  doc.setFillColor(...YELLOW); doc.roundedRect(M, 66, 62, 9, 2, 2, 'F')
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
   doc.text('PAGE AUDIT REPORT', M + 3, 72)
 
   // Report title
-  doc.setFontSize(26)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...BLACK)
+  doc.setFontSize(26); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
   const titleText = audit.label || r.overview.pageType || 'Page Audit'
   const titleLines = doc.splitTextToSize(titleText, CW) as string[]
   titleLines.forEach((l, i) => doc.text(l, M, 88 + i * 12))
   const afterTitle = 88 + titleLines.length * 12
 
   // URL
-  doc.setFontSize(11)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...GREY)
+  doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
   doc.text(audit.url, M, afterTitle + 6)
 
-  // Score summary boxes
+  // Score boxes
   const boxY = afterTitle + 22
   const scores = [
     { l: 'SEO Score', v: r.scores.seo },
@@ -180,7 +193,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
     doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...scol(s.v))
     doc.text(String(s.v), bx + bw / 2, boxY + 17, { align: 'center' })
   })
-  // Grade box
+  // Grade box — rendered completely separately to avoid bleed
   const gx = M + 3 * (bw + 4)
   doc.setFillColor(...BG_GREY); doc.roundedRect(gx, boxY, bw, 22, 2, 2, 'F')
   doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
@@ -195,16 +208,24 @@ export async function exportPDF(audit: Audit): Promise<void> {
   const sumLines = doc.splitTextToSize(r.overview.summary, CW) as string[]
   doc.text(sumLines, M, sumY)
 
-  // Page stats row
+  // Page stats — fixed column widths to prevent Type/Words overlap
   const statsY = sumY + sumLines.length * 5.5 + 10
-  const stats = [['Type', r.overview.pageType], ['Words', String(r.overview.wordCount)], ['Response', r.overview.responseTime], ['Int. Links', String(r.overview.internalLinks)], ['File Size', r.overview.fileSize]]
-  const sw = CW / stats.length
+  const stats: [string, string][] = [
+    ['Type', r.overview.pageType],
+    ['Words', String(r.overview.wordCount)],
+    ['Response', r.overview.responseTime],
+    ['Int. Links', String(r.overview.internalLinks)],
+    ['File Size', r.overview.fileSize],
+  ]
+  const colWidths = [42, 20, 28, 22, 24]
+  let sx = M
   stats.forEach(([l, v], i) => {
-    const sx = M + i * sw
     doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
     doc.text(String(l), sx, statsY)
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(String(v), sx, statsY + 7)
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
+    const truncated = (doc.splitTextToSize(String(v), colWidths[i] - 2) as string[])[0]
+    doc.text(truncated, sx, statsY + 7)
+    sx += colWidths[i]
   })
 
   // Cover footer
@@ -222,7 +243,6 @@ export async function exportPDF(audit: Audit): Promise<void> {
   const g = r.gapAnalysis
 
   if (g) {
-    // Score before/after row
     np(28)
     const scoreBoxes = [
       { l: 'Current Score', v: g.beforeScore, grade: g.beforeGrade, col: scol(g.beforeScore) },
@@ -230,53 +250,59 @@ export async function exportPDF(audit: Audit): Promise<void> {
     ]
     scoreBoxes.forEach((b, i) => {
       const bx = M + i * 58
-      doc.setFillColor(...BG_GREY); doc.roundedRect(bx, y, 52, 20, 2, 2, 'F')
+      doc.setFillColor(...BG_GREY); doc.roundedRect(bx, y, 52, 22, 2, 2, 'F')
       doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
       doc.text(b.l, bx + 4, y + 6)
+      // Score number only — grade shown separately as small text
       doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...b.col)
-      doc.text(`${b.v}`, bx + 4, y + 16)
-      doc.setFontSize(9); doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal')
-      doc.text(b.grade, bx + 4 + doc.getTextWidth(`${b.v}`) + 2, y + 16)
+      doc.text(`${b.v}`, bx + 4, y + 17)
+      const numW = doc.getTextWidth(`${b.v}`)
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
+      doc.text(`(${b.grade})`, bx + 4 + numW + 2, y + 17)
     })
-    // Uplift badge
     const upx = M + 120
-    doc.setFillColor(220, 252, 231); doc.roundedRect(upx, y, 50, 20, 2, 2, 'F')
+    doc.setFillColor(220, 252, 231); doc.roundedRect(upx, y, 50, 22, 2, 2, 'F')
     doc.setFontSize(8); doc.setTextColor(...GREEN); doc.setFont('helvetica', 'normal')
     doc.text('Potential Uplift', upx + 4, y + 6)
-    doc.setFontSize(18); doc.setFont('helvetica', 'bold')
-    doc.text(`+${g.afterScore - g.beforeScore} pts`, upx + 4, y + 16)
-    y += 26
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREEN)
+    doc.text(`+${g.afterScore - g.beforeScore} pts`, upx + 4, y + 17)
+    y += 28
 
     smartBody(g.executiveSummary)
     y += 2
 
-    // Critical issues
     subHead('Critical Issues')
     g.criticalIssues.forEach((item, i) => {
       np(28)
-      doc.setFillColor(...BG_GREY); doc.roundedRect(M, y, CW, 7, 1, 1, 'F')
+      doc.setFillColor(...BG_GREY); doc.roundedRect(M, y, CW, 8, 1, 1, 'F')
       doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      const issueLines = doc.splitTextToSize(`${i + 1}.  ${item.issue}`, CW - 4) as string[]
-      doc.text(issueLines, M + 3, y + 5)
-      y += issueLines.length * 5.5 + 4
+      const issueLines = doc.splitTextToSize(`${i + 1}.  ${item.issue}`, CW - 32) as string[]
+      doc.text(issueLines, M + 3, y + 5.5)
+      // Effort pill top-right
+      const efCol: [number,number,number] = item.effort === 'Easy' ? GREEN : item.effort === 'Medium' ? AMBER : RED
+      const efLabel = `${item.effort} effort`
+      const efTw = doc.getTextWidth(efLabel) + 9
+      pill(efLabel, efCol, W - RT - efTw, y + 5.5)
+      y += issueLines.length * 6 + 6
       labelVal('Impact:', item.impact, 2)
       labelVal('Fix:', item.fix, 2)
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...(item.effort === 'Easy' ? GREEN : item.effort === 'Medium' ? AMBER : RED))
-      doc.text(`${item.effort} effort`, M + 2, y); y += 8
+      y += 4
     })
 
     y += 2
     subHead('Quick Wins')
     g.quickWins.forEach((item, i) => {
-      np(20)
+      np(22)
       doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      const wLines = doc.splitTextToSize(`${i + 1}.  ${item.win}`, CW - 4) as string[]
-      doc.text(wLines, M + 2, y); y += wLines.length * 5.5 + 1
+      const wLines = doc.splitTextToSize(`${i + 1}.  ${item.win}`, CW - 34) as string[]
+      doc.text(wLines, M + 2, y)
+      // Time estimate pill top-right
+      const teTw = doc.getTextWidth(item.timeEstimate) + 9
+      pill(item.timeEstimate, BLUE, W - RT - teTw, y + 1)
+      y += wLines.length * 5.5 + 3
       doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
       smartBody(item.action, 4)
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-      doc.text(item.timeEstimate, M + 4, y); y += 8
+      y += 4
     })
 
     y += 2
@@ -285,16 +311,21 @@ export async function exportPDF(audit: Audit): Promise<void> {
     y += 3
 
     // Top recommendation callout
-    np(22)
-    doc.setFillColor(255, 249, 180); doc.roundedRect(M, y - 2, CW, 4, 1, 1, 'F')
-    const recLines = doc.splitTextToSize(g.topRecommendation, CW - 8) as string[]
-    doc.setFillColor(255, 249, 180); doc.roundedRect(M, y - 2, CW, recLines.length * 5.5 + 14, 2, 2, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(M, y - 2, 3, recLines.length * 5.5 + 14, 'F')
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text('★  TOP RECOMMENDATION', M + 6, y + 4)
-    y += 9
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(80, 60, 0)
-    doc.text(recLines, M + 6, y); y += recLines.length * 5.5 + 8
+    np(30)
+    const recText = g.topRecommendation
+    const recLines = doc.splitTextToSize(recText, CW - 16) as string[]
+    const boxH = recLines.length * 5.8 + 22
+    doc.setFillColor(255, 249, 180); doc.roundedRect(M, y, CW, boxH, 2, 2, 'F')
+    // Dark left accent
+    doc.setFillColor(30, 30, 30); doc.rect(M, y, 3, boxH, 'F')
+    // Dark heading strip
+    doc.setFillColor(30, 30, 30); doc.rect(M + 3, y, CW - 3, 11, 'F')
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text('TOP RECOMMENDATION', M + 8, y + 7.5)
+    y += 14
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(60, 40, 0)
+    doc.text(recLines, M + 8, y)
+    y += recLines.length * 5.8 + 10
   }
 
   // ════════════════════════════════════════════════════════════
@@ -306,37 +337,47 @@ export async function exportPDF(audit: Audit): Promise<void> {
   const catLabels: Record<string, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 
   subHead('Category Overview')
+  y += 4
   Object.entries(r.seoCategories).forEach(([k, cat]) => {
-    np(10)
+    np(12)
     doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
     doc.text(catLabels[k] ?? k, M, y + 4)
-    doc.setFillColor(230, 230, 235); doc.rect(M + 50, y + 1, 110, 5, 'F')
-    doc.setFillColor(...scol(cat.score)); doc.rect(M + 50, y + 1, 110 * cat.score / 100, 5, 'F')
+    const barX = M + 52
+    const barW = 98
+    doc.setFillColor(230, 230, 235); doc.rect(barX, y + 1, barW, 5, 'F')
+    doc.setFillColor(...scol(cat.score)); doc.rect(barX, y + 1, barW * cat.score / 100, 5, 'F')
+    // Percentage label outside/after the bar
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...scol(cat.score))
-    doc.text(`${cat.score}%`, M + 163, y + 5, { align: 'right' })
-    y += 10
+    doc.text(`${cat.score}%`, barX + barW + 4, y + 5)
+    y += 11
   })
-  y += 4
+  y += 6
 
   Object.entries(r.seoCategories).forEach(([k, cat]) => {
     np(16)
     subHead(`${catLabels[k] ?? k} — ${cat.score}%`)
+    y += 2
     cat.checks.forEach((c: { label: string; status: string; detail: string; criticality: string }) => {
-      np(14)
+      np(16)
       const dotCol: [number,number,number] = c.status === 'pass' ? GREEN : c.status === 'fail' ? RED : AMBER
-      doc.setFillColor(...dotCol); doc.circle(M + 2.5, y + 2, 2, 'F')
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      doc.text(c.label, M + 7, y + 3.5)
       const critMap: Record<string, string> = { critical: 'Critical', important: 'Important', somewhat: 'Somewhat', nice: 'Nice to have' }
       const critColMap: Record<string, [number,number,number]> = { critical: RED, important: AMBER, somewhat: BLUE, nice: LIGHT_GREY }
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...(critColMap[c.criticality] ?? LIGHT_GREY))
-      doc.text(critMap[c.criticality] ?? '', W - RT, y + 3.5, { align: 'right' })
-      y += 7
-      doc.setFontSize(9.5); doc.setTextColor(...GREY)
+      // Dot aligned with heading text
+      doc.setFillColor(...dotCol); doc.circle(M + 2.5, y + 3.5, 2, 'F')
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
+      doc.text(c.label, M + 7, y + 5)
+      // Criticality pill
+      const critLabel = critMap[c.criticality] ?? ''
+      const critColor = critColMap[c.criticality] ?? LIGHT_GREY
+      if (critLabel) {
+        const ctw = doc.getTextWidth(critLabel) + 9
+        pill(critLabel, critColor, W - RT - ctw, y + 5)
+      }
+      y += 8
+      doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
       const dLines = doc.splitTextToSize(c.detail, CW - 10) as string[]
       np(dLines.length * 5 + 4)
-      doc.text(dLines, M + 7, y); y += dLines.length * 5 + 5
+      doc.text(dLines, M + 7, y); y += dLines.length * 5 + 6
     })
     y += 3
   })
@@ -364,18 +405,19 @@ export async function exportPDF(audit: Audit): Promise<void> {
   Object.entries(r.lpScoring).forEach(([k, cat]) => {
     np(16)
     subHead(`${lpLabels[k] ?? k} — ${cat.score}/${cat.maxScore}`)
+    y += 2
     cat.subScores.forEach((s: { label: string; score: number; max: number; note: string }) => {
-      np(14)
+      np(16)
       const sCol: [number,number,number] = s.score >= 2 ? GREEN : s.score >= 1 ? AMBER : RED
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...sCol)
-      doc.text(`${s.score}/${s.max}`, M, y + 3)
-      doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      doc.text(s.label, M + 12, y + 3)
-      y += 6
+      const scoreLabel = `${s.score}/${s.max}`
+      const spw = pill(scoreLabel, sCol, M, y + 4)
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
+      doc.text(s.label, M + spw, y + 4)
+      y += 8
       doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
       const nLines = doc.splitTextToSize(s.note, CW - 14) as string[]
       np(nLines.length * 5 + 3)
-      doc.text(nLines, M + 12, y); y += nLines.length * 5 + 4
+      doc.text(nLines, M + 4, y); y += nLines.length * 5 + 6
     })
     y += 3
   })
@@ -387,21 +429,33 @@ export async function exportPDF(audit: Audit): Promise<void> {
   secHeader('Priority Fixes')
 
   r.priorityFixes.forEach(f => {
-    np(30)
+    np(32)
     doc.setFillColor(...YELLOW); doc.circle(M + 5, y + 5, 5, 'F')
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
     doc.text(String(f.rank), M + 3.5, y + 6.5)
     const titleLines = doc.splitTextToSize(f.title, CW - 14) as string[]
     doc.setFontSize(11); doc.text(titleLines, M + 13, y + 6)
-    y += titleLines.length * 6 + 4
+    y += titleLines.length * 6 + 8  // more space before Problem
+
     labelVal('Problem:', f.problem, 4)
     labelVal('Fix:', f.fix, 4)
-    np(10)
+    np(12)
+
+    // Effort pill in coloured box
     const efCol: [number,number,number] = f.difficulty === 'Easy' ? GREEN : f.difficulty === 'Medium' ? AMBER : RED
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...efCol); doc.text(`${f.difficulty} fix`, M + 4, y)
-    doc.setTextColor(...BLUE); doc.text(f.uplift, M + 38, y)
-    doc.setTextColor(...GREY); doc.text(f.timeline, M + 95, y)
+    const efLabel = `${f.difficulty} fix`
+    const efW = pill(efLabel, efCol, M + 4, y + 3.5)
+
+    // Uplift and timeline — clamp to page width
+    const remainW = CW - efW - 4
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...BLUE)
+    const upliftText = (doc.splitTextToSize(f.uplift, remainW * 0.58) as string[])[0]
+    doc.text(upliftText, M + 4 + efW + 2, y + 3.5)
+
+    doc.setTextColor(...GREY)
+    const timelineText = (doc.splitTextToSize(f.timeline, remainW * 0.36) as string[])[0]
+    doc.text(timelineText, W - RT - doc.getTextWidth(timelineText), y + 3.5)
+
     y += 10
     divider()
   })
@@ -411,9 +465,11 @@ export async function exportPDF(audit: Audit): Promise<void> {
   // ════════════════════════════════════════════════════════════
   addPage()
   secHeader('Positioning & Competitor Analysis')
+  y += 4  // extra space after section header
   const ca = r.competitorAnalysis
 
   subHead('Hook Type & Approach')
+  y += 2
   doc.setFontSize(10); doc.setFont('helvetica', 'normal')
   doc.text('Hook Type: ', M, y)
   doc.setFont('helvetica', 'bold'); doc.setTextColor(...AMBER)
@@ -429,6 +485,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
   y += 7; smartBody(ca.positioningNote, 0, GREY); y += 4
 
   subHead('Buyer Anxieties')
+  y += 2
   ca.buyerAnxieties.forEach(b => {
     np(14)
     const bCol: [number,number,number] = b.addressed ? GREEN : RED
@@ -467,21 +524,21 @@ export async function exportPDF(audit: Audit): Promise<void> {
   const swData = r.strengthsWeaknesses
   autoTable(doc, {
     startY: y,
-    head: [['✓  Strengths', '✗  Weaknesses', '◎  Missed Opportunities']],
+    head: [['Strengths', 'Weaknesses', 'Missed Opportunities']],
     body: (() => {
       const max = Math.max(swData.strengths.length, swData.weaknesses.length, swData.missedOpportunities.length)
       return Array.from({ length: max }, (_, i) => [swData.strengths[i] ?? '', swData.weaknesses[i] ?? '', swData.missedOpportunities[i] ?? ''])
     })(),
     margin: { left: M, right: RT },
     styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
+    headStyles: { fillColor: [30, 30, 30] as [number,number,number], textColor: WHITE, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: BG_GREY },
     columnStyles: { 0: { cellWidth: CW / 3 }, 1: { cellWidth: CW / 3 }, 2: { cellWidth: CW / 3 } },
     didParseCell: (d) => {
       if (d.section === 'head') {
-        if (d.column.index === 0) d.cell.styles.textColor = [20, 120, 60] as [number,number,number]
-        if (d.column.index === 1) d.cell.styles.textColor = [180, 40, 40] as [number,number,number]
-        if (d.column.index === 2) d.cell.styles.textColor = [30, 80, 180] as [number,number,number]
+        if (d.column.index === 0) d.cell.styles.textColor = [100, 220, 140] as [number,number,number]
+        if (d.column.index === 1) d.cell.styles.textColor = [255, 120, 120] as [number,number,number]
+        if (d.column.index === 2) d.cell.styles.textColor = [100, 160, 255] as [number,number,number]
       }
     },
   })
@@ -515,8 +572,7 @@ export async function exportPDF(audit: Audit): Promise<void> {
   const pages = doc.getNumberOfPages()
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p)
-    // Ensure stripe on every page (cover already has it)
-    doc.setFillColor(...YELLOW); doc.rect(0, 0, STRIPE_W, 297, 'F')
+    doc.setFillColor(...SIDEBAR); doc.rect(0, 0, STRIPE_W, 297, 'F')
     doc.setFontSize(8); doc.setTextColor(...LIGHT_GREY); doc.setFont('helvetica', 'normal')
     if (p > 1) {
       doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
