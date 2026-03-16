@@ -241,16 +241,16 @@ export default function Home() {
   return (
     <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-        {/* BEAL-style yellow top bar */}
+        {/* Yellow top bar */}
         <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
-        {/* Logo area */}
+        {/* Logo area — BEAL wordmark */}
         <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
-          <svg width="16" height="36" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
           </svg>
           <div>
-            <div className="text-sm font-bold tracking-wide" style={{ color: 'var(--t1)' }}>AuditIQ</div>
-            <div className="text-[10px]" style={{ color: 'var(--t3)' }}>by BEAL Creative</div>
+            <div className="text-[13px] font-bold tracking-wide leading-tight" style={{ color: 'var(--t1)' }}>Audit Machine</div>
+            <div className="text-[10px] leading-tight" style={{ color: 'var(--t3)' }}>by BEAL Creative</div>
           </div>
         </div>
         <nav className="p-2.5 flex-1 overflow-y-auto">

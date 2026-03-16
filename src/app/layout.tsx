@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'AuditIQ — SEO & Landing Page Audit Dashboard',
+  title: 'Audit Machine — SEO & Landing Page Audit Dashboard',
   description: 'AI-powered SEO and landing page analysis dashboard',
 }
 
