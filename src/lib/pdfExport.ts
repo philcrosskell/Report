@@ -106,18 +106,6 @@ export async function exportPDF(audit: Audit): Promise<void> {
     bodyText(splitSentences(text).join(' '), indent, color)
   }
 
-  function labelVal(label: string, value: string, indent = 0) {
-    np(12)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(label, M + indent, y)
-    const lw = doc.getTextWidth(label + ' ')
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    const lines = doc.splitTextToSize(value, CW - indent - lw - 2) as string[]
-    doc.text(lines, M + indent + lw + 1, y)
-    y += lines.length * LH + 3
-  }
-
   function divider(gap = 6) {
     np(8)
     doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
