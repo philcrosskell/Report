@@ -1,423 +1,510 @@
 import { SavedCompetitorReport } from './types'
-
-const YELLOW: [number,number,number] = [255, 229, 0]
-const BLACK: [number,number,number] = [20, 20, 20]
-const DARK: [number,number,number] = [40, 40, 40]
-const GREY: [number,number,number] = [100, 100, 110]
-const LIGHT_GREY: [number,number,number] = [180, 180, 190]
-const BG_GREY: [number,number,number] = [248, 248, 250]
-const WHITE: [number,number,number] = [255, 255, 255]
-const GREEN: [number,number,number] = [34, 197, 94]
-const AMBER: [number,number,number] = [245, 158, 11]
-const RED: [number,number,number] = [239, 68, 68]
-
-const STRIPE_W = 8
-const M = 22
-const RT = 15
-const W = 210
-const CW = W - M - RT
-
-export async function exportCompetitorPDF(saved: SavedCompetitorReport, brandLogo = ''): Promise<void> {
+ 
+type RGB = [number, number, number]
+ 
+// ─── Design tokens ──────────────────────────────────────────────────────────
+const DARK:       RGB = [7,   9,   15 ]
+const DARK_TEXT:  RGB = [14,  17,  32 ]
+const BODY:       RGB = [74,  82,  128]
+const MUTED:      RGB = [139, 144, 170]
+const LABEL:      RGB = [176, 181, 204]
+const BORDER:     RGB = [236, 238, 247]
+const LIGHT_BG:   RGB = [249, 250, 251]
+const LIGHT_BG2:  RGB = [247, 248, 253]
+const WHITE:      RGB = [255, 255, 255]
+const YELLOW:     RGB = [255, 230, 0  ]
+const INDIGO:     RGB = [99,  102, 241]
+const INDIGO_D:   RGB = [45,  31,  163]
+const INDIGO_BG:  RGB = [245, 246, 255]
+const INDIGO_L:   RGB = [238, 237, 254]
+const PURPLE:     RGB = [139, 92,  246]
+const CORAL:      RGB = [239, 68,  68 ]
+const AMBER:      RGB = [245, 158, 11 ]
+const AMBER_D:    RGB = [217, 119, 6  ]
+const GREEN:      RGB = [16,  185, 129]
+const GREEN_D:    RGB = [5,   150, 105]
+const MINT:       RGB = [6,   182, 212]
+const PINK:       RGB = [236, 72,  153]
+const BLUE:       RGB = [59,  130, 246]
+const TEAL:       RGB = [20,  184, 166]
+ 
+const TAG_RED_BG: RGB = [254, 226, 226]; const TAG_RED_FG: RGB = [185, 28,  28 ]
+const TAG_AMB_BG: RGB = [254, 243, 199]; const TAG_AMB_FG: RGB = [146, 64,  14 ]
+const TAG_GRN_BG: RGB = [209, 250, 229]; const TAG_GRN_FG: RGB = [6,   95,  70 ]
+ 
+// ─── Layout ──────────────────────────────────────────────────────────────────
+const W  = 210
+const PH = 297
+const L  = 20
+const RM = 16
+const R  = W - RM
+const CW = R - L
+const LH = 5.5
+const PG = 5
+ 
+function lerpRGB(c1: RGB, c2: RGB, t: number): RGB {
+  return [
+    Math.round(c1[0] + t * (c2[0] - c1[0])),
+    Math.round(c1[1] + t * (c2[1] - c1[1])),
+    Math.round(c1[2] + t * (c2[2] - c1[2])),
+  ]
+}
+ 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLogo = ''): Promise<void> {
   const { default: jsPDF } = await import('jspdf')
-  const { default: autoTable } = await import('jspdf-autotable')
-  const r = saved.report
+  const r   = saved.report
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   let y = 0
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function lastY() { return (doc as any).lastAutoTable.finalY + 6 }
-
+ 
+  const sf = (col: RGB) => doc.setFillColor(col[0], col[1], col[2])
+  const st = (col: RGB) => doc.setTextColor(col[0], col[1], col[2])
+  const sd = (col: RGB) => doc.setDrawColor(col[0], col[1], col[2])
+ 
+  function gradStrip(c1: RGB, c2: RGB, yTop: number, h: number) {
+    const steps = 30; const sw = W / steps
+    for (let i = 0; i < steps; i++) {
+      const col = lerpRGB(c1, c2, i / steps)
+      doc.setFillColor(col[0], col[1], col[2])
+      doc.rect(i * sw, yTop, sw + 0.2, h, 'F')
+    }
+  }
+ 
+  function drawTag(text: string, bg: RGB, fg: RGB, px: number, py: number, sz = 7.5): number {
+    doc.setFontSize(sz); doc.setFont('helvetica', 'bold')
+    const tw   = doc.getTextWidth(text)
+    const padX = 5; const padY = 2.5
+    const tagW = tw + padX * 2; const tagH = sz * 0.4 + padY * 2
+    sf(bg); doc.roundedRect(px, py - tagH + 2, tagW, tagH, tagH / 2, tagH / 2, 'F')
+    st(fg); doc.text(text, px + padX, py + 0.3)
+    return tagW + 3
+  }
+ 
+  function hline(yPos: number, col: RGB = BORDER, lw = 0.6) {
+    sd(col); doc.setLineWidth(lw); doc.line(L, yPos, R, yPos)
+  }
+ 
   function addPage() {
-    doc.addPage()
-    doc.setFillColor(...WHITE); doc.rect(0, 0, W, 297, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(0, 0, STRIPE_W, 297, 'F')
-    y = 18
+    doc.addPage(); sf(WHITE); doc.rect(0, 0, W, PH, 'F'); y = 0
   }
-
-  function np(need = 20) { if (y + need > 275) addPage() }
-
-  function secHeader(title: string, color: [number,number,number] = YELLOW) {
-    np(16)
-    doc.setFillColor(...color); doc.rect(M, y, CW, 8, 'F')
-    const isYellow = color[0] > 200 && color[1] > 200 && color[2] < 50
-    doc.setTextColor(...(isYellow ? BLACK : WHITE))
+ 
+  function np(need = 24) { if (y + need > 275) addPage() }
+  function sectionBreak(minSpace = 60) { if (y > PH - 24 - minSpace) addPage() }
+ 
+  function secHeader(title: string, c1: RGB, c2: RGB) {
+    const stripH = 5; const hdrH = 60
+    gradStrip(c1, c2, 0, stripH)
+    sf(DARK); doc.rect(0, stripH, W, hdrH, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(160, 163, 200)
+    doc.text('SECTION', L, stripH + 18)
+    doc.setFontSize(22); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(255, 255, 255)
+    doc.text(title, L, stripH + 48)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 105, 140)
+    doc.text(r.businessName, R, stripH + 50, { align: 'right' })
+    y = stripH + hdrH + 14
+  }
+ 
+  function contHeader(label: string, c1: RGB, c2: RGB) {
+    const stripH = 3; const hdrH = 26
+    gradStrip(c1, c2, 0, stripH)
+    sf(DARK); doc.rect(0, stripH, W, hdrH, 'F')
     doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-    doc.text(title.toUpperCase(), M + 3, y + 5.5)
-    y += 12; doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
+    doc.setTextColor(190, 195, 225)
+    doc.text(`${label.toUpperCase()} — CONTINUED`, L, stripH + 18)
+    y = stripH + hdrH + 12
   }
-
-  function subHead(title: string) {
-    np(12)
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(title, M, y); y += 7
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
+ 
+  function subHead(text: string, dotCol: RGB) {
+    np(22); y += 10
+    sf(dotCol); doc.circle(L + 3.5, y - 3, 3, 'F')
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(text, L + 12, y)
+    hline(y + 6, BORDER, 1.2)
+    y += 22
   }
-
-  function bodyText(text: string, indent = 0, color: [number,number,number] = DARK) {
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...color)
+ 
+  function bodyText(text: string, indent = 0, col: RGB = BODY, sz = 10) {
+    doc.setFontSize(sz); doc.setFont('helvetica', 'normal'); st(col)
     const lines = doc.splitTextToSize(text, CW - indent) as string[]
-    np(lines.length * 5.5 + 2)
-    doc.text(lines, M + indent, y); y += lines.length * 5.5 + 2
+    np(lines.length * LH + PG)
+    doc.text(lines, L + indent, y)
+    y += lines.length * LH + PG
   }
-
-  function smartBody(text: string, indent = 0, color: [number,number,number] = DARK) {
-    const sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) ?? [text]
-    const cleaned = sentences.map(s => s.trim()).filter(Boolean)
-    if (cleaned.length <= 1) { bodyText(text, indent, color); return }
-    cleaned.forEach(s => bodyText(s, indent, color))
+ 
+  function calloutBox(text: string, borderCol: RGB, labelCol: RGB, label: string, bg: RGB = INDIGO_BG) {
+    const lines = doc.splitTextToSize(text, CW - 22) as string[]
+    const h = lines.length * LH + 30
+    np(h + 8)
+    sf(bg); doc.roundedRect(L, y, CW, h, 4, 4, 'F')
+    sf(borderCol); doc.rect(L, y, 3, h, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(labelCol)
+    doc.text(label, L + 11, y + 11)
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+    doc.text(lines, L + 11, y + 22)
+    y += h + 12
   }
-
-  function divider() {
-    np(6); doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
-    doc.line(M, y, M + CW, y); y += 5
+ 
+  function tblHeader(cols: number[], headers: string[], colBgs?: RGB[]) {
+    const rh = 22; let x = L
+    headers.forEach((h, i) => {
+      const bg = colBgs?.[i] ?? DARK
+      sf(bg); doc.rect(x, y, cols[i], rh, 'F')
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(WHITE)
+      doc.text(h, x + 8, y + 14)
+      x += cols[i]
+    })
+    y += rh
   }
-
-  // ════════════════════════════════════════════════════════════
+ 
+  function tblRow(cols: number[], cells: string[], even = false, cellCols?: (RGB | null)[]) {
+    const rowLH = 5; let maxLines = 1
+    cells.forEach((cell, i) => {
+      const l = (doc.splitTextToSize(cell, cols[i] - 16) as string[]).length
+      maxLines = Math.max(maxLines, l)
+    })
+    const rh = maxLines * rowLH + 14
+    np(rh + 4)
+    const bg: RGB = even ? [249, 250, 252] : WHITE
+    let x = L
+    cells.forEach((cell, i) => {
+      sf(bg); doc.rect(x, y, cols[i], rh, 'F')
+      const col: RGB = cellCols?.[i] ?? BODY
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(col)
+      const lines = doc.splitTextToSize(cell, cols[i] - 16) as string[]
+      doc.text(lines, x + 8, y + 10)
+      x += cols[i]
+    })
+    sd(BORDER); doc.setLineWidth(0.5); doc.line(L, y + rh, R, y + rh)
+    y += rh
+  }
+ 
+  function topRecBox(text: string) {
+    const lines = doc.splitTextToSize(text, CW - 20) as string[]
+    const h = lines.length * LH + 40
+    np(h + 10)
+    sf(INDIGO); doc.roundedRect(L, y, CW, 20, 4, 4, 'F')
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text('★  KEY RECOMMENDATION', L + 10, y + 13)
+    sf(INDIGO_L); doc.roundedRect(L, y + 20, CW, h - 20, 4, 4, 'F')
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(INDIGO_D)
+    doc.text(lines, L + 10, y + 34)
+    y += h + 12
+  }
+ 
+  // ════════════════════════════════════════════════════════════════════════════
   // COVER PAGE
-  // ════════════════════════════════════════════════════════════
-  doc.setFillColor(...WHITE); doc.rect(0, 0, W, 297, 'F')
-  doc.setFillColor(...YELLOW); doc.rect(0, 0, STRIPE_W, 297, 'F')
-  doc.setFillColor(...YELLOW); doc.rect(STRIPE_W, 0, W - STRIPE_W, 3, 'F')
-
-  // Logo
-  if (brandLogo && !brandLogo.startsWith('data:image/svg')) {
-    try {
-      const ext = brandLogo.startsWith('data:image/png') ? 'PNG' : brandLogo.startsWith('data:image/webp') ? 'WEBP' : 'JPEG'
-      doc.addImage(brandLogo, ext, M, 22, 55, 22, undefined, 'FAST')
-    } catch { /* skip */ }
-  } else {
-    // Draw BEAL logo mark
-    doc.setFillColor(...YELLOW); doc.roundedRect(M, 28, 5, 22, 1, 1, 'F')
-    doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text('BEAL', M + 9, 40)
-    doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    doc.text('Creative', M + 9, 49)
-  }
-
-  // Divider
-  doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.4)
-  doc.line(M, 60, W - RT, 60)
-
+  // ════════════════════════════════════════════════════════════════════════════
+  gradStrip(INDIGO, TEAL, 0, 5)
+  sf(DARK); doc.rect(0, 5, W, 103, 'F')
+ 
+  // BEAL Creative brand block
+  const pillW = 4; const pillH = 28
+  sf(YELLOW); doc.roundedRect(L, 30, pillW, pillH, pillW / 2, pillW / 2, 'F')
+  const tx = L + 10
+  doc.setFontSize(16); doc.setFont('helvetica', 'bold'); st(WHITE)
+  doc.text('BEAL', tx, 44)
+  const bealW = doc.getTextWidth('BEAL')
+  doc.setFont('helvetica', 'normal')
+  doc.text(' Creative.', tx + bealW, 44)
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+  doc.setTextColor(120, 123, 155)
+  doc.text('AUDIT MACHINE', tx, 54)
+ 
+  // Date
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100, 105, 140)
+  doc.text(r.date, R, 50, { align: 'right' })
+ 
+  // Cover body
+  y = 5 + 103 + 42
+ 
   // Report type badge
-  doc.setFillColor(...YELLOW); doc.roundedRect(M, 68, 90, 9, 2, 2, 'F')
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-  doc.text('COMPETITOR INTELLIGENCE REPORT', M + 3, 74)
-
-  // Title
-  doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-  const titleLines = doc.splitTextToSize(`How ${r.market}`, CW) as string[]
-  titleLines.forEach((l, i) => doc.text(l, M, 90 + i * 11))
-  const afterTitle = 90 + titleLines.length * 11
-
-  doc.setFontSize(14); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-  doc.text(`Competitors in This Market`, M, afterTitle + 6)
-
-  // Meta
-  doc.setFontSize(10); doc.setTextColor(...DARK)
-  doc.text(`Prepared for: ${r.businessName}`, M, afterTitle + 20)
-  doc.text(`Analysed: ${r.businessUrl} vs. ${r.profiles.length - 1} competitor${r.profiles.length !== 2 ? 's' : ''}`, M, afterTitle + 28)
-  doc.text(`Date: ${r.date}`, M, afterTitle + 36)
-
-  // Cover footer
-  doc.setFontSize(8); doc.setTextColor(...LIGHT_GREY); doc.setFont('helvetica', 'normal')
-  doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.3); doc.line(M, 272, W - RT, 272)
-  doc.text('Prepared by BEAL Creative — Audit Machine', M, 278)
-  doc.text('CONFIDENTIAL', W - RT, 278, { align: 'right' })
-
-  // ════════════════════════════════════════════════════════════
-  // THE SHORT VERSION
-  // ════════════════════════════════════════════════════════════
+  drawTag('COMPETITOR INTELLIGENCE REPORT', INDIGO, WHITE, L, y + 5)
+  y += 14
+ 
+  // Business name + market title
+  doc.setFontSize(38); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+  const nameLines = doc.splitTextToSize(r.businessName, CW) as string[]
+  nameLines.slice(0, 2).forEach((line, i) => doc.text(line, L, y + i * 40))
+  y += Math.min(nameLines.length, 2) * 40 + 6
+ 
+  doc.setFontSize(13); doc.setFont('helvetica', 'normal'); st(MUTED)
+  doc.text(`Competitor Intelligence — ${r.market}`, L, y); y += 11
+ 
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(LABEL)
+  doc.text(r.businessUrl, L, y); y += 12
+ 
+  hline(y, BORDER, 0.5); y += 12
+ 
+  // Stats strip
+  const statsH = 28
+  sf(LIGHT_BG2); sd(BORDER); doc.setLineWidth(0.5)
+  doc.roundedRect(L, y, CW, statsH, 5, 5, 'FD')
+  const statsDefs: [string, string][] = [
+    ['BUSINESSES ANALYSED', String(r.profiles.length)],
+    ['MARKET',              r.market.slice(0, 30)],
+    ['DATE',                r.date],
+    ['PREPARED FOR',        r.businessName],
+  ]
+  const statColW = CW / statsDefs.length
+  statsDefs.forEach(([lbl, val], i) => {
+    const sx = L + i * statColW
+    if (i > 0) { sd(BORDER); doc.setLineWidth(0.5); doc.line(sx, y + 5, sx, y + statsH - 5) }
+    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(176, 181, 204)
+    doc.text(lbl, sx + 10, y + 10)
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(BODY)
+    doc.text((doc.splitTextToSize(val, statColW - 14) as string[])[0], sx + 10, y + 20)
+  })
+  y += statsH + 14
+ 
+  if (r.summary) {
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+    const sumLines = doc.splitTextToSize(r.summary, CW) as string[]
+    if (y + sumLines.length * LH < 270) doc.text(sumLines, L, y)
+  }
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 1. HEADLINE FINDINGS (The Short Version)
+  // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('The Short Version')
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-  bodyText(`${r.profiles.length} businesses analysed in this market.`, 0, GREY)
-  y += 2
-
+  secHeader('Headline Findings', INDIGO, TEAL)
+ 
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(MUTED)
+  doc.text(`${r.profiles.length} businesses analysed in this market.`, L, y); y += 10
+ 
   r.headlineFindings.forEach(f => {
-    np(30)
-    const startY = y
-    doc.setFillColor(...BG_GREY); doc.roundedRect(M, y - 2, CW, 2, 1, 1, 'F')
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...YELLOW)
-    // Draw yellow number circle
-    doc.setFillColor(...YELLOW); doc.circle(M + 5, y + 5, 5, 'F')
-    doc.setTextColor(...BLACK); doc.text(String(f.number), M + 3.2, y + 6.8)
-    doc.setTextColor(...BLACK); const titleL = doc.splitTextToSize(f.title, CW - 14) as string[]
-    doc.text(titleL, M + 13, y + 6)
-    y += titleL.length * 6.5 + 4
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    smartBody(f.detail, 4)
-    // Background behind the whole item
-    doc.setFillColor(...BG_GREY); doc.roundedRect(M, startY - 2, CW, y - startY + 6, 2, 2, 'F')
-    // Redraw text on top of bg
-    doc.setFillColor(...YELLOW); doc.circle(M + 5, startY + 5, 5, 'F')
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(String(f.number), M + 3.2, startY + 6.8)
-    doc.text(titleL, M + 13, startY + 6)
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal')
-    let ty = startY + titleL.length * 6.5 + 4
-    const dSentences = f.detail.match(/[^.!?]+[.!?]+[\s]*/g) ?? [f.detail]
-    dSentences.forEach(s => {
-      doc.setTextColor(...GREY)
-      const sl = doc.splitTextToSize(s.trim(), CW - 18) as string[]
-      doc.text(sl, M + 13, ty); ty += sl.length * 5.5 + 2
-    })
-    y = ty + 6
+    const titleLines = doc.splitTextToSize(f.title, CW - 50) as string[]
+    const detLines   = doc.splitTextToSize(f.detail, CW - 22) as string[]
+    const cardH = titleLines.length * 7 + detLines.length * LH + 28
+    np(cardH + 8)
+    sf(LIGHT_BG2); doc.roundedRect(L, y, CW, cardH, 5, 5, 'F')
+    sd(BORDER); doc.setLineWidth(0.5); doc.roundedRect(L, y, CW, cardH, 5, 5, 'S')
+    // Number circle
+    sf(INDIGO); doc.circle(L + 18, y + 14, 10, 'F')
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text(String(f.number), L + 18, y + 17.5, { align: 'center' })
+    // Title + detail
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(titleLines, L + 32, y + 12)
+    let cy = y + titleLines.length * 7 + 16
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(detLines, L + 32, cy)
+    y += cardH + 8
   })
-
-  // ════════════════════════════════════════════════════════════
-  // COMPETITOR PROFILES
-  // ════════════════════════════════════════════════════════════
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 2. COMPETITOR PROFILES
+  // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('Who We Looked At')
-  autoTable(doc, {
-    startY: y,
-    head: [['Business', 'Tier', 'Their Positioning', 'What They Do Well']],
-    body: r.profiles.map(p => [`${p.name}\n${p.url}`, p.tier, p.positioning, p.whatTheyDoWell]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 18 }, 2: { cellWidth: 60 }, 3: { cellWidth: CW - 118 } },
-    didParseCell: (d) => {
-      if (d.section === 'body' && d.column.index === 1) {
-        const t = String(d.cell.raw)
-        d.cell.styles.textColor = t === 'Client' ? [20, 120, 20] : t === 'Premium' ? [20, 100, 180] : [100, 100, 110]
-        d.cell.styles.fontStyle = 'bold'
-      }
-    },
+  secHeader('Who We Looked At', PURPLE, PINK)
+ 
+  subHead('Competitor Profiles', INDIGO)
+  const profCols: number[] = [36, 18, CW - 36 - 18 - 52, 52]
+  tblHeader(profCols, ['Business', 'Tier', 'Positioning', 'What They Do Well'])
+  r.profiles.forEach((p, i) => {
+    const tierCol: RGB =
+      p.tier === 'Client'  ? [6, 95, 70]  :
+      p.tier === 'Premium' ? [29, 78, 216] :
+      p.tier === 'Mid'     ? [146, 64, 14] : MUTED
+    tblRow(profCols, [`${p.name}\n${p.url}`, p.tier, p.positioning, p.whatTheyDoWell], i % 2 === 1, [null, tierCol, null, null])
   })
-  y = lastY()
-
-  // ════════════════════════════════════════════════════════════
-  // HOOK ANALYSIS
-  // ════════════════════════════════════════════════════════════
-  secHeader('Opening Hook Analysis')
-  autoTable(doc, {
-    startY: y,
-    head: [['Business', 'Hook Type', 'Effectiveness']],
-    body: r.profiles.map(p => [p.name, p.hookType, p.hookEffectiveness]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 40 }, 2: { cellWidth: CW - 80 } },
+  y += 8
+ 
+  subHead('Hook Analysis', AMBER)
+  const hookCols: number[] = [36, 40, CW - 76]
+  tblHeader(hookCols, ['Business', 'Hook Type', 'Effectiveness'])
+  r.profiles.forEach((p, i) => {
+    tblRow(hookCols, [p.name, p.hookType, p.hookEffectiveness], i % 2 === 1)
   })
-  y = lastY()
-
-  // ════════════════════════════════════════════════════════════
-  // CLAIMS MATRIX
-  // ════════════════════════════════════════════════════════════
+  y += 8
+ 
+  subHead('What They Prove & How They Convert', GREEN)
+  const convCols: number[] = [36, CW - 36 - 48 - 48, 48, 48]
+  tblHeader(convCols, ['Business', 'Primary Anxiety Addressed', 'How They Prove It', 'Action Trigger'])
+  r.profiles.forEach((p, i) => {
+    tblRow(convCols, [p.name, p.primaryAnxiety, p.howTheyProve, p.actionTrigger], i % 2 === 1)
+  })
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 3. CLAIMS MATRIX
+  // ════════════════════════════════════════════════════════════════════════════
   addPage()
-  secHeader('How the Market Talks to Customers')
-  bodyText('What each business claims — and how specifically.', 0, GREY)
-  y += 2
-
-  const playerNames = r.profiles.map(p => p.name)
-  const nameColW = 40
-  const playerColW = Math.floor((CW - nameColW) / playerNames.length)
-  autoTable(doc, {
-    startY: y,
-    head: [['Claim Type', ...playerNames]],
-    body: r.claimsMatrix.rows.map(row => [row.claimType, ...playerNames.map(p => row.values[p] ?? '—')]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: {
-      0: { cellWidth: nameColW, fontStyle: 'bold' },
-      ...Object.fromEntries(playerNames.map((_, i) => [i + 1, { cellWidth: playerColW }])),
-    },
-    didParseCell: (d) => {
-      if (d.section === 'body' && d.column.index > 0) {
-        const val = String(d.cell.raw)
-        if (val === 'Not mentioned' || val === '—') {
-          d.cell.styles.textColor = LIGHT_GREY
-          d.cell.styles.fontStyle = 'italic'
-        }
-      }
-    },
-  })
-  y = lastY()
-
-  // ════════════════════════════════════════════════════════════
-  // TABLE STAKES vs WHITE SPACE (2 columns)
-  // ════════════════════════════════════════════════════════════
-  addPage()
-  secHeader("What Everyone Says vs. What No One Says")
-  const halfW = (CW - 6) / 2
-
-  // Column headers
-  np(14)
-  doc.setFillColor(240, 240, 242); doc.rect(M, y, halfW, 8, 'F')
-  doc.setFillColor(220, 255, 235); doc.rect(M + halfW + 6, y, halfW, 8, 'F')
-  doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...DARK); doc.text('TABLE STAKES — EVERYONE CLAIMS THIS', M + 3, y + 5.5)
-  doc.setTextColor(20, 120, 60); doc.text('WHITE SPACE — WORTH CLAIMING', M + halfW + 9, y + 5.5)
-  y += 11
-
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-  doc.text('Expected — not differentiating.', M, y)
-  doc.text('Strong differentiation potential.', M + halfW + 6, y)
-  y += 7
-
-  const stakesStartY = y
-  r.tableStakes.forEach(t => {
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    const lines = doc.splitTextToSize(`• ${t}`, halfW - 4) as string[]
-    np(lines.length * 5.5 + 2); doc.text(lines, M + 2, y); y += lines.length * 5.5 + 3
-  })
-  const stakesEndY = y
-
-  y = stakesStartY
-  r.whiteSpace.forEach(ws => {
-    const titleL = doc.splitTextToSize(ws.opportunity, halfW - 4) as string[]
-    np(titleL.length * 5.5 + 2)
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(titleL, M + halfW + 8, y); y += titleL.length * 5.5 + 1
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-    const ratL = doc.splitTextToSize(ws.rationale, halfW - 4) as string[]
-    doc.text(ratL, M + halfW + 8, y); y += ratL.length * 5 + 2
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(20, 120, 60)
-    doc.text(ws.owner, M + halfW + 8, y); y += 7
-  })
-  y = Math.max(stakesEndY, y) + 6
-
-  if (r.noiseToAvoid?.length) {
-    np(14); subHead('Noise — Too Generic to Differentiate')
-    r.noiseToAvoid.forEach(n => {
-      np(7); doc.setFontSize(10); doc.setFont('helvetica', 'italic'); doc.setTextColor(...GREY)
-      doc.text(`"${n}"`, M + 3, y); y += 7
-    })
-    y += 4
-  }
-
-  // ════════════════════════════════════════════════════════════
-  // BUYER ANXIETIES
-  // ════════════════════════════════════════════════════════════
-  addPage()
-  secHeader('What Customers Worry About')
-  autoTable(doc, {
-    startY: y,
-    head: [['Common Concern', 'Who Addresses It Well', 'Who Ignores It']],
-    body: r.buyerAnxieties.map(b => [b.concern, b.addressedBy, b.ignoredBy]),
-    margin: { left: M, right: RT },
-    styles: { fontSize: 10, cellPadding: 3.5, overflow: 'linebreak', textColor: [40, 40, 40] },
-    headStyles: { fillColor: YELLOW, textColor: BLACK, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: BG_GREY },
-    columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 52 }, 2: { cellWidth: CW - 122 } },
-    didParseCell: (d) => {
-      if (d.section === 'body') {
-        if (d.column.index === 1) d.cell.styles.textColor = [20, 120, 60] as [number,number,number]
-        if (d.column.index === 2) d.cell.styles.textColor = LIGHT_GREY
-      }
-    },
-  })
-  y = lastY()
-
-  // ════════════════════════════════════════════════════════════
-  // STRATEGIC IMPLICATIONS
-  // ════════════════════════════════════════════════════════════
-  secHeader('Strategic Implications')
-  r.strategicImplications.forEach(s => {
-    np(30)
-    doc.setFillColor(...YELLOW); doc.circle(M + 5, y + 5, 5, 'F')
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text(String(s.number), M + 3.2, y + 6.5)
-    const titleL = doc.splitTextToSize(s.title, CW - 14) as string[]
-    doc.setFontSize(12); doc.text(titleL, M + 13, y + 6)
-    y += titleL.length * 7 + 5
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal')
-    smartBody(s.detail, 4, GREY)
-    y += 4; divider()
-  })
-
-  // ════════════════════════════════════════════════════════════
-  // QUICK WINS — 2 column
-  // ════════════════════════════════════════════════════════════
-  addPage()
-  secHeader('Quick Wins — 30 Days', GREEN)
-  bodyText('Actionable changes tied to the analysis. Executable without a full rebrand.', 0, GREY)
+  secHeader('How the Market Talks', CORAL, AMBER)
+ 
+  bodyText('What each business claims — and how specifically.', 0, MUTED)
   y += 4
-
-  const winColW = (CW - 8) / 2
-  const leftWins = r.quickWins.filter((_, i) => i % 2 === 0)
-  const rightWins = r.quickWins.filter((_, i) => i % 2 === 1)
-
-  for (let i = 0; i < Math.max(leftWins.length, rightWins.length); i++) {
-    const renderWin = (win: typeof leftWins[0] | undefined, xOff: number) => {
-      if (!win) return
-      const ec: [number,number,number] = win.effort === 'Easy' ? GREEN : win.effort === 'Medium' ? AMBER : RED
-      doc.setFillColor(...ec); doc.circle(M + xOff + 4, y + 4.5, 3.5, 'F')
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255)
-      doc.text(String(i + 1), M + xOff + 2.5, y + 6)
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-      const titleL = doc.splitTextToSize(win.action, winColW - 14) as string[]
-      doc.text(titleL, M + xOff + 11, y + 5.5)
-      let ty = y + titleL.length * 6 + 4
-      doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
-      const detailL = doc.splitTextToSize(win.why, winColW - 14) as string[]
-      doc.text(detailL, M + xOff + 11, ty); ty += detailL.length * 5.5 + 2
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ec)
-      doc.text(`${win.effort} effort`, M + xOff + 11, ty)
-    }
-    const startY = y
-    renderWin(leftWins[i], 0)
-    const leftEndY = y + 30
-    y = startY
-    renderWin(rightWins[i], winColW + 8)
-    y = Math.max(y + 30, leftEndY) + 5
-    if (i < Math.max(leftWins.length, rightWins.length) - 1) {
-      doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2)
-      doc.line(M, y - 2, M + CW, y - 2)
-    }
-  }
-
-  // ════════════════════════════════════════════════════════════
-  // SUMMARY
-  // ════════════════════════════════════════════════════════════
-  addPage()
-  secHeader('Summary')
-  const sentences = r.summary.match(/[^.!?]+[.!?]+/g) ?? [r.summary]
-  const intro = sentences[0]?.trim() ?? ''
-  const bullets = sentences.slice(1, -1).map(s => s.trim()).filter(Boolean)
-  const closing = sentences.length > 1 ? sentences[sentences.length - 1]?.trim() : ''
-
-  if (intro) {
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    const il = doc.splitTextToSize(intro, CW) as string[]
-    np(il.length * 6 + 4); doc.text(il, M, y); y += il.length * 6 + 5
-  }
-  bullets.forEach(b => {
-    np(10); doc.setFillColor(...DARK); doc.circle(M + 2, y - 1, 1.5, 'F')
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK)
-    const bl = doc.splitTextToSize(b, CW - 8) as string[]
-    doc.text(bl, M + 7, y); y += bl.length * 5.5 + 3
+ 
+  const playerNames  = r.profiles.map(p => p.name)
+  const nameColW     = 40
+  const playerColW   = Math.floor((CW - nameColW) / playerNames.length)
+  const matrixCols   = [nameColW, ...playerNames.map(() => playerColW)]
+  tblHeader(matrixCols, ['Claim Type', ...playerNames])
+  r.claimsMatrix.rows.forEach((row, i) => {
+    const cells = [row.claimType, ...playerNames.map(p => row.values[p] ?? '—')]
+    const cellCols: (RGB | null)[] = [DARK_TEXT, ...playerNames.map(p => {
+      const v = row.values[p] ?? '—'
+      return (v === 'Not mentioned' || v === '—') ? LABEL : null
+    })]
+    tblRow(matrixCols, cells, i % 2 === 1, cellCols)
   })
-  if (closing) {
-    np(22); y += 4
-    const cl = doc.splitTextToSize(closing, CW - 8) as string[]
-    doc.setFillColor(255, 249, 180); doc.roundedRect(M, y - 3, CW, cl.length * 5.5 + 14, 2, 2, 'F')
-    doc.setFillColor(...YELLOW); doc.rect(M, y - 3, 3, cl.length * 5.5 + 14, 'F')
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLACK)
-    doc.text('★  KEY RECOMMENDATION', M + 6, y + 3.5)
-    y += 9; doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(80, 60, 0)
-    doc.text(cl, M + 6, y); y += cl.length * 5.5 + 8
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 4. TABLE STAKES vs WHITE SPACE
+  // ════════════════════════════════════════════════════════════════════════════
+  addPage()
+  secHeader('What Everyone Says vs. What No One Claims', GREEN, MINT)
+ 
+  subHead('Table Stakes', CORAL)
+  bodyText('Expected claims — not differentiating.', 0, MUTED, 9)
+  r.tableStakes.forEach(t => {
+    np(10)
+    sf(CORAL); doc.circle(L + 3.5, y - 2, 2, 'F')
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+    const lines = doc.splitTextToSize(t, CW - 10) as string[]
+    doc.text(lines, L + 11, y)
+    y += lines.length * LH + 4
+  })
+  y += 4
+ 
+  subHead('White Space Opportunities', GREEN)
+  bodyText('Unclaimed — strong differentiation potential.', 0, MUTED, 9)
+  r.whiteSpace.forEach(ws => {
+    np(24)
+    sf(LIGHT_BG2); doc.roundedRect(L, y, CW, 1, 3, 3, 'F') // placeholder height
+    const oppLines = doc.splitTextToSize(ws.opportunity, CW - 22) as string[]
+    const ratLines = doc.splitTextToSize(ws.rationale,   CW - 22) as string[]
+    const cardH = oppLines.length * 6 + ratLines.length * LH + 28
+    sf(LIGHT_BG2); doc.roundedRect(L, y, CW, cardH, 5, 5, 'F')
+    sf(GREEN);     doc.roundedRect(L, y, 4, cardH, 2, 2, 'F')
+    doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(oppLines, L + 12, y + 12)
+    let cy = y + oppLines.length * 6 + 16
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(ratLines, L + 12, cy)
+    cy += ratLines.length * LH + 6
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(GREEN_D)
+    doc.text(ws.owner, L + 12, cy)
+    y += cardH + 8
+  })
+ 
+  if (r.noiseToAvoid?.length) {
+    y += 4
+    subHead('Noise to Avoid', MUTED)
+    bodyText('Too generic to differentiate. Stop using.', 0, MUTED, 9)
+    r.noiseToAvoid.forEach(n => {
+      np(10)
+      doc.setFontSize(10); doc.setFont('helvetica', 'italic'); st(MUTED)
+      doc.text(`"${n}"`, L + 6, y); y += 8
+    })
   }
-
-  // ════════════════════════════════════════════════════════════
-  // FOOTER all pages
-  // ════════════════════════════════════════════════════════════
-  const pages = doc.getNumberOfPages()
-  for (let p = 1; p <= pages; p++) {
-    doc.setPage(p)
-    doc.setFillColor(...YELLOW); doc.rect(0, 0, STRIPE_W, 297, 'F')
-    if (p > 1) {
-      doc.setFontSize(8); doc.setTextColor(...LIGHT_GREY); doc.setFont('helvetica', 'normal')
-      doc.setDrawColor(...LIGHT_GREY); doc.setLineWidth(0.2); doc.line(M, 286, W - RT, 286)
-      doc.text(`Audit Machine — BEAL Creative — ${r.businessName}`, M, 290)
-      doc.text(`Page ${p} of ${pages}`, W - RT, 290, { align: 'right' })
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 5. BUYER ANXIETIES
+  // ════════════════════════════════════════════════════════════════════════════
+  addPage()
+  secHeader('What Customers Worry About', AMBER, CORAL)
+ 
+  subHead('Common Buyer Concerns', AMBER)
+  const anxCols: number[] = [60, 52, CW - 112]
+  tblHeader(anxCols, ['Common Concern', 'Who Addresses It Well', 'Who Ignores It'])
+  r.buyerAnxieties.forEach((b, i) => {
+    tblRow(anxCols, [b.concern, b.addressedBy, b.ignoredBy], i % 2 === 1, [null, [6, 95, 70], LABEL])
+  })
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 6. STRATEGIC IMPLICATIONS
+  // ════════════════════════════════════════════════════════════════════════════
+  sectionBreak(80)
+  if (y > 60) { addPage() }
+  secHeader('Strategic Implications', INDIGO, BLUE)
+ 
+  r.strategicImplications.forEach(s => {
+    const titleLines = doc.splitTextToSize(s.title,  CW - 44) as string[]
+    const detLines   = doc.splitTextToSize(s.detail, CW - 22) as string[]
+    const cardH = titleLines.length * 7 + detLines.length * LH + 30
+    np(cardH + 8)
+    sf(LIGHT_BG); doc.roundedRect(L, y, CW, cardH, 5, 5, 'F')
+    sd(BORDER); doc.setLineWidth(0.5); doc.roundedRect(L, y, CW, cardH, 5, 5, 'S')
+    sf(INDIGO); doc.circle(L + 18, y + 14, 10, 'F')
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text(String(s.number), L + 18, y + 17.5, { align: 'center' })
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(titleLines, L + 32, y + 12)
+    let cy = y + titleLines.length * 7 + 16
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(detLines, L + 32, cy)
+    y += cardH + 8
+  })
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 7. QUICK WINS
+  // ════════════════════════════════════════════════════════════════════════════
+  addPage()
+  secHeader('Quick Wins — 30 Days', GREEN, MINT)
+ 
+  bodyText('Actionable changes tied to the analysis. Executable without a full rebrand.', 0, MUTED)
+  y += 4
+ 
+  r.quickWins.forEach((win, i) => {
+    const efCol: RGB = win.effort === 'Easy' ? GREEN : win.effort === 'Medium' ? AMBER : CORAL
+    const [efBg, efFg]: [RGB, RGB] =
+      win.effort === 'Easy'   ? [TAG_GRN_BG, TAG_GRN_FG] :
+      win.effort === 'Medium' ? [TAG_AMB_BG, TAG_AMB_FG] :
+                                [TAG_RED_BG, TAG_RED_FG]
+    const detLines = doc.splitTextToSize(win.why, CW - 20) as string[]
+    const cardH = detLines.length * LH + 32
+    np(cardH + 8)
+    sf(LIGHT_BG2); doc.roundedRect(L, y, CW, cardH, 5, 5, 'F')
+    // number badge
+    sf(efCol); doc.circle(L + 14, y + 14, 9, 'F')
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(WHITE)
+    doc.text(String(i + 1), L + 14, y + 17.5, { align: 'center' })
+    // title + effort tag
+    doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+    doc.text(win.action, L + 28, y + 12)
+    const efW = doc.getTextWidth(win.effort + ' effort') + 10 + 6
+    drawTag(`${win.effort} effort`, efBg, efFg, R - efW, y + 8)
+    // detail
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); st(MUTED)
+    doc.text(detLines, L + 28, y + 22)
+    y += cardH + 8
+  })
+ 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 8. SUMMARY
+  // ════════════════════════════════════════════════════════════════════════════
+  addPage()
+  secHeader('Summary & Recommendation', INDIGO, PURPLE)
+ 
+  if (r.summary) {
+    const sentences = r.summary.match(/[^.!?]+[.!?]+/g) ?? [r.summary]
+    const intro     = sentences[0]?.trim() ?? ''
+    const bullets   = sentences.slice(1, -1).map(s => s.trim()).filter(Boolean)
+    const closing   = sentences.length > 1 ? sentences[sentences.length - 1]?.trim() : ''
+ 
+    if (intro) {
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(DARK_TEXT)
+      const il = doc.splitTextToSize(intro, CW) as string[]
+      np(il.length * 6.5 + 6); doc.text(il, L, y); y += il.length * 6.5 + 8
+    }
+ 
+    bullets.forEach(b => {
+      np(12)
+      sf(INDIGO); doc.circle(L + 3, y - 2, 2, 'F')
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); st(BODY)
+      const bl = doc.splitTextToSize(b, CW - 10) as string[]
+      doc.text(bl, L + 10, y); y += bl.length * LH + 4
+    })
+ 
+    if (closing) {
+      y += 4
+      topRecBox(closing)
     }
   }
-
+ 
   doc.save(`competitor-intelligence-${r.businessName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.pdf`)
 }
