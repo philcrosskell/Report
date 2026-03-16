@@ -22,7 +22,7 @@ const CORAL:      RGB = [239, 68,  68 ]
 const AMBER:      RGB = [245, 158, 11 ]
 const AMBER_D:    RGB = [217, 119, 6  ]
 const GREEN:      RGB = [16,  185, 129]
-const GREEN_D:    RGB = [5,   150, 105]
+ 
 const MINT:       RGB = [6,   182, 212]
 const PINK:       RGB = [236, 72,  153]
 const BLUE:       RGB = [59,  130, 246]
