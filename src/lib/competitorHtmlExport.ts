@@ -5,8 +5,6 @@ export function exportCompetitorHTML(saved: SavedCompetitorReport): void {
   const date = new Date(saved.date).toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })
   const slug = saved.businessUrl.replace(/https?:\/\//,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')
 
-  const scoreColor = (s: number) => s >= 80 ? '#34d399' : s >= 60 ? '#fbbf24' : '#f87171'
-
   const renderQuickWins = (wins: { title: string; impact: string; effort: string; rationale: string }[] = []): string =>
     wins.slice(0,5).map((w, i) => `
     <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #2e2e38;">
