@@ -9,7 +9,7 @@ export function exportHTML(audit: Audit): void {
   const seoScore = audit.scores.seo ?? 0
   const lpScore  = audit.scores.lp ?? 0
   const overall  = audit.scores.overall ?? Math.round((seoScore + lpScore) / 2)
-  const grade    = audit.scores.grade ?? 'â'
+  const grade    = audit.scores.grade ?? 'Ã¢ÂÂ'
 
   const scoreColor = (s: number) => s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444'
   const gradeColor = (g: string) => {
@@ -106,7 +106,7 @@ export function exportHTML(audit: Audit): void {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Audit Report â ${url}</title>
+  <title>Audit Report Ã¢ÂÂ ${url}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #0E1120; color: #0E1120; }
@@ -135,7 +135,7 @@ export function exportHTML(audit: Audit): void {
     <div style="padding:32px 32px 36px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8B5CF6;margin-bottom:10px">PAGE AUDIT REPORT</div>
       <div style="font-size:36px;font-weight:700;color:#0E1120;line-height:1.1;margin-bottom:8px">${r.overview?.title || url}</div>
-      <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${r.overview?.pageType || 'Web Page'} Â· ${r.overview?.wordCount || 0} words Â· ${r.overview?.responseTime || ''}</div>
+      <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${r.overview?.pageType || 'Web Page'} ÃÂ· ${r.overview?.wordCount || 0} words ÃÂ· ${r.overview?.responseTime || ''}</div>
       <a href="${url}" style="font-size:11px;color:#B0B5CC;text-decoration:none">${url}</a>
 
       <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
@@ -167,16 +167,22 @@ export function exportHTML(audit: Audit): void {
   </div>
 
   ${r.gapAnalysis ? card('#6366F1,#8B5CF6', 'SECTION', 'Gap Analysis', `
-    ${r.gapAnalysis?.opportunity ? `
+    ${r.gapAnalysis?.executiveSummary ? `
+    <div style="font-size:13px;color:#4A5280;line-height:1.75;margin-bottom:20px">${r.gapAnalysis.executiveSummary}</div>` : ''}
+    ${r.gapAnalysis?.positioningGap ? `
     <div style="background:#F5F6FF;border-radius:10px;border-left:4px solid #6366F1;padding:18px 20px;margin-bottom:20px">
-      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#6366F1;margin-bottom:8px">KEY OPPORTUNITY</div>
-      <div style="font-size:13px;color:#4A5280;line-height:1.75">${r.gapAnalysis.opportunity}</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#6366F1;margin-bottom:8px">POSITIONING GAP</div>
+      <div style="font-size:13px;color:#4A5280;line-height:1.75">${r.gapAnalysis.positioningGap}</div>
     </div>` : ''}
-    ${r.gapAnalysis?.rationale ? `<div style="font-size:13px;color:#4A5280;line-height:1.75">${r.gapAnalysis.rationale}</div>` : ''}
+    ${r.gapAnalysis?.topRecommendation ? `
+    <div style="background:#07090F;border-radius:10px;padding:18px 20px;margin-bottom:20px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:8px">TOP RECOMMENDATION</div>
+      <div style="font-size:13px;color:#fff;line-height:1.75">${r.gapAnalysis.topRecommendation}</div>
+    </div>` : ''}
   `) : ''}
 
   ${r.priorityFixes?.length ? card('#F59E0B,#FBBF24', 'SECTION', 'Priority Fixes', `
-    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Ranked by impact â implement these first</div>
+    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Ranked by impact Ã¢ÂÂ implement these first</div>
     ${renderPriorityFixes(r.priorityFixes)}
   `) : ''}
 
@@ -223,7 +229,7 @@ export function exportHTML(audit: Audit): void {
         <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#10B981;margin-bottom:12px">STRENGTHS</div>
         ${(r.strengthsWeaknesses.strengths ?? []).map(s => `
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <span style="color:#10B981;flex-shrink:0;font-weight:700">â</span>
+          <span style="color:#10B981;flex-shrink:0;font-weight:700">Ã¢ÂÂ</span>
           <span style="font-size:12px;color:#4A5280;line-height:1.6">${s}</span>
         </div>`).join('')}
       </div>
@@ -231,7 +237,7 @@ export function exportHTML(audit: Audit): void {
         <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#EF4444;margin-bottom:12px">WEAKNESSES</div>
         ${(r.strengthsWeaknesses.weaknesses ?? []).map(w => `
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <span style="color:#EF4444;flex-shrink:0;font-weight:700">â</span>
+          <span style="color:#EF4444;flex-shrink:0;font-weight:700">Ã¢ÂÂ</span>
           <span style="font-size:12px;color:#4A5280;line-height:1.6">${w}</span>
         </div>`).join('')}
       </div>
@@ -241,7 +247,7 @@ export function exportHTML(audit: Audit): void {
       <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#F59E0B;margin-bottom:12px">MISSED OPPORTUNITIES</div>
       ${r.strengthsWeaknesses.missedOpportunities.map(o => `
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <span style="color:#F59E0B;flex-shrink:0;font-weight:700">â</span>
+        <span style="color:#F59E0B;flex-shrink:0;font-weight:700">Ã¢ÂÂ</span>
         <span style="font-size:12px;color:#4A5280;line-height:1.6">${o}</span>
       </div>`).join('')}
     </div>` : ''}
