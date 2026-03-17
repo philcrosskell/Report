@@ -318,7 +318,6 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
     if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
     setLoading(true); setError(''); setProspects([]); setStepIdx(0)
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2800)
-    const location = suburb ? suburb + ' ' + postcode + ' Australia' : postcode + ' Australia'
     try {
       const resp = await fetch('/api/leads', {
         method: 'POST',
