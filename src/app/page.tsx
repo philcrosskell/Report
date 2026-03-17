@@ -898,6 +898,12 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
     const saved: SavedCompetitorReport = { id: uid(), businessName: result.businessName, businessUrl: result.businessUrl, report: result, date: new Date().toISOString() }
     exportCompetitorPDF(saved, brandLogo)
   }
+  async function exportHTML() {
+    if (!result) return
+    const { exportCompetitorHTML } = await import('@/lib/competitorHtmlExport')
+    const saved: SavedCompetitorReport = { id: uid(), businessName: result.businessName, businessUrl: result.businessUrl, report: result, date: new Date().toISOString() }
+    exportCompetitorHTML(saved)
+  }
 
   return (
     <>
