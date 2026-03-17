@@ -429,6 +429,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
 function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weights: LpWeights; onRefresh: () => void }) {
   const [url, setUrl] = useState(''), [label, setLabel] = useState(''), [projectId, setProjectId] = useState(''), [assignedTo, setAssignedTo] = useState('unassigned')
   const [loading, setLoading] = useState(false), [stepIdx, setStepIdx] = useState(0)
+const [industry, setIndustry] = useState(''), [location, setLocation] = useState('')
   const [result, setResult] = useState<AuditReport | null>(null), [error, setError] = useState(''), [savedId, setSavedId] = useState('')
   const [tab, setTab] = useState('gap')
   const selectedProject = projects.find(p => p.id === projectId) ?? null
@@ -439,17 +440,34 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
     const existing = projectId ? getAuditsByProject(projectId).length : 0
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 1600)
     try {
-      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights }) })
+      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, industry, location, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights }) })
       const data = await res.json() as { success: boolean; report?: AuditReport; error?: string }
       clearInterval(timer)
       if (!data.success || !data.report) { setError(data.error ?? 'Audit failed'); return }
       const id = uid()
-      addAudit({ id, url, label, projectId, assignedTo, scores: data.report.scores, report: data.report, date: new Date().toISOString() })
+      addAudit({ id, url, label, industry, location, projectId, assignedTo, scores: data.report.scores, report: data.report, date: new Date().toISOString() })
       setSavedId(id); onRefresh(); setResult(data.report); setTab('gap')
     } catch (e) {
       clearInterval(timer); setError(e instanceof Error ? e.message : 'Network error')
     } finally { setLoading(false) }
   }
+
+useEffect(() => {
+  // Support URL params: ?url=...&label=...&industry=...&location=...
+  const p = new URLSearchParams(window.location.search)
+  if (p.get('url')) setUrl(p.get('url')!)
+  if (p.get('label')) setLabel(p.get('label')!)
+  if (p.get('industry')) setIndustry(p.get('industry')!)
+  if (p.get('location')) setLocation(p.get('location')!)
+  // Support window.auditProspect({ name, website, industry, address })
+  ;(window as any).auditProspect = (d: { name?: string; website?: string; industry?: string; address?: string }) => {
+    if (d.website) setUrl(d.website)
+    if (d.name) setLabel(d.name)
+    if (d.industry) setIndustry(d.industry)
+    if (d.address) setLocation(d.address)
+  }
+}, [])
+
 
   const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
@@ -921,6 +939,10 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
                 <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
                 <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
               </div>
+<div className="grid grid-cols-2 gap-3 mb-3">
+              <div><Lbl>Industry (optional)</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Digital marketing agency" className="inp w-full" /></div>
+              <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Melbourne, VIC" className="inp w-full" /></div>
+            </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
               {comps.map((c, i) => (
