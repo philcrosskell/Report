@@ -1,89 +1,104 @@
 import type { Audit, SeoCheck, LpSubScore, PriorityFix, SeoCategory, LpCategory } from './types'
 
-export function exportHTML(audit: Audit) {
+export function exportHTML(audit: Audit): void {
   const r = audit.report
   const url = audit.url
   const date = new Date(audit.date).toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })
   const slug = audit.url.replace(/https?:\/\//,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')
 
   const seoScore = audit.scores.seo ?? 0
-  const lpScore = audit.scores.lp ?? 0
-  const overallScore = audit.scores.overall ?? Math.round((seoScore + lpScore) / 2)
-  const overallGrade = audit.scores.grade ?? '–'
+  const lpScore  = audit.scores.lp ?? 0
+  const overall  = audit.scores.overall ?? Math.round((seoScore + lpScore) / 2)
+  const grade    = audit.scores.grade ?? '–'
 
-  const scoreColor = (s: number) => s >= 80 ? '#34d399' : s >= 60 ? '#fbbf24' : '#f87171'
+  const scoreColor = (s: number) => s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444'
   const gradeColor = (g: string) => {
-    if (!g) return '#a0a0b8'
-    const l = g[0].toUpperCase()
-    if (l === 'A') return '#34d399'
-    if (l === 'B') return '#60a5fa'
-    if (l === 'C') return '#fbbf24'
-    return '#f87171'
+    const l = (g||'')[0]?.toUpperCase()
+    if (l === 'A') return '#10B981'
+    if (l === 'B') return '#6366F1'
+    if (l === 'C') return '#F59E0B'
+    return '#EF4444'
   }
-  const critColor = (c: string) =>
-    c === 'critical' ? '#f87171' : c === 'important' ? '#fbbf24' : c === 'somewhat' ? '#60a5fa' : '#a0a0b8'
-  const statusDot = (s: string) =>
-    s === 'pass' ? '#34d399' : s === 'fail' ? '#f87171' : '#fbbf24'
+  const critBadge = (c: string) => {
+    if (c === 'critical') return 'background:#FEE2E2;color:#B91C1C'
+    if (c === 'important') return 'background:#FEF3C7;color:#92400E'
+    if (c === 'somewhat') return 'background:#DBEAFE;color:#1D4ED8'
+    return 'background:#F3F4F6;color:#6B7280'
+  }
+  const statusDot = (s: string) => s === 'pass' ? '#10B981' : s === 'fail' ? '#EF4444' : '#F59E0B'
+
+  const card = (gradientColors: string, label: string, title: string, body: string) => `
+    <div style="background:#fff;border-radius:16px;overflow:hidden;margin-bottom:32px;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+      <div style="background:#07090F">
+        <div style="height:5px;background:linear-gradient(90deg,${gradientColors})"></div>
+        <div style="padding:22px 32px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:6px">${label}</div>
+          <div style="font-size:24px;font-weight:700;color:#fff">${title}</div>
+        </div>
+      </div>
+      <div style="padding:28px 32px 36px">${body}</div>
+    </div>`
 
   const renderChecks = (checks: SeoCheck[] = []): string => checks.map(c => `
-    <tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #2e2e38;display:flex;align-items:center;gap:8px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${statusDot(c.status)};flex-shrink:0;display:inline-block;"></span>
-        <span style="color:#f0f0f5;font-size:13px;">${c.label}</span>
-      </td>
-      <td style="padding:10px 12px;border-bottom:1px solid #2e2e38;color:#a0a0b8;font-size:12px;vertical-align:top;">${c.detail ?? ''}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #2e2e38;vertical-align:top;">
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${c.criticality === 'critical' ? 'rgba(248,113,113,0.15)' : c.criticality === 'important' ? 'rgba(251,191,36,0.15)' : 'rgba(96,165,250,0.15)'};color:${critColor(c.criticality ?? 'low')};">${c.criticality ?? 'low'}</span>
-      </td>
-    </tr>
-  `).join('')
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #ECEEF7">
+      <span style="width:8px;height:8px;border-radius:50%;background:${statusDot(c.status)};flex-shrink:0;margin-top:5px;display:inline-block"></span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:#0E1120;margin-bottom:2px">${c.label}</div>
+        <div style="font-size:12px;color:#8B90AA;line-height:1.6">${c.detail ?? ''}</div>
+      </div>
+      <span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;${critBadge(c.criticality ?? 'nice')};white-space:nowrap">${c.criticality ?? 'nice'}</span>
+    </div>`).join('')
 
-  const renderLpSubScores = (subs: LpSubScore[] = []): string => subs.map(s => {
-    const pct = Math.round(s.score)
+  const renderLpSubScores = (subs: LpSubScore[] = []): string => subs.map(s => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#0E1120">${s.label}</span>
+        <span style="font-size:13px;font-weight:700;color:${scoreColor(s.score)}">${s.score}<span style="color:#8B90AA;font-weight:400"> / ${s.max}</span></span>
+      </div>
+      <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${s.score}%;background:${scoreColor(s.score)};border-radius:3px"></div>
+      </div>
+      ${s.note ? `<p style="font-size:11px;color:#8B90AA;margin-top:4px">${s.note}</p>` : ''}
+    </div>`).join('')
+
+  const renderSeoCategory = (label: string, cat: SeoCategory): string => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#0E1120">${label}</span>
+        <span style="font-size:13px;font-weight:700;color:${scoreColor(cat.score)}">${cat.score}</span>
+      </div>
+      <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${cat.score}%;background:${scoreColor(cat.score)};border-radius:3px"></div>
+      </div>
+    </div>`
+
+  const renderPriorityFixes = (fixes: PriorityFix[] = []): string => fixes.slice(0,5).map((f, i) => {
+    const effortStyle = f.difficulty === 'Easy'
+      ? 'background:#D1FAE5;color:#065F46'
+      : f.difficulty === 'Hard'
+        ? 'background:#FEE2E2;color:#B91C1C'
+        : 'background:#FEF3C7;color:#92400E'
+    const accentBg = f.difficulty === 'Easy' ? '#ECFDF5' : f.difficulty === 'Hard' ? '#FEF2F2' : '#FFFBEB'
+    const accentCol = f.difficulty === 'Easy' ? '#10B981' : f.difficulty === 'Hard' ? '#EF4444' : '#F59E0B'
     return `
-    <div style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:13px;color:#f0f0f5;">${s.label}</span>
-        <span style="font-size:13px;font-weight:600;color:${scoreColor(pct)};">${s.score}<span style="color:#a0a0b8;font-weight:400;">/ ${s.max}</span></span>
+    <div style="display:flex;border-radius:12px;overflow:hidden;border:1px solid #ECEEF7;margin-bottom:16px;box-shadow:0 2px 14px rgba(0,0,0,0.08)">
+      <div style="width:52px;background:${accentBg};display:flex;flex-direction:column;align-items:center;padding-top:20px;flex-shrink:0">
+        <div style="width:34px;height:34px;border-radius:50%;background:${accentCol};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff">${f.rank ?? i+1}</div>
       </div>
-      <div style="height:4px;background:#2e2e38;border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:${scoreColor(pct)};border-radius:2px;"></div>
+      <div style="flex:1;padding:18px 20px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700;color:#0E1120">${f.title}</div>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;${effortStyle};white-space:nowrap">${f.difficulty} Fix</span>
+        </div>
+        <div style="font-size:12px;color:#8B90AA;line-height:1.7;margin-bottom:6px">${f.problem}</div>
+        <div style="font-size:12px;color:#4A5280;line-height:1.7">${f.fix}</div>
+        ${f.uplift ? `<span style="font-size:11px;color:#10B981;margin-top:6px;display:inline-block">Uplift: ${f.uplift}</span>` : ''}
       </div>
-      ${s.note ? `<p style="font-size:11px;color:#a0a0b8;margin:4px 0 0;">${s.note}</p>` : ''}
     </div>`
   }).join('')
 
-  const renderSeoCategory = (label: string, cat: SeoCategory): string => `
-    <div style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:13px;color:#f0f0f5;">${label}</span>
-        <span style="font-size:13px;font-weight:600;color:${scoreColor(cat.score)};">${cat.score}</span>
-      </div>
-      <div style="height:4px;background:#2e2e38;border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:${cat.score}%;background:${scoreColor(cat.score)};border-radius:2px;"></div>
-      </div>
-    </div>`
-
-  const renderPriorityFixes = (fixes: PriorityFix[] = []): string => fixes.slice(0,5).map((f, i) => `
-    <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #2e2e38;">
-      <div style="width:24px;height:24px;border-radius:50%;background:#FFE500;color:#0f0f11;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${f.rank ?? i+1}</div>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:600;color:#f0f0f5;margin-bottom:2px;">${f.title}</div>
-        <div style="font-size:12px;color:#a0a0b8;margin-bottom:4px;">${f.problem}</div>
-        <div style="font-size:12px;color:#f0f0f5;">${f.fix}</div>
-        ${f.uplift ? `<span style="font-size:11px;color:#34d399;margin-top:4px;display:inline-block;">Uplift: ${f.uplift}</span>` : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#1e1e24;color:#a0a0b8;">${f.difficulty}</span>
-        <span style="font-size:11px;color:#a0a0b8;">${f.timeline}</span>
-      </div>
-    </div>
-  `).join('')
-
-  const seoCategories = r.seoCategories
-  const lpScoring = r.lpScoring
-  const allSeoChecks: SeoCheck[] = seoCategories
-    ? Object.values(seoCategories).flatMap((cat: SeoCategory) => cat.checks ?? [])
+  const allSeoChecks: SeoCheck[] = r.seoCategories
+    ? Object.values(r.seoCategories).flatMap((cat: SeoCategory) => cat.checks ?? [])
     : []
 
   const html = `<!DOCTYPE html>
@@ -92,164 +107,172 @@ export function exportHTML(audit: Audit) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Audit Report — ${url}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', sans-serif; background: #0f0f11; color: #f0f0f5; line-height: 1.6; }
-    table { border-collapse: collapse; width: 100%; }
-    a { color: #FFE500; text-decoration: none; }
-    @media print {
-      body { background: #0f0f11 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #0E1120; color: #0E1120; }
+    .wrapper { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+    @media print { body { background: #0E1120 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style>
 </head>
 <body>
+<div class="wrapper">
 
-<!-- HEADER -->
-<div style="background:#16161a;border-bottom:1px solid #2e2e38;">
-  <div style="max-width:960px;margin:0 auto;padding:0 24px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid #2e2e38;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:4px;height:32px;background:#FFE500;border-radius:2px;"></div>
-        <div>
-          <div style="font-size:15px;font-weight:700;color:#f0f0f5;">Audit Machine</div>
-          <div style="font-size:11px;color:#a0a0b8;">by BEAL Creative</div>
+  <!-- HEADER CARD -->
+  <div style="background:#fff;border-radius:16px;overflow:hidden;margin-bottom:32px;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+    <div style="background:#07090F">
+      <div style="height:5px;background:linear-gradient(90deg,#6366F1,#8B5CF6,#EC4899)"></div>
+      <div style="padding:28px 32px 24px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:5px;height:40px;background:#FFE600;border-radius:3px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:19px;font-weight:400;color:#fff;line-height:1.2"><span style="font-weight:700">BEAL</span> Creative.</div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-top:3px">AUDIT MACHINE</div>
+          </div>
+        </div>
+        <div style="text-align:right;color:rgba(255,255,255,.25);font-size:11px">${date}</div>
+      </div>
+    </div>
+    <div style="padding:32px 32px 36px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8B5CF6;margin-bottom:10px">PAGE AUDIT REPORT</div>
+      <div style="font-size:36px;font-weight:700;color:#0E1120;line-height:1.1;margin-bottom:8px">${r.overview?.title || url}</div>
+      <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${r.overview?.pageType || 'Web Page'} · ${r.overview?.wordCount || 0} words · ${r.overview?.responseTime || ''}</div>
+      <a href="${url}" style="font-size:11px;color:#B0B5CC;text-decoration:none">${url}</a>
+
+      <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
+
+      <!-- SCORE CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
+          <div style="font-size:28px;font-weight:700;color:${scoreColor(overall)}">${overall}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">OVERALL</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
+          <div style="font-size:28px;font-weight:700;color:${gradeColor(String(grade))}">${grade}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">GRADE</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
+          <div style="font-size:28px;font-weight:700;color:${scoreColor(seoScore)}">${seoScore}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">SEO</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
+          <div style="font-size:28px;font-weight:700;color:${scoreColor(lpScore)}">${lpScore}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">LP</div>
         </div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-size:12px;color:#a0a0b8;">${date}</div>
-        <div style="font-size:12px;color:#60a5fa;">${url}</div>
-      </div>
-    </div>
-    <!-- SCORE CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 0;">
-      <div style="background:#1e1e24;border:1px solid #2e2e38;border-radius:10px;padding:16px 20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:8px;">Overall Score</div>
-        <div style="font-size:36px;font-weight:700;color:${scoreColor(overallScore)};">${overallScore}</div>
-        <div style="font-size:13px;color:#a0a0b8;">Grade: <span style="color:${gradeColor(String(overallGrade))};font-weight:600;">${overallGrade}</span></div>
-      </div>
-      <div style="background:#1e1e24;border:1px solid #2e2e38;border-radius:10px;padding:16px 20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:8px;">SEO Score</div>
-        <div style="font-size:36px;font-weight:700;color:${scoreColor(seoScore)};">${seoScore}</div>
-      </div>
-      <div style="background:#1e1e24;border:1px solid #2e2e38;border-radius:10px;padding:16px 20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:8px;">LP Score</div>
-        <div style="font-size:36px;font-weight:700;color:${scoreColor(lpScore)};">${lpScore}</div>
-      </div>
+
+      ${r.overview?.summary ? `
+      <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
+      <div style="font-size:13px;color:#4A5280;line-height:1.75">${r.overview.summary}</div>` : ''}
     </div>
   </div>
-</div>
 
-<div style="max-width:960px;margin:0 auto;padding:32px 24px;">
+  ${r.overview?.executiveSummary || r.gapAnalysis ? card('#6366F1,#8B5CF6', 'SECTION', 'Gap Analysis', `
+    ${r.gapAnalysis?.opportunity ? `
+    <div style="background:#F5F6FF;border-radius:10px;border-left:4px solid #6366F1;padding:18px 20px;margin-bottom:20px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#6366F1;margin-bottom:8px">KEY OPPORTUNITY</div>
+      <div style="font-size:13px;color:#4A5280;line-height:1.75">${r.gapAnalysis.opportunity}</div>
+    </div>` : ''}
+    ${r.gapAnalysis?.rationale ? `<div style="font-size:13px;color:#4A5280;line-height:1.75">${r.gapAnalysis.rationale}</div>` : ''}
+  `) : ''}
 
-  <!-- EXECUTIVE SUMMARY -->
-  ${r.overview?.summary ? `
-  <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:10px;">Executive Summary</div>
-    <p style="font-size:14px;color:#f0f0f5;line-height:1.7;">${r.overview.summary}</p>
-  </div>` : ''}
-
-  <!-- STRENGTHS & WEAKNESSES -->
-  ${r.strengthsWeaknesses ? `
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-    <div style="background:#16161a;border:1px solid #34d399;border-radius:10px;padding:20px 24px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#34d399;margin-bottom:12px;">Strengths</div>
-      ${(r.strengthsWeaknesses.strengths ?? []).map(s => `
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <span style="color:#34d399;flex-shrink:0;">✓</span>
-          <span style="font-size:13px;color:#f0f0f5;">${s}</span>
-        </div>`).join('')}
-    </div>
-    <div style="background:#16161a;border:1px solid #f87171;border-radius:10px;padding:20px 24px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#f87171;margin-bottom:12px;">Weaknesses</div>
-      ${(r.strengthsWeaknesses.weaknesses ?? []).map(w => `
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <span style="color:#f87171;flex-shrink:0;">✗</span>
-          <span style="font-size:13px;color:#f0f0f5;">${w}</span>
-        </div>`).join('')}
-    </div>
-  </div>` : ''}
-
-  <!-- PRIORITY FIXES -->
-  ${r.priorityFixes?.length ? `
-  <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:4px;">Priority Fixes</div>
-    <div style="font-size:13px;color:#a0a0b8;margin-bottom:16px;">Ranked by impact</div>
+  ${r.priorityFixes?.length ? card('#F59E0B,#FBBF24', 'SECTION', 'Priority Fixes', `
+    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Ranked by impact — implement these first</div>
     ${renderPriorityFixes(r.priorityFixes)}
-  </div>` : ''}
+  `) : ''}
 
-  <!-- SEO CATEGORIES -->
-  ${seoCategories ? `
-  <div style="margin-bottom:24px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <div style="width:3px;height:20px;background:#FFE500;border-radius:2px;"></div>
-      <h2 style="font-size:16px;font-weight:600;color:#f0f0f5;">SEO Analysis</h2>
-      <span style="margin-left:auto;font-size:13px;color:${scoreColor(seoScore)};font-weight:600;">${seoScore} / 100</span>
-    </div>
-    <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:16px;">Category Breakdown</div>
-      ${renderSeoCategory('Meta Information', seoCategories.metaInformation)}
-      ${renderSeoCategory('Page Quality', seoCategories.pageQuality)}
-      ${renderSeoCategory('Page Structure', seoCategories.pageStructure)}
-      ${renderSeoCategory('Link Structure', seoCategories.linkStructure)}
-      ${renderSeoCategory('Server & Technical', seoCategories.serverTechnical)}
-      ${renderSeoCategory('External Factors', seoCategories.externalFactors)}
+  ${r.seoCategories ? card('#6366F1,#3B82F6', 'SECTION', 'SEO Analysis', `
+    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Score: <strong style="color:${scoreColor(seoScore)}">${seoScore}/100</strong></div>
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:14px">CATEGORY BREAKDOWN</div>
+      ${renderSeoCategory('Meta Information', r.seoCategories.metaInformation)}
+      ${renderSeoCategory('Page Quality', r.seoCategories.pageQuality)}
+      ${renderSeoCategory('Page Structure', r.seoCategories.pageStructure)}
+      ${renderSeoCategory('Link Structure', r.seoCategories.linkStructure)}
+      ${renderSeoCategory('Server & Technical', r.seoCategories.serverTechnical)}
+      ${renderSeoCategory('External Factors', r.seoCategories.externalFactors)}
     </div>
     ${allSeoChecks.length ? `
-    <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;overflow:hidden;">
-      <div style="padding:16px 20px;border-bottom:1px solid #2e2e38;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;">Technical Checks</div>
-      </div>
-      <table>
-        <thead>
-          <tr style="background:#1e1e24;">
-            <th style="padding:10px 12px;text-align:left;font-size:11px;color:#a0a0b8;font-weight:500;text-transform:uppercase;letter-spacing:.06em;">Check</th>
-            <th style="padding:10px 12px;text-align:left;font-size:11px;color:#a0a0b8;font-weight:500;text-transform:uppercase;letter-spacing:.06em;">Detail</th>
-            <th style="padding:10px 12px;text-align:left;font-size:11px;color:#a0a0b8;font-weight:500;text-transform:uppercase;letter-spacing:.06em;">Priority</th>
-          </tr>
-        </thead>
-        <tbody>${renderChecks(allSeoChecks)}</tbody>
-      </table>
-    </div>` : ''}
-  </div>` : ''}
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:14px">TECHNICAL CHECKS</div>
+    ${renderChecks(allSeoChecks)}` : ''}
+  `) : ''}
 
-  <!-- LP SCORING -->
-  ${lpScoring ? `
-  <div style="margin-bottom:24px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <div style="width:3px;height:20px;background:#60a5fa;border-radius:2px;"></div>
-      <h2 style="font-size:16px;font-weight:600;color:#f0f0f5;">Landing Page Analysis</h2>
-      <span style="margin-left:auto;font-size:13px;color:${scoreColor(lpScore)};font-weight:600;">${lpScore} / 100</span>
+  ${r.lpScoring ? card('#10B981,#6366F1', 'SECTION', 'Landing Page Analysis', `
+    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Score: <strong style="color:${scoreColor(lpScore)}">${lpScore}/100</strong></div>
+    ${Object.entries(r.lpScoring).map(([key, cat]) => {
+      const c = cat as LpCategory
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())
+      const pct = c.percentage ?? 0
+      return `
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:13px;color:#0E1120">${label}</span>
+          <span style="font-size:13px;font-weight:700;color:${scoreColor(pct)}">${c.score}<span style="color:#8B90AA;font-weight:400"> / ${c.maxScore}</span></span>
+        </div>
+        <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${scoreColor(pct)};border-radius:3px"></div>
+        </div>
+        ${c.assessment ? `<p style="font-size:12px;color:#8B90AA;margin-top:4px">${c.assessment}</p>` : ''}
+        ${c.subScores?.length ? renderLpSubScores(c.subScores) : ''}
+      </div>`
+    }).join('')}
+  `) : ''}
+
+  ${r.strengthsWeaknesses ? card('#6366F1,#3B82F6', 'SECTION', 'Strengths & Weaknesses', `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#10B981;margin-bottom:12px">STRENGTHS</div>
+        ${(r.strengthsWeaknesses.strengths ?? []).map(s => `
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <span style="color:#10B981;flex-shrink:0;font-weight:700">✓</span>
+          <span style="font-size:12px;color:#4A5280;line-height:1.6">${s}</span>
+        </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#EF4444;margin-bottom:12px">WEAKNESSES</div>
+        ${(r.strengthsWeaknesses.weaknesses ?? []).map(w => `
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <span style="color:#EF4444;flex-shrink:0;font-weight:700">✗</span>
+          <span style="font-size:12px;color:#4A5280;line-height:1.6">${w}</span>
+        </div>`).join('')}
+      </div>
     </div>
-    <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:16px;">Category Breakdown</div>
-      ${Object.entries(lpScoring).map(([key, cat]) => {
-        const c = cat as LpCategory
-        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())
-        return `
-        <div style="margin-bottom:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span style="font-size:13px;color:#f0f0f5;">${label}</span>
-            <span style="font-size:13px;font-weight:600;color:${scoreColor(c.percentage ?? 0)};">${c.score}<span style="color:#a0a0b8;font-weight:400;">/ ${c.maxScore}</span></span>
-          </div>
-          <div style="height:4px;background:#2e2e38;border-radius:2px;overflow:hidden;">
-            <div style="height:100%;width:${c.percentage ?? 0}%;background:${scoreColor(c.percentage ?? 0)};border-radius:2px;"></div>
-          </div>
-          ${c.assessment ? `<p style="font-size:12px;color:#a0a0b8;margin-top:4px;">${c.assessment}</p>` : ''}
-          ${c.subScores?.length ? renderLpSubScores(c.subScores) : ''}
-        </div>`
-      }).join('')}
-    </div>
-  </div>` : ''}
+    ${(r.strengthsWeaknesses.missedOpportunities ?? []).length ? `
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid #ECEEF7">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#F59E0B;margin-bottom:12px">MISSED OPPORTUNITIES</div>
+      ${r.strengthsWeaknesses.missedOpportunities.map(o => `
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <span style="color:#F59E0B;flex-shrink:0;font-weight:700">→</span>
+        <span style="font-size:12px;color:#4A5280;line-height:1.6">${o}</span>
+      </div>`).join('')}
+    </div>` : ''}
+  `) : ''}
+
+  ${r.recommendations?.length ? card('#8B5CF6,#6366F1', 'SECTION', 'Recommendations', `
+    ${r.recommendations.map(rec => {
+      const priBg = rec.priority === 'High' ? 'background:#FEE2E2;color:#B91C1C' : rec.priority === 'Medium' ? 'background:#FEF3C7;color:#92400E' : 'background:#D1FAE5;color:#065F46'
+      return `
+      <div style="border-radius:10px;border:1px solid #ECEEF7;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 8px rgba(0,0,0,0.06)">
+        <div style="padding:14px 20px;background:#F7F8FD;border-bottom:1px solid #ECEEF7;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:13px;font-weight:700;color:#0E1120">${rec.area}</div>
+          <span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;${priBg}">${rec.priority}</span>
+        </div>
+        <div style="padding:14px 20px;background:#fff">
+          <div style="font-size:12px;color:#4A5280;line-height:1.7">${rec.action}</div>
+        </div>
+      </div>`
+    }).join('')}
+  `) : ''}
 
   <!-- FOOTER -->
-  <div style="border-top:1px solid #2e2e38;padding-top:20px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:3px;height:20px;background:#FFE500;border-radius:2px;"></div>
-      <span style="font-size:12px;color:#a0a0b8;">Generated by <span style="color:#FFE500;">Audit Machine</span> by BEAL Creative</span>
+  <div style="margin-top:32px;padding:20px 0;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:4px;height:28px;background:#FFE600;border-radius:2px"></div>
+      <div>
+        <div style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.6)"><strong style="color:#fff">BEAL</strong> Creative.</div>
+        <div style="font-size:8px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,0.25)">AUDIT MACHINE</div>
+      </div>
     </div>
-    <span style="font-size:12px;color:#a0a0b8;">${date}</span>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25)">Generated ${date}</div>
   </div>
 
 </div>
