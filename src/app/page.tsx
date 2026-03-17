@@ -460,7 +460,7 @@ useEffect(() => {
   if (p.get('industry')) setIndustry(p.get('industry')!)
   if (p.get('location')) setLocation(p.get('location')!)
   // Support window.auditProspect({ name, website, industry, address })
-  ;(window as any).auditProspect = (d: { name?: string; website?: string; industry?: string; address?: string }) => {
+  ;(window as { auditProspect?: (d: { name?: string; website?: string; industry?: string; address?: string }) => void }).auditProspect = (d) => {
     if (d.website) setUrl(d.website)
     if (d.name) setLabel(d.name)
     if (d.industry) setIndustry(d.industry)
