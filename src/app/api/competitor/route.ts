@@ -8,7 +8,7 @@ async function callAI(prompt: string): Promise<string> {
   if (provider === 'openai') {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const res = await client.chat.completions.create({
-      model: 'gpt-4o', max_tokens: 12000,
+      model: 'gpt-4o', max_tokens: 16000,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: 'You are a competitive intelligence analyst. Return valid complete JSON only.' },
@@ -29,11 +29,31 @@ async function callAI(prompt: string): Promise<string> {
 
 function parseJSON<T>(raw: string): T {
   const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
-  try { return JSON.parse(clean) as T }
+  try { return safeParseJSON(clean) as Record<string, unknown> as T }
   catch {
     const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-    if (start !== -1 && end > start) return JSON.parse(clean.slice(start, end + 1)) as T
+    if (start !== -1 && end > start) return safeParseJSON(clean.slice(start, end + 1) as Record<string, unknown>) as T
     throw new Error('Could not parse JSON')
+  }
+}
+
+
+function safeParseJSON(raw: string): unknown {
+  // Strip markdown fences
+  const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
+  try {
+    return safeParseJSON(cleaned) as Record<string, unknown>
+  } catch {
+    // Attempt to repair truncated JSON by closing open structures
+    let fixed = cleaned
+    // Count open braces/brackets and close them
+    const opens = (fixed.match(/\{/g) || []).length - (fixed.match(/\}/g) || []).length
+    const openArr = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length
+    // Remove trailing comma if present
+    fixed = fixed.replace(/,\s*$/, '')
+    for (let i = 0; i < openArr; i++) fixed += ']'
+    for (let i = 0; i < opens; i++) fixed += '}'
+    return safeParseJSON(fixed) as Record<string, unknown>
   }
 }
 
