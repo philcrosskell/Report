@@ -896,7 +896,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
     if (!result) return
     const { exportCompetitorPDF } = await import('@/lib/competitorPdf')
     const saved: SavedCompetitorReport = { id: uid(), businessName: result.businessName, businessUrl: result.businessUrl, report: result, date: new Date().toISOString() }
-    exportCompetitorPDF(saved, brandLogo)
+    exportCompetitorPDF(saved)
   }
   async function exportHTML() {
     if (!result) return
@@ -1237,7 +1237,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
   }
   const exportComp = async (id: string) => {
     const rep = compReports.find(r => r.id === id); if (!rep) return
-    const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep, storedLogo)
+    const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep)
   }
 
   if (viewingComp) {
