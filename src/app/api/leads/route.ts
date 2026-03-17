@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRecord = Record<string, any>
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { industry, postcode, suburb, count } = await request.json()
+    const body = await request.json() as AnyRecord
+    const { industry, postcode, suburb, count } = body as {
+      industry: string; postcode: string; suburb?: string; count?: string
+    }
 
     if (!industry || !postcode) {
       return NextResponse.json({ success: false, error: 'Industry and postcode are required' }, { status: 400 })
@@ -39,17 +45,18 @@ Return ONLY a valid JSON array (no markdown, no explanation) with exactly ${coun
 
 Only include businesses with real websites you can verify exist. Focus on businesses with poor websites (score under 60) as they are better prospects.`
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await (client.messages.create as any)({
+    // Use sdk with web search tool
+    const sdk = client as AnyRecord
+    const response = await sdk.messages.create({
       model: 'claude-sonnet-4-5-20251001',
       max_tokens: 4000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
-    })
+    }) as AnyRecord
 
-    const text = response.content
-      .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
-      .map(b => b.text)
+    const text = (response.content as AnyRecord[])
+      .filter((b: AnyRecord) => b.type === 'text')
+      .map((b: AnyRecord) => b.text as string)
       .join('')
 
     const match = text.match(/\[[\s\S]*\]/)
@@ -57,7 +64,7 @@ Only include businesses with real websites you can verify exist. Focus on busine
       return NextResponse.json({ success: false, error: 'No results found — try a different industry or postcode' }, { status: 422 })
     }
 
-    const prospects = JSON.parse(match[0])
+    const prospects = JSON.parse(match[0]) as AnyRecord[]
     return NextResponse.json({ success: true, prospects })
 
   } catch (e) {
