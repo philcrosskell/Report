@@ -171,6 +171,8 @@ export interface Audit {
   scores: AuditScores
   report: AuditReport
   date: string
+  industry?: string
+  location?: string
 }
 
 export interface LpWeights {
