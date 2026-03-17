@@ -436,9 +436,9 @@ def generate_competitor_pdf(data):
     # Stats bar
     stats = [
         ('BUSINESSES ANALYSED', str(len(profiles))),
-        ('MARKET', (market or 'Not specified')[:20]),
+        ('MARKET', (market or 'Not specified')[:24]),
         ('DATE', date_str),
-        ('PREPARED FOR', biz_name[:18]),
+        ('PREPARED FOR', biz_name[:22]),
     ]
     sw = CW / len(stats)
     for i, (label, val) in enumerate(stats):
