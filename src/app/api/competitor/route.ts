@@ -8,7 +8,7 @@ async function callAI(prompt: string): Promise<string> {
   if (provider === 'openai') {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const res = await client.chat.completions.create({
-      model: 'gpt-4o', max_tokens: 6000,
+      model: 'gpt-4o', max_tokens: 12000,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: 'You are a competitive intelligence analyst. Return valid complete JSON only.' },
