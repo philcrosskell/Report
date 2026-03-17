@@ -54,7 +54,7 @@ export function exportHTML(audit: Audit) {
     </tr>
   `).join('')
 
-  const renderSubScores = (sub: Record<string, {score:number;max:number;note?:string}> = {}) =>
+  const renderSubScores = (sub: Record<string, {score:number;max:number;note?:string}> = {}): string =>
     Object.entries(sub).map(([key, val]) => {
       const pct = Math.round((val.score / val.max) * 100)
       const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())
@@ -71,7 +71,7 @@ export function exportHTML(audit: Audit) {
       </div>`
     }).join('')
 
-  const renderQuickWins = (wins: any[] = []) => wins.slice(0,5).map((w, i) => `
+  const renderQuickWins = (wins: {title?:string;fix?:string;problem?:string;rationale?:string;uplift?:string;difficulty?:string}[] = []): string => wins.slice(0,5).map((w, i) => `
     <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #2e2e38;">
       <div style="width:24px;height:24px;border-radius:50%;background:#FFE500;color:#0f0f11;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
       <div style="flex:1;">
@@ -83,7 +83,7 @@ export function exportHTML(audit: Audit) {
     </div>
   `).join('')
 
-  const renderBuyerAnxieties = (anxieties: any[] = []) => anxieties.map(a => `
+  const renderBuyerAnxieties = (anxieties: {anxiety?:string;owner?:string;addressed?:boolean;note?:string}[] = []): string => anxieties.map(a => `
     <div style="padding:12px 14px;background:#1e1e24;border-radius:8px;margin-bottom:8px;border-left:3px solid ${a.addressed ? '#34d399' : '#f87171'};">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
         <span style="font-size:13px;color:#f0f0f5;">${a.anxiety ?? a.owner ?? ''}</span>
@@ -189,7 +189,7 @@ export function exportHTML(audit: Audit) {
     ${seo.subScores ? `
     <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:16px;">Score Breakdown</div>
-      ${renderSubScores(seo.subScores as any)}
+      ${renderSubScores(seo.subScores as Record<string, {score:number;max:number;note?:string}>)}
     </div>` : ''}
 
     <!-- SEO Checks -->
@@ -224,7 +224,7 @@ export function exportHTML(audit: Audit) {
     ${lp.subScores ? `
     <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:16px;">Score Breakdown</div>
-      ${renderSubScores(lp.subScores as any)}
+      ${renderSubScores(lp.subScores as Record<string, {score:number;max:number;note?:string}>)}
     </div>` : ''}
 
     <!-- Buyer Anxieties -->
