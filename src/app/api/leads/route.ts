@@ -39,12 +39,13 @@ Return ONLY a valid JSON array (no markdown, no explanation) with exactly ${coun
 
 Only include businesses with real websites you can verify exist. Focus on businesses with poor websites (score under 60) as they are better prospects.`
 
-    const response = await client.messages.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await (client.messages.create as any)({
       model: 'claude-sonnet-4-5-20251001',
       max_tokens: 4000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
-    } as Parameters<typeof client.messages.create>[0])
+    })
 
     const text = response.content
       .filter(b => b.type === 'text')
