@@ -1239,6 +1239,11 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     const rep = compReports.find(r => r.id === id); if (!rep) return
     const { exportCompetitorPDF } = await import('@/lib/competitorPdf'); exportCompetitorPDF(rep)
   }
+  const exportCompHTML = async (id: string) => {
+    const rep = compReports.find(r => r.id === id); if (!rep) return
+    const { exportCompetitorHTML } = await import('@/lib/competitorHtmlExport'); exportCompetitorHTML(rep)
+  }
+
 
   if (viewingComp) {
     return (
@@ -1315,6 +1320,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                         <div className="flex gap-1.5">
                           <Btn sm onClick={() => setViewingComp(r)}>View</Btn>
                           <Btn sm onClick={() => exportComp(r.id)}>↓ PDF</Btn>
+                          <Btn sm onClick={() => exportCompHTML(r.id)}>↓ HTML</Btn>
                           <Btn sm danger onClick={() => { deleteCompetitorReport(r.id); onRefresh() }}>Delete</Btn>
                         </div>
                       </td>
