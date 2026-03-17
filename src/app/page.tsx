@@ -174,7 +174,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────────
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -213,7 +213,8 @@ export default function Home() {
     { id: 'projects', label: 'Projects', section: 'Main', badge: projects.length },
     { id: 'audit', label: 'Page Audit', section: 'Tools' },
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
-    { id: 'reports', label: 'Reports', section: 'Tools', badge: audits.length + compReports.length },
+    { id: 'lead', label: 'Lead Machine', section: 'Tools' },
+  { id: 'reports', label: 'Reports', section: 'Tools', badge: audits.length + compReports.length },
     { id: 'settings', label: 'Settings', section: 'Config' },
   ] as const
 
@@ -288,6 +289,7 @@ export default function Home() {
         {view === 'audit' && <AuditPage projects={projects} weights={weights} onRefresh={refresh} />}
         {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
+        {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
     </div>
@@ -295,6 +297,132 @@ export default function Home() {
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
+
+function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
+  const [industry, setIndustry] = useState('')
+  const [postcode, setPostcode] = useState('')
+  const [suburb, setSuburb] = useState('')
+  const [count, setCount] = useState('5')
+  const [loading, setLoading] = useState(false)
+  const [prospects, setProspects] = useState<Array<{
+    businessName: string; website: string; industry: string; overallScore: number;
+    categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number };
+    criticalIssues: number; opportunityScore: number; pitchHook: string;
+    issues: string[]; opportunities: string[];
+  }>>([])
+  const [error, setError] = useState('')
+  const [stepIdx, setStepIdx] = useState(0)
+  const STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
+
+  const run = async () => {
+    if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
+    setLoading(true); setError(''); setProspects([]); setStepIdx(0)
+    const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2800)
+    const location = suburb ? suburb + ' ' + postcode + ' Australia' : postcode + ' Australia'
+    const prompt = 'You are a lead generation and web audit assistant. Find ' + count + ' real local businesses in the ' + industry + ' industry located in or near ' + location + '. For each business, search the web to find their actual website URL, then audit the website. Return ONLY a valid JSON array (no markdown, no explanation) with exactly ' + count + ' objects sorted by overallScore ascending (worst first). Each object: {"businessName":"string","website":"https://...","industry":"' + industry + '","overallScore":0,"categories":{"seo":0,"ux":0,"conversion":0,"mobile":0,"content":0,"brand":0},"criticalIssues":0,"opportunityScore":0,"pitchHook":"one sentence describing their biggest weakness","issues":["string"],"opportunities":["string"]}. Only include businesses with real verifiable websites. Focus on businesses with poor websites (score under 60).'
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, tools: [{ type: 'web_search_20250305', name: 'web_search' }], messages: [{ role: 'user', content: prompt }] })
+      })
+      const data = await resp.json()
+      clearInterval(timer)
+      if (data.error) throw new Error(data.error.message)
+      const text = data.content.filter((b: { type: string }) => b.type === 'text').map((b: { text: string }) => b.text).join('')
+      const match = text.match(/\[[\s\S]*\]/)
+      if (!match) throw new Error('No results found — try a different industry or postcode')
+      setProspects(JSON.parse(match[0]))
+    } catch(e) {
+      clearInterval(timer)
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+    } finally { setLoading(false) }
+  }
+
+  const scoreCol = (n: number) => n < 40 ? 'var(--red)' : n < 60 ? 'var(--accent)' : 'var(--green)'
+
+  return (
+    <>
+      <TopBar title="Lead Machine" sub="Find prospects with weak websites — ranked by opportunity" />
+      <div className="flex-1 overflow-y-auto p-6">
+        <Card>
+          <CTitle>Find prospects</CTitle>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
+            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
+          </div>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find prospects'}</Btn>
+        </Card>
+
+        {loading && (
+          <Card>
+            <div className="flex flex-col items-center py-6 gap-4">
+              <Spinner />
+              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
+              <div className="flex flex-col gap-1.5">
+                {STEPS.map((step, i) => (
+                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
+                    <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
+                    {step}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
+
+        {prospects.length > 0 && (
+          <div className="flex flex-col gap-3 mt-4">
+            {prospects.map((p, i) => (
+              <Card key={i}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0"
+                    style={{ background: i < 2 ? '#fee2e2' : '#fef3c7', color: i < 2 ? '#991b1b' : '#92400e' }}>{i + 1}</div>
+                  <div className="flex-1">
+                    <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{p.website}</div>
+                  </div>
+                  <div className="text-[24px] font-bold" style={{ color: scoreCol(p.overallScore) }}>{p.overallScore}</div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {(['seo','ux','conversion','mobile','content','brand'] as const).map(k => (
+                    <div key={k}>
+                      <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                        <div className="h-full rounded-full" style={{ width: (p.categories[k] || 0) + '%', background: scoreCol(p.categories[k] || 0) }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 text-[11px] mb-3">
+                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--red)' }}>{p.criticalIssues} critical issues</span>
+                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>opp score {p.opportunityScore}/10</span>
+                </div>
+                <p className="text-[12px] mb-3 pl-3" style={{ color: 'var(--t2)', borderLeft: '2px solid var(--border)' }}>{p.pitchHook}</p>
+                {p.issues?.length > 0 && (
+                  <div className="mb-2">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Issues</div>
+                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>✗ {iss}</div>)}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-3">
+                  <Btn sm primary onClick={() => onAudit(p.website, p.businessName, p.industry || industry)}>Audit this prospect</Btn>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
 function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Project[]; audits: Audit[]; onNew: () => void; onAudit: () => void; onView: (a: Audit) => void }) {
   const seoA = audits.map(a => a.scores.seo), lpA = audits.map(a => a.scores.lp)
   const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null
