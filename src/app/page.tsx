@@ -1,4 +1,5 @@
-'use client'
+'use c            </div>
+lient'
 
 import { useState, useEffect, useCallback } from 'react'
 import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport } from '@/lib/types'
@@ -12,12 +13,12 @@ import {
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// âââ helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
 function stag(n: number | null | undefined) { if (!n) return 'purple'; if (n >= 70) return 'green'; if (n >= 40) return 'amber'; return 'red' }
 function gcol(g: string) { return g === 'A' || g === 'B' ? 'var(--green)' : g === 'C' || g === 'D' ? 'var(--amber)' : 'var(--red)' }
 
-// ─── primitives ───────────────────────────────────────────────────────────────
+// âââ primitives âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Tag({ color, children }: { color: string; children: React.ReactNode }) {
   const m: Record<string, string> = { green: 'bg-emerald-400/10 text-emerald-400', amber: 'bg-yellow-400/10 text-yellow-400', red: 'bg-red-400/10 text-red-400', purple: 'bg-yellow-400/10 text-yellow-400', blue: 'bg-blue-400/10 text-blue-400', grey: 'bg-zinc-400/10 text-zinc-400' }
   return <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${m[color] ?? m.purple}`}>{children}</span>
@@ -101,11 +102,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
     }
   }
 
-  // Detect bullet list pattern: "• thing • thing" or "- thing - thing"
-  const bulletPattern = /(?:^|[\n])\s*[•\-–]\s/g
+  // Detect bullet list pattern: "â¢ thing â¢ thing" or "- thing - thing"
+  const bulletPattern = /(?:^|[\n])\s*[â¢\-â]\s/g
   const bulletMatches = [...text.matchAll(bulletPattern)]
   if (bulletMatches.length >= 2) {
-    const items = text.split(/\n?\s*[•\-–]\s+/).map(s => s.trim()).filter(Boolean)
+    const items = text.split(/\n?\s*[â¢\-â]\s+/).map(s => s.trim()).filter(Boolean)
     if (items.length >= 2) {
       return (
         <ul className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -173,11 +174,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   )
 }
 
-// ─── app ──────────────────────────────────────────────────────────────────────
+// âââ app ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
-const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
+const STEPS = ['Fetching page signals', 'Analysing SEO â 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
 const NAV_ICONS: Record<string, string> = {
   dashboard: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
   projects: 'M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z',
@@ -223,7 +224,7 @@ export default function Home() {
       <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <Btn onClick={() => setViewingAudit(null)}>← Back to Reports</Btn>
+            <Btn onClick={() => setViewingAudit(null)}>â Back to Reports</Btn>
             <div className="flex-1">
               <div className="text-base font-semibold">{viewingAudit.label || viewingAudit.url}</div>
               <div className="text-[12px] font-mono" style={{ color: 'var(--accent2)' }}>{viewingAudit.url}</div>
@@ -243,7 +244,7 @@ export default function Home() {
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
         {/* Yellow top bar */}
         <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
-        {/* Logo area — BEAL wordmark */}
+        {/* Logo area â BEAL wordmark */}
         <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
           <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
@@ -294,7 +295,7 @@ export default function Home() {
   )
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+// âââ Dashboard ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Project[]; audits: Audit[]; onNew: () => void; onAudit: () => void; onView: (a: Audit) => void }) {
   const seoA = audits.map(a => a.scores.seo), lpA = audits.map(a => a.scores.lp)
   const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null
@@ -302,11 +303,11 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   return (
     <>
       <TopBar title="Dashboard" sub="Overview of all projects and audits">
-        <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
+        <div className="flex gap-2"><Btn onClick={onAudit}>â³ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
+          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? 'â', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? 'â', 'var(--amber)']].map(([l, v, c]) => (
             <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
@@ -315,7 +316,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
-          {!recent.length ? <Empty icon="⊙" title="No audits yet" sub="Run your first page audit to get started." /> : (
+          {!recent.length ? <Empty icon="â" title="No audits yet" sub="Run your first page audit to get started." /> : (
             <table className="w-full text-[13px]">
               <THead cols={['URL', 'Label', 'Project', 'SEO', 'LP', 'Grade', 'Date', '']} />
               <tbody>{recent.map(a => {
@@ -323,8 +324,8 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
                 return (
                   <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                     <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                    <TD>{a.label || '—'}</TD>
-                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
+                    <TD>{a.label || 'â'}</TD>
+                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>â</span>}</TD>
                     <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                     <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                     <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
@@ -343,7 +344,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   )
 }
 
-// ─── Projects ─────────────────────────────────────────────────────────────────
+// âââ Projects âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[]; audits: Audit[]; onRefresh: () => void; onAudit: () => void }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
@@ -370,7 +371,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
       <div className="flex-1 overflow-y-auto p-6">
         {showForm && (
           <Card>
-            <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
+            <CTitle>{editing ? `Edit â ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
               <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
@@ -385,7 +386,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
           </Card>
         )}
-        {!projects.length && !showForm ? <Empty icon="◫" title="No projects yet" sub="Create your first project." /> : (
+        {!projects.length && !showForm ? <Empty icon="â«" title="No projects yet" sub="Create your first project." /> : (
           <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {projects.map(p => {
               const pa = audits.filter(a => a.projectId === p.id)
@@ -396,7 +397,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                   <div className="text-[15px] font-semibold mb-1">{p.name}</div>
                   <div className="font-mono text-[12px] mb-3" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                   <div className="flex gap-4 mb-3">
-                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? '—', 'var(--accent2)'], ['LP Avg', avgL ?? '—', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
+                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? 'â', 'var(--accent2)'], ['LP Avg', avgL ?? 'â', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
                       <div key={String(l)}><div className="text-[10px]" style={{ color: 'var(--t3)' }}>{l}</div><div className="text-[14px] font-semibold" style={{ color: String(c) }}>{String(v)}</div></div>
                     ))}
                   </div>
@@ -404,7 +405,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                     <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
                       {p.competitors.map(c => (
                         <div key={c.name} className="flex gap-1.5 text-[12px] mb-1" style={{ color: 'var(--t2)' }}>
-                          <span style={{ color: 'var(--t3)' }}>↳</span>{c.name}
+                          <span style={{ color: 'var(--t3)' }}>â³</span>{c.name}
                           <span className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{c.url}</span>
                         </div>
                       ))}
@@ -425,9 +426,9 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
   )
 }
 
-// ─── Audit Page ───────────────────────────────────────────────────────────────
+// âââ Audit Page âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weights: LpWeights; onRefresh: () => void }) {
-  const [url, setUrl] = useState(''), [label, setLabel] = useState(''), [projectId, setProjectId] = useState(''), [assignedTo, setAssignedTo] = useState('unassigned')
+  const [url, setUrl] = useState(''), [label, setLabel] = useState(''), [industry, setIndustry] = useState(''), [location, setLocation] = useState(''), [projectId, setProjectId] = useState(''), [assignedTo, setAssignedTo] = useState('unassigned')
   const [loading, setLoading] = useState(false), [stepIdx, setStepIdx] = useState(0)
 const [industry, setIndustry] = useState(''), [location, setLocation] = useState('')
   const [result, setResult] = useState<AuditReport | null>(null), [error, setError] = useState(''), [savedId, setSavedId] = useState('')
@@ -440,7 +441,7 @@ const [industry, setIndustry] = useState(''), [location, setLocation] = useState
     const existing = projectId ? getAuditsByProject(projectId).length : 0
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 1600)
     try {
-      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, industry, location, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights }) })
+      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, industry, location, industry, location, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights }) })
       const data = await res.json() as { success: boolean; report?: AuditReport; error?: string }
       clearInterval(timer)
       if (!data.success || !data.report) { setError(data.error ?? 'Audit failed'); return }
@@ -469,11 +470,25 @@ useEffect(() => {
 }, [])
 
 
-  const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+  useEffect(() => {
+  const p = new URLSearchParams(window.location.search)
+  if (p.get('url')) setUrl(p.get('url')!)
+  if (p.get('label')) setLabel(p.get('label')!)
+  if (p.get('industry')) setIndustry(p.get('industry')!)
+  if (p.get('location')) setLocation(p.get('location')!)
+  ;(window as { auditProspect?: (d: { name?: string; website?: string; industry?: string; address?: string }) => void }).auditProspect = (d) => {
+    if (d.website) setUrl(d.website)
+    if (d.name) setLabel(d.name)
+    if (d.industry) setIndustry(d.industry)
+    if (d.address) setLocation(d.address)
+  }
+}, [])
+
+const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
   return (
     <>
-      <TopBar title="Page Audit" sub="Standalone audit tool — assign to a project or save unassigned" />
+      <TopBar title="Page Audit" sub="Standalone audit tool â assign to a project or save unassigned" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit any URL</CTitle>
@@ -481,11 +496,15 @@ useEffect(() => {
             <div><Lbl>Page URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://example.com/any-page" /></div>
             <div><Lbl>Page Label (optional)</Lbl><input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Homepage, Pricing" /></div>
           </div>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><Lbl>Industry (optional)</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Digital marketing agency" className="inp w-full" /></div>
+            <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Melbourne, VIC" className="inp w-full" /></div>
+          </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
               <Lbl>Assign to Project (optional)</Lbl>
               <select value={projectId} onChange={e => { setProjectId(e.target.value); setAssignedTo('unassigned') }}>
-                <option value="">— Save as standalone audit —</option>
+                <option value="">â Save as standalone audit â</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -493,14 +512,14 @@ useEffect(() => {
               <div>
                 <Lbl>Tag this URL as</Lbl>
                 <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
-                  <option value="unassigned">— Not tagged —</option>
+                  <option value="unassigned">â Not tagged â</option>
                   <option value="business">Main Business ({selectedProject.name})</option>
                   {selectedProject.competitors.map((c, i) => <option key={i} value={`competitor${i + 1}`}>Competitor {i + 1} ({c.name})</option>)}
                 </select>
               </div>
             )}
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Analysing...' : '⟳ Analyse Page'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Analysing...' : 'â³ Analyse Page'}</Btn>
         </Card>
 
         {loading && (
@@ -530,14 +549,14 @@ useEffect(() => {
   )
 }
 
-// ─── Shared Audit Result View ─────────────────────────────────────────────────
+// âââ Shared Audit Result View âââââââââââââââââââââââââââââââââââââââââââââââââ
 function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onTabChange }: {
   report: AuditReport; url: string; label: string; auditId: string
   tabs?: { id: string; label: string }[]
   defaultTab?: string
   onTabChange?: (t: string) => void
 }) {
-  const TABS = tabs ?? [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+  const TABS = tabs ?? [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
   const [tab, setTab] = useState(defaultTab ?? 'gap')
   const changeTab = (t: string) => { setTab(t); onTabChange?.(t) }
 
@@ -549,8 +568,8 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
             <div className="flex items-center gap-2 mb-1">
               <div className="text-base font-semibold">{label || r.overview.pageType}</div>
               {r.scraped && !r.scraped.error
-                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">✓ Live data fetched</span>
-                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">⚠ Estimated — page not reachable</span>
+                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">â Live data fetched</span>
+                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">â  Estimated â page not reachable</span>
               }
             </div>
             <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
@@ -620,10 +639,10 @@ function ExportAuditBtn({ auditId }: { auditId: string }) {
     const { exportPDF } = await import('@/lib/pdfExport')
     exportPDF(audit)
   }
-  return <Btn sm onClick={go}>↓ Export PDF</Btn>
+  return <Btn sm onClick={go}>â Export PDF</Btn>
 }
 
-// ─── Gap Tab ──────────────────────────────────────────────────────────────────
+// âââ Gap Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function GapTab({ r }: { r: AuditReport }) {
   const g = r.gapAnalysis
   if (!g) return <Card><div style={{ color: 'var(--t3)' }}>Gap analysis not available.</div></Card>
@@ -633,7 +652,7 @@ function GapTab({ r }: { r: AuditReport }) {
       <Card>
         <div className="flex items-center gap-6 flex-wrap">
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Current Score</div><div className="text-3xl font-bold" style={{ color: sc(g.beforeScore) }}>{g.beforeScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color={stag(g.beforeScore)}>{g.beforeGrade}</Tag></div>
-          <div className="text-2xl" style={{ color: 'var(--t3)' }}>→</div>
+          <div className="text-2xl" style={{ color: 'var(--t3)' }}>â</div>
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>After Fixes</div><div className="text-3xl font-bold" style={{ color: 'var(--green)' }}>{g.afterScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color="green">{g.afterGrade}</Tag></div>
           <div className="rounded-xl px-5 py-3 border" style={{ background: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.2)' }}><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--green)' }}>Potential Uplift</div><div className="text-2xl font-bold" style={{ color: 'var(--green)' }}>+{diff} pts</div></div>
           <div className="flex-1 min-w-[200px]"><SmartText text={g.executiveSummary} /></div>
@@ -641,7 +660,7 @@ function GapTab({ r }: { r: AuditReport }) {
       </Card>
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CTitle>🔴 Critical Issues</CTitle>
+          <CTitle>ð´ Critical Issues</CTitle>
           {g.criticalIssues.map((item, i) => (
             <div key={i} className="mb-4 pb-4 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-start gap-2 mb-1.5">
@@ -656,7 +675,7 @@ function GapTab({ r }: { r: AuditReport }) {
         </Card>
         <div>
           <Card>
-            <CTitle>⚡ Quick Wins</CTitle>
+            <CTitle>â¡ Quick Wins</CTitle>
             {g.quickWins.map((item, i) => (
               <div key={i} className="flex gap-3 mb-3 pb-3 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--green)' }}>{i + 1}</div>
@@ -664,9 +683,9 @@ function GapTab({ r }: { r: AuditReport }) {
               </div>
             ))}
           </Card>
-          <Card><CTitle>📍 Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
+          <Card><CTitle>ð Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
           <div className="rounded-xl p-5 border" style={{ background: 'rgba(255,229,0,0.05)', borderColor: 'rgba(255,229,0,0.3)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>★ Top Recommendation</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>â Top Recommendation</div>
             <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
           </div>
         </div>
@@ -675,7 +694,7 @@ function GapTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── SEO Tab — Seobility style ────────────────────────────────────────────────
+// âââ SEO Tab â Seobility style ââââââââââââââââââââââââââââââââââââââââââââââââ
 function SeoTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.seoCategories) as (keyof SeoCategories)[]
   return (
@@ -737,7 +756,7 @@ function SeoTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── LP Tab ───────────────────────────────────────────────────────────────────
+// âââ LP Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function LpTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.lpScoring) as (keyof LpScoring)[]
   const gc = gcol(r.scores.grade)
@@ -776,11 +795,11 @@ function LpTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── Fixes Tab ────────────────────────────────────────────────────────────────
+// âââ Fixes Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function FixesTab({ r }: { r: AuditReport }) {
   return (
     <Card>
-      <CTitle>Priority Fixes — Ranked by Impact</CTitle>
+      <CTitle>Priority Fixes â Ranked by Impact</CTitle>
       {r.priorityFixes.map(f => (
         <div key={f.rank} className="flex gap-3.5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{f.rank}</div>
@@ -800,7 +819,7 @@ function FixesTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── Positioning Tab ──────────────────────────────────────────────────────────
+// âââ Positioning Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function CompTab({ r }: { r: AuditReport }) {
   const c = r.competitorAnalysis
   return (
@@ -818,7 +837,7 @@ function CompTab({ r }: { r: AuditReport }) {
           <CTitle>Buyer Anxieties Addressed</CTitle>
           {c.buyerAnxieties.map((b, i) => (
             <div key={i} className="flex gap-2.5 py-1.5 border-b last:border-0 items-start" style={{ borderColor: 'var(--border)' }}>
-              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? '✓' : '✕'}</span>
+              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? 'â' : 'â'}</span>
               <div><div className="text-[12px] font-semibold">{b.anxiety}</div><div className="text-[11px]" style={{ color: 'var(--t3)' }}>{b.note}</div></div>
             </div>
           ))}
@@ -827,7 +846,7 @@ function CompTab({ r }: { r: AuditReport }) {
       <div className="grid grid-cols-2 gap-3">
         <Card><CTitle>Table Stakes</CTitle><div className="flex flex-col gap-1.5">{c.tableStakes.map((t, i) => <Insight key={i} color="amber" text={t} />)}</div></Card>
         <Card>
-          <CTitle>White Space — Unclaimed Opportunities</CTitle>
+          <CTitle>White Space â Unclaimed Opportunities</CTitle>
           {c.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -841,11 +860,11 @@ function CompTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── SW Tab ───────────────────────────────────────────────────────────────────
+// âââ SW Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      {([{ icon: '✓', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: '✕', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: '◎', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
+      {([{ icon: 'â', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'â', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'â', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
         <Card key={s.title}>
           <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: s.bg, color: s.tc }}>{s.icon}</div><div className="text-[14px] font-semibold">{s.title}</div></div>
           <div className="flex flex-col gap-1.5">{s.items.map((item, i) => <Insight key={i} color={s.color} text={item} />)}</div>
@@ -855,7 +874,7 @@ function SwTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── Recs Tab ─────────────────────────────────────────────────────────────────
+// âââ Recs Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function RecsTab({ r }: { r: AuditReport }) {
   return (
     <Card>
@@ -874,7 +893,7 @@ function RecsTab({ r }: { r: AuditReport }) {
   )
 }
 
-// ─── Competitor Analysis Page ─────────────────────────────────────────────────
+// âââ Competitor Analysis Page âââââââââââââââââââââââââââââââââââââââââââââââââ
 function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { projects: Project[]; onRefresh: () => void; brandLogo: string; onLogoChange: (l: string) => void }) {
   const [mode, setMode] = useState<'manual' | 'project'>('manual')
   const [bizName, setBizName] = useState(''), [bizUrl, setBizUrl] = useState(''), [market, setMarket] = useState('')
@@ -956,7 +975,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div>
               <Lbl>Select Project</Lbl>
               <select value={projectId} onChange={e => setProjectId(e.target.value)} style={{ maxWidth: 360 }}>
-                <option value="">— Select a project —</option>
+                <option value="">â Select a project â</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.competitors.length} competitors)</option>)}
               </select>
               {selectedProject && (
@@ -980,7 +999,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               }
                 <div className="flex gap-2">
                   <label className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border rounded-lg transition-all bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]">
-                    ↑ Upload
+                    â Upload
                     <input type="file" accept="image/*,.svg" className="hidden" onChange={e => {
                       const file = e.target.files?.[0]
                       if (!file) return
@@ -994,7 +1013,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               </div>
               <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>Appears on the report cover. PNG, JPG, or SVG.</div>
             </div>
-            <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Analysing market...' : '⟳ Run Competitor Analysis'}</Btn>
+            <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Analysing market...' : 'â³ Run Competitor Analysis'}</Btn>
           </div>
         </Card>
 
@@ -1003,7 +1022,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex flex-col items-center py-8 gap-4">
               <Spinner />
               <div className="text-[13px]" style={{ color: 'var(--t2)' }}>Analysing competitive landscape...</div>
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15–25 seconds — the AI is researching every player in your market</div>
+              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15â25 seconds â the AI is researching every player in your market</div>
             </div>
           </Card>
         )}
@@ -1016,21 +1035,21 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
-                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
-                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
+                <div className="text-[13px] font-semibold">{result.businessName} â Competitor Intelligence Report</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} Â· {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
                 <>
                   <Btn onClick={saveReport} primary>Save Report</Btn>
-                  <Btn onClick={exportPDF}>↓ PDF</Btn>
-                  <Btn onClick={exportHTML}>↓ HTML</Btn>
+                  <Btn onClick={exportPDF}>â PDF</Btn>
+                  <Btn onClick={exportHTML}>â HTML</Btn>
                   <Btn danger onClick={() => setResult(null)}>Discard</Btn>
                 </>
               ) : (
                 <>
-                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div>
-                  <Btn onClick={exportPDF}>↓ PDF</Btn>
-                  <Btn onClick={exportHTML}>↓ HTML</Btn>
+                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>â Saved to Reports</div>
+                  <Btn onClick={exportPDF}>â PDF</Btn>
+                  <Btn onClick={exportHTML}>â HTML</Btn>
                 </>
               )}
             </div>
@@ -1043,7 +1062,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
   )
 }
 
-// ─── Competitor Intelligence Report View ──────────────────────────────────────
+// âââ Competitor Intelligence Report View ââââââââââââââââââââââââââââââââââââââ
 function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
@@ -1053,7 +1072,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report · {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report Â· {r.date}</div>
           </div>
         </div>
       )}
@@ -1092,7 +1111,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
       {/* Hook analysis */}
       <Card>
-        <CTitle>Opening Hook Analysis — The 3-Second Test</CTitle>
+        <CTitle>Opening Hook Analysis â The 3-Second Test</CTitle>
         <div style={{ overflowX: 'auto' }}>
           <table className="w-full text-[13px]" style={{ minWidth: 500 }}>
             <THead cols={['Business', 'Hero Headline', 'Hook Type', 'Effectiveness']} />
@@ -1111,7 +1130,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Claims matrix */}
       <Card>
         <CTitle>How the Market Talks to Customers</CTitle>
-        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims — and how specifically.</div>
+        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims â and how specifically.</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="text-[12px]" style={{ minWidth: 600, width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -1126,7 +1145,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <td className="font-semibold text-[12px]" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)' }}>{row.claimType}</td>
                   {r.profiles.map(p => (
                     <td key={p.url} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: row.values[p.name] === 'Not mentioned' ? 'var(--t3)' : 'var(--t2)', fontStyle: row.values[p.name] === 'Not mentioned' ? 'italic' : 'normal' }}>
-                      {row.values[p.name] ?? '—'}
+                      {row.values[p.name] ?? 'â'}
                     </td>
                   ))}
                 </tr>
@@ -1139,13 +1158,13 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Table stakes vs white space */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Card>
-          <CTitle>Table Stakes — Everyone Claims This</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects — not differentiating.</div>
-          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>• {t}</div>)}
+          <CTitle>Table Stakes â Everyone Claims This</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects â not differentiating.</div>
+          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>â¢ {t}</div>)}
         </Card>
         <Card>
-          <CTitle>White Space — Worth Claiming</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0–1 competitors. Strong differentiation potential.</div>
+          <CTitle>White Space â Worth Claiming</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0â1 competitors. Strong differentiation potential.</div>
           {r.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -1187,14 +1206,14 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         ))}
       </div>
 
-      {/* Quick wins — 2 columns */}
+      {/* Quick wins â 2 columns */}
       <Card>
-        <CTitle>Quick Wins — 30 Days</CTitle>
+        <CTitle>Quick Wins â 30 Days</CTitle>
         <div className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Actionable changes executable without a full rebrand.</div>
         <div className="grid grid-cols-2 gap-3">
           {r.quickWins.map((w, i) => (
             <div key={i} className="flex gap-3 p-3 rounded-lg border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>☐</div>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>â</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold mb-1 leading-snug">{w.action}</div>
                 <SmartText text={w.why} color="var(--t3)" className="mb-1.5" />
@@ -1205,7 +1224,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Summary — structured not a wall of text */}
+      {/* Summary â structured not a wall of text */}
       <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.15)' }}>
         <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
         {(() => {
@@ -1228,7 +1247,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
               )}
               {closing && (
                 <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(255,229,0,0.07)', borderColor: 'rgba(255,229,0,0.35)' }}>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>★ Key Recommendation</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>â Key Recommendation</div>
                   <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{closing}</div>
                 </div>
               )}
@@ -1240,7 +1259,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
   )
 }
 
-// ─── Reports ──────────────────────────────────────────────────────────────────
+// âââ Reports ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
   const [tab, setTab] = useState<'audits' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
@@ -1271,10 +1290,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     return (
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-          <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
+          <Btn onClick={() => setViewingComp(null)}>â Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
-          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
-          <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>
+          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} â Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
+          <Btn sm onClick={() => exportComp(viewingComp.id)}>â Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
       </>
@@ -1283,7 +1302,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits Â· ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audit Reports ({audits.length})</Btn>
@@ -1292,7 +1311,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'audits' && (
           <>
-            {!sorted.length ? <Empty icon="⊙" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
+            {!sorted.length ? <Empty icon="â" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
               <Card>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="w-full text-[13px]">
@@ -1302,8 +1321,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       return (
                         <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                           <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                          <TD>{a.label || '—'}</TD>
-                          <TD>{proj?.name ?? '—'}</TD>
+                          <TD>{a.label || 'â'}</TD>
+                          <TD>{proj?.name ?? 'â'}</TD>
                           <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                           <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                           <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
@@ -1311,8 +1330,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                           <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                             <div className="flex gap-1.5">
                               <Btn sm onClick={() => onView(a)}>View</Btn>
-                              <Btn sm onClick={() => exportAudit(a.id)}>↓ PDF</Btn>
-                              <Btn sm onClick={() => exportAuditHTML(a.id)}>↓ HTML</Btn>
+                              <Btn sm onClick={() => exportAudit(a.id)}>â PDF</Btn>
+                              <Btn sm onClick={() => exportAuditHTML(a.id)}>â HTML</Btn>
                               <Btn sm danger onClick={() => { deleteAudit(a.id); onRefresh() }}>Delete</Btn>
                             </div>
                           </td>
@@ -1328,7 +1347,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'competitor' && (
           <>
-            {!compReports.length ? <Empty icon="◎" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
+            {!compReports.length ? <Empty icon="â" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
               <Card>
                 <table className="w-full text-[13px]">
                   <THead cols={['Business', 'URL', 'Competitors', 'Date', '']} />
@@ -1341,8 +1360,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                         <div className="flex gap-1.5">
                           <Btn sm onClick={() => setViewingComp(r)}>View</Btn>
-                          <Btn sm onClick={() => exportComp(r.id)}>↓ PDF</Btn>
-                          <Btn sm onClick={() => exportCompHTML(r.id)}>↓ HTML</Btn>
+                          <Btn sm onClick={() => exportComp(r.id)}>â PDF</Btn>
+                          <Btn sm onClick={() => exportCompHTML(r.id)}>â HTML</Btn>
                           <Btn sm danger onClick={() => { deleteCompetitorReport(r.id); onRefresh() }}>Delete</Btn>
                         </div>
                       </td>
@@ -1358,7 +1377,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
   )
 }
 
-// ─── Settings ─────────────────────────────────────────────────────────────────
+// âââ Settings âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeights) => void }) {
   const [w, setW] = useState(weights)
   const total = Object.values(w).reduce((a, b) => a + b, 0)
@@ -1381,12 +1400,12 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
         </Card>
         <Card>
           <CTitle>Environment Variables</CTitle>
-          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel → Settings → Environment Variables</strong>.</p>
+          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel â Settings â Environment Variables</strong>.</p>
           {[{ key: 'ANTHROPIC_API_KEY', desc: 'Claude API key (recommended)', href: 'https://console.anthropic.com' }, { key: 'OPENAI_API_KEY', desc: 'OpenAI API key (alternative)', href: 'https://platform.openai.com' }, { key: 'AI_PROVIDER', desc: "Set to 'anthropic' or 'openai'" }, { key: 'PAGESPEED_API_KEY', desc: 'Google PageSpeed (optional)', href: 'https://console.cloud.google.com' }].map(v => (
             <div key={v.key} className="flex items-center gap-3 mb-2 flex-wrap">
               <code className="font-mono text-[11px] rounded px-1.5 py-0.5 min-w-[180px]" style={{ background: 'var(--bg4)', color: 'var(--accent2)' }}>{v.key}</code>
               <span className="text-[12px]" style={{ color: 'var(--t3)' }}>{v.desc}</span>
-              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>→ Get key</a>}
+              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>â Get key</a>}
             </div>
           ))}
         </Card>
