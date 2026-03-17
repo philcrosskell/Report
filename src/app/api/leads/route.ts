@@ -39,17 +39,17 @@ Return ONLY a valid JSON array (no markdown, no explanation) with exactly ${coun
   "criticalIssues": number,
   "opportunityScore": number 1-10,
   "pitchHook": "one sentence describing their biggest weakness and the opportunity",
-  "issues": ["issue 1", "issue 2", "issue 3"],
-  "opportunities": ["opportunity 1", "opportunity 2"]
+  "issues": ["string", "string"],
+  "opportunities": ["string"]
 }
 
-Only include businesses with real websites you can verify exist. Focus on businesses with poor websites (score under 60) as they are better prospects.`
+Be concise — keep strings short (under 12 words each). Only include businesses with real verifiable websites. Prioritise poor websites (score under 60).`
 
     // Use sdk with web search tool
     const sdk = client as AnyRecord
     const response = await sdk.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: 8000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
     }) as AnyRecord
@@ -59,12 +59,18 @@ Only include businesses with real websites you can verify exist. Focus on busine
       .map((b: AnyRecord) => b.text as string)
       .join('')
 
-    const match = text.match(/\[[\s\S]*\]/)
-    if (!match) {
+    // Find all [...] blocks and try each from largest to smallest
+    const matches = [...text.matchAll(/\[([\s\S]*?)\]/g)].sort((a,b) => b[0].length - a[0].length)
+    if (!matches.length) {
       return NextResponse.json({ success: false, error: 'No results found — try a different industry or postcode' }, { status: 422 })
     }
-
-    const prospects = JSON.parse(match[0]) as AnyRecord[]
+    let prospects: AnyRecord[] = []
+    for (const m of matches) {
+      try { prospects = JSON.parse(m[0]) as AnyRecord[]; break } catch { continue }
+    }
+    if (!prospects.length) {
+      return NextResponse.json({ success: false, error: 'Could not parse results — please try again' }, { status: 422 })
+    }
     return NextResponse.json({ success: true, prospects })
 
   } catch (e) {
