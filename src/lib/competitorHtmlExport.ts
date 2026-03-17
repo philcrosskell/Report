@@ -45,47 +45,18 @@ export function exportCompetitorHTML(saved: SavedCompetitorReport): void {
         <div>
           <div style="font-size:15px;font-weight:600;color:#f0f0f5;">${p.name}</div>
           <div style="font-size:12px;color:#60a5fa;">${p.url}</div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#26262e;color:#a0a0b8;margin-top:4px;display:inline-block;">${p.tier}</span>
         </div>
-        ${typeof p.overallStrength === 'number' ? `<div style="text-align:right;"><div style="font-size:24px;font-weight:700;color:${scoreColor(p.overallStrength)};">${p.overallStrength}</div><div style="font-size:11px;color:#a0a0b8;">Strength</div></div>` : ''}
       </div>
-      ${p.summary ? `<p style="font-size:13px;color:#a0a0b8;margin-bottom:12px;">${p.summary}</p>` : ''}
-      ${(p.strengths?.length || p.weaknesses?.length) ? `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        ${p.strengths?.length ? `<div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#34d399;margin-bottom:8px;">Strengths</div>
-          ${p.strengths.map(s => `<div style="font-size:12px;color:#f0f0f5;margin-bottom:4px;display:flex;gap:6px;"><span style="color:#34d399;">✓</span>${s}</div>`).join('')}
-        </div>` : ''}
-        ${p.weaknesses?.length ? `<div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#f87171;margin-bottom:8px;">Weaknesses</div>
-          ${p.weaknesses.map(w => `<div style="font-size:12px;color:#f0f0f5;margin-bottom:4px;display:flex;gap:6px;"><span style="color:#f87171;">✗</span>${w}</div>`).join('')}
-        </div>` : ''}
-      </div>` : ''}
+      ${p.positioning ? `<div style="margin-bottom:10px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a0a0b8;margin-bottom:4px;">Positioning</div><p style="font-size:13px;color:#f0f0f5;">${p.positioning}</p></div>` : ''}
+      ${p.whatTheyDoWell ? `<div style="margin-bottom:10px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#34d399;margin-bottom:4px;">What they do well</div><p style="font-size:13px;color:#f0f0f5;">${p.whatTheyDoWell}</p></div>` : ''}
+      ${p.hookHeadline ? `<div style="margin-bottom:10px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a0a0b8;margin-bottom:4px;">Hook (${p.hookType})</div><p style="font-size:13px;color:#f0f0f5;">${p.hookHeadline}</p><p style="font-size:12px;color:#a0a0b8;margin-top:2px;">${p.hookEffectiveness}</p></div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+        ${p.primaryAnxiety ? `<div style="padding:10px 12px;background:#16161a;border-radius:8px;border-left:3px solid #f87171;"><div style="font-size:11px;color:#f87171;margin-bottom:4px;">Primary anxiety</div><p style="font-size:12px;color:#f0f0f5;">${p.primaryAnxiety}</p></div>` : ''}
+        ${p.outcomePromised ? `<div style="padding:10px 12px;background:#16161a;border-radius:8px;border-left:3px solid #34d399;"><div style="font-size:11px;color:#34d399;margin-bottom:4px;">Outcome promised</div><p style="font-size:12px;color:#f0f0f5;">${p.outcomePromised}</p></div>` : ''}
+      </div>
+      ${p.actionTrigger ? `<div style="margin-top:10px;padding:10px 12px;background:#16161a;border-radius:8px;"><div style="font-size:11px;color:#FFE500;margin-bottom:4px;">Action trigger</div><p style="font-size:12px;color:#f0f0f5;">${p.actionTrigger}</p></div>` : ''}
     </div>`).join('')
-
-  const renderClaimsMatrix = (): string => {
-    if (!r.claimsMatrix?.rows?.length) return ''
-    const competitors = r.profiles?.map(p => p.name) ?? []
-    return `
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;">
-        <thead>
-          <tr style="background:#1e1e24;">
-            <th style="padding:10px 12px;text-align:left;color:#a0a0b8;border-bottom:1px solid #2e2e38;white-space:nowrap;">Claim Type</th>
-            <th style="padding:10px 12px;text-align:center;color:#FFE500;border-bottom:1px solid #2e2e38;white-space:nowrap;">${saved.businessName}</th>
-            ${competitors.map(c => `<th style="padding:10px 12px;text-align:center;color:#a0a0b8;border-bottom:1px solid #2e2e38;white-space:nowrap;">${c}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${r.claimsMatrix.rows.map(row => `
-          <tr>
-            <td style="padding:10px 12px;color:#f0f0f5;border-bottom:1px solid #2e2e38;">${row.claimType}</td>
-            <td style="padding:10px 12px;text-align:center;border-bottom:1px solid #2e2e38;color:${row.values[saved.businessName] === 'Yes' ? '#34d399' : row.values[saved.businessName] === 'No' ? '#f87171' : '#a0a0b8'};">${row.values[saved.businessName] ?? '—'}</td>
-            ${competitors.map(c => `<td style="padding:10px 12px;text-align:center;border-bottom:1px solid #2e2e38;color:${row.values[c] === 'Yes' ? '#34d399' : row.values[c] === 'No' ? '#f87171' : '#a0a0b8'};">${row.values[c] ?? '—'}</td>`).join('')}
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`
-  }
 
   const html = `<!DOCTYPE html>
 <html lang="en">
