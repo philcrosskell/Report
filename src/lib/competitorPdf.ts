@@ -1,6 +1,6 @@
 import type { SavedCompetitorReport } from './types'
 
-export async function exportCompetitorPDF(saved: SavedCompetitorReport, _brandLogo = ''): Promise<void> {
+export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise<void> {
   const res = await fetch('/api/generate_competitor_pdf', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
