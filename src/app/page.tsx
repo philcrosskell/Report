@@ -319,7 +319,6 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
     setLoading(true); setError(''); setProspects([]); setStepIdx(0)
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2800)
     const location = suburb ? suburb + ' ' + postcode + ' Australia' : postcode + ' Australia'
-    const prompt = 'You are a lead generation and web audit assistant. Find ' + count + ' real local businesses in the ' + industry + ' industry located in or near ' + location + '. For each business, search the web to find their actual website URL, then audit the website. Return ONLY a valid JSON array (no markdown, no explanation) with exactly ' + count + ' objects sorted by overallScore ascending (worst first). Each object: {"businessName":"string","website":"https://...","industry":"' + industry + '","overallScore":0,"categories":{"seo":0,"ux":0,"conversion":0,"mobile":0,"content":0,"brand":0},"criticalIssues":0,"opportunityScore":0,"pitchHook":"one sentence describing their biggest weakness","issues":["string"],"opportunities":["string"]}. Only include businesses with real verifiable websites. Focus on businesses with poor websites (score under 60).'
     try {
       const resp = await fetch('/api/leads', {
         method: 'POST',
