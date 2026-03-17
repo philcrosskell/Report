@@ -994,13 +994,15 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               {!saved ? (
                 <>
                   <Btn onClick={saveReport} primary>Save Report</Btn>
-                  <Btn onClick={exportPDF}>↓ Export PDF</Btn>
+                  <Btn onClick={exportPDF}>↓ PDF</Btn>
+                  <Btn onClick={exportHTML}>↓ HTML</Btn>
                   <Btn danger onClick={() => setResult(null)}>Discard</Btn>
                 </>
               ) : (
                 <>
                   <div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div>
-                  <Btn onClick={exportPDF}>↓ Export PDF</Btn>
+                  <Btn onClick={exportPDF}>↓ PDF</Btn>
+                  <Btn onClick={exportHTML}>↓ HTML</Btn>
                 </>
               )}
             </div>
