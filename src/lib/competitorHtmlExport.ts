@@ -34,6 +34,32 @@ export function exportCompetitorHTML(saved: SavedCompetitorReport): void {
       </div>
     </div>`).join('')
 
+
+  const renderClaimsMatrix = (): string => {
+    if (!r.claimsMatrix?.rows?.length) return ''
+    const competitors = r.profiles?.map(p => p.name) ?? []
+    return `
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#1e1e24;">
+            <th style="padding:10px 12px;text-align:left;color:#a0a0b8;border-bottom:1px solid #2e2e38;white-space:nowrap;">Claim Type</th>
+            <th style="padding:10px 12px;text-align:center;color:#FFE500;border-bottom:1px solid #2e2e38;white-space:nowrap;">${saved.businessName}</th>
+            ${competitors.map(c => `<th style="padding:10px 12px;text-align:center;color:#a0a0b8;border-bottom:1px solid #2e2e38;white-space:nowrap;">${c}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${r.claimsMatrix.rows.map(row => `
+          <tr>
+            <td style="padding:10px 12px;color:#f0f0f5;border-bottom:1px solid #2e2e38;">${row.claimType}</td>
+            <td style="padding:10px 12px;text-align:center;border-bottom:1px solid #2e2e38;color:${row.values[saved.businessName] === 'Yes' ? '#34d399' : row.values[saved.businessName] === 'No' ? '#f87171' : '#a0a0b8'};">${row.values[saved.businessName] ?? '—'}</td>
+            ${competitors.map(c => `<td style="padding:10px 12px;text-align:center;border-bottom:1px solid #2e2e38;color:${row.values[c] === 'Yes' ? '#34d399' : row.values[c] === 'No' ? '#f87171' : '#a0a0b8'};">${row.values[c] ?? '—'}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`
+  }
+
   const renderCompetitorProfiles = (): string => (r.profiles ?? []).map(p => `
     <div style="background:#1e1e24;border:1px solid #2e2e38;border-radius:10px;padding:16px 20px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
