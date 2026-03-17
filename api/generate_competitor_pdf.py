@@ -126,7 +126,7 @@ def sec_header(cv, strip_c1, strip_c2, label, title, pg, biz_lbl):
     grad_strip(cv, 0, 6, strip_c1, strip_c2)
     rect(cv, 0, 6, W, 78, fill=DARK)
     txt(cv, L, 6+24, label, bold=True, sz=7, col=Color(1,1,1,0.25))
-    txt(cv, L, 6+48, title, bold=True, sz=24, col=WHITE, max_w=CW-80)
+    txt(cv, L, 6+48, title, bold=True, sz=24, col=WHITE)
     txt(cv, R, 6+30, 'Page '+str(pg), sz=9, col=Color(1,1,1,0.2), align='right')
     txt(cv, R, 6+46, biz_lbl, sz=7.5, col=Color(1,1,1,0.15), align='right')
 
