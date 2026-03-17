@@ -18,38 +18,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const client = new Anthropic()
     const location = suburb ? `${suburb} ${postcode} Australia` : `${postcode} Australia`
 
-    const prompt = `You are a lead generation and web audit assistant. Find ${count || 5} real local businesses in the ${industry} industry located in or near ${location}.
+    const prompt = `Find ${count || 5} real ${industry} businesses near ${location}. Search for each, find their website, and assess quality.
 
-For each business, search the web to find their actual website URL, then audit the website.
+Return ONLY a JSON array, no markdown. ${count || 5} items, sorted by overallScore ascending:
+[{"businessName":"","website":"","overallScore":0,"categories":{"seo":0,"ux":0,"conversion":0,"mobile":0,"content":0,"brand":0},"criticalIssues":0,"opportunityScore":0,"pitchHook":"","issues":["",""],"opportunities":[""]}]
 
-Return ONLY a valid JSON array (no markdown, no explanation) with exactly ${count || 5} objects, sorted by overallScore ascending (worst first). Each object:
-{
-  "businessName": "string",
-  "website": "https://...",
-  "industry": "${industry}",
-  "overallScore": number 0-100,
-  "categories": {
-    "seo": number 0-100,
-    "ux": number 0-100,
-    "conversion": number 0-100,
-    "mobile": number 0-100,
-    "content": number 0-100,
-    "brand": number 0-100
-  },
-  "criticalIssues": number,
-  "opportunityScore": number 1-10,
-  "pitchHook": "one sentence describing their biggest weakness and the opportunity",
-  "issues": ["string", "string"],
-  "opportunities": ["string"]
-}
-
-Be concise — keep strings short (under 12 words each). Only include businesses with real verifiable websites. Prioritise poor websites (score under 60).`
+Rules: real websites only, focus on scores under 60, keep all strings under 10 words.`
 
     // Use sdk with web search tool
     const sdk = client as AnyRecord
     const response = await sdk.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 8000,
+      max_tokens: 4000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
     }) as AnyRecord
