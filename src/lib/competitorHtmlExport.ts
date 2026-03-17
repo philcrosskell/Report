@@ -5,18 +5,15 @@ export function exportCompetitorHTML(saved: SavedCompetitorReport): void {
   const date = new Date(saved.date).toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })
   const slug = saved.businessUrl.replace(/https?:\/\//,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')
 
-  const renderQuickWins = (wins: { title: string; impact: string; effort: string; rationale: string }[] = []): string =>
+  const renderQuickWins = (wins: { action: string; why: string; effort: 'Easy' | 'Medium' | 'Hard' }[] = []): string =>
     wins.slice(0,5).map((w, i) => `
     <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #2e2e38;">
       <div style="width:24px;height:24px;border-radius:50%;background:#FFE500;color:#0f0f11;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:600;color:#f0f0f5;margin-bottom:2px;">${w.title}</div>
-        <div style="font-size:12px;color:#a0a0b8;margin-bottom:4px;">${w.rationale}</div>
+        <div style="font-size:13px;font-weight:600;color:#f0f0f5;margin-bottom:2px;">${w.action}</div>
+        <div style="font-size:12px;color:#a0a0b8;">${w.why}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(52,211,153,0.15);color:#34d399;">${w.impact}</span>
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#1e1e24;color:#a0a0b8;">${w.effort}</span>
-      </div>
+      <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#1e1e24;color:#a0a0b8;height:fit-content;white-space:nowrap;">${w.effort}</span>
     </div>`).join('')
 
   const renderWhiteSpace = (items: { opportunity: string; rationale: string; owner: string }[] = []): string =>
@@ -109,7 +106,7 @@ export function exportCompetitorHTML(saved: SavedCompetitorReport): void {
   <div style="background:#16161a;border:1px solid #2e2e38;border-radius:10px;padding:20px 24px;margin-bottom:24px;">
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a0a0b8;margin-bottom:4px;">Quick Wins</div>
     <div style="font-size:13px;color:#a0a0b8;margin-bottom:16px;">Highest-impact actions to differentiate immediately</div>
-    ${renderQuickWins(r.quickWins as { title: string; impact: string; effort: string; rationale: string }[])}
+    ${renderQuickWins(r.quickWins ?? [])}
   </div>` : ''}
 
   ${r.profiles?.length ? `
