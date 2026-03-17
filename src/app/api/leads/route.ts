@@ -48,8 +48,8 @@ Only include businesses with real websites you can verify exist. Focus on busine
     })
 
     const text = response.content
-      .filter(b => b.type === 'text')
-      .map(b => (b as { type: 'text'; text: string }).text)
+      .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
+      .map(b => b.text)
       .join('')
 
     const match = text.match(/\[[\s\S]*\]/)
