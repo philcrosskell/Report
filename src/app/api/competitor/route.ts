@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const part1 = safeParseJSON<Record<string, unknown>>(r1)
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
 
-    return NextResponse.json({ success: true, result: {
+    return NextResponse.json({ success: true, report: {
       businessName, businessUrl, market: market ?? '', date: new Date().toISOString(),
       brandLogo: brandLogo ?? '', ...part1, ...part2
     }})
