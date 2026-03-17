@@ -29,31 +29,26 @@ async function callAI(prompt: string): Promise<string> {
 
 function parseJSON<T>(raw: string): T {
   const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
-  try { return safeParseJSON(clean) as Record<string, unknown> as T }
+  try { return safeParseJSON<Record<string, unknown>>(clean) as T }
   catch {
     const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-    if (start !== -1 && end > start) return safeParseJSON(clean.slice(start, end + 1) as Record<string, unknown>) as T
+    if (start !== -1 && end > start) return safeParseJSON<Record<string, unknown>>(clean.slice(start, end + 1)) as T
     throw new Error('Could not parse JSON')
   }
 }
 
 
-function safeParseJSON(raw: string): unknown {
-  // Strip markdown fences
+function safeParseJSON<T>(raw: string): T {
   const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    return safeParseJSON(cleaned) as Record<string, unknown>
+    return JSON.parse(cleaned) as T
   } catch {
-    // Attempt to repair truncated JSON by closing open structures
-    let fixed = cleaned
-    // Count open braces/brackets and close them
-    const opens = (fixed.match(/\{/g) || []).length - (fixed.match(/\}/g) || []).length
-    const openArr = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length
-    // Remove trailing comma if present
-    fixed = fixed.replace(/,\s*$/, '')
-    for (let i = 0; i < openArr; i++) fixed += ']'
-    for (let i = 0; i < opens; i++) fixed += '}'
-    return safeParseJSON(fixed) as Record<string, unknown>
+    // Try to extract outermost JSON object
+    const start = cleaned.indexOf('{'), end = cleaned.lastIndexOf('}')
+    if (start !== -1 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1)) as T
+    }
+    throw new Error('Could not parse JSON')
   }
 }
 
