@@ -48,7 +48,7 @@ Only include businesses with real websites you can verify exist. Focus on busine
     // Use sdk with web search tool
     const sdk = client as AnyRecord
     const response = await sdk.messages.create({
-      model: 'claude-sonnet-4-5-20251001',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
