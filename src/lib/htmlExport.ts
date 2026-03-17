@@ -21,7 +21,7 @@ export function exportHTML(audit: Audit) {
     return '#f87171'
   }
   const critColor = (c: string) =>
-    c === 'critical' ? '#f87171' : c === 'high' ? '#fbbf24' : c === 'medium' ? '#60a5fa' : '#a0a0b8'
+    c === 'critical' ? '#f87171' : c === 'important' ? '#fbbf24' : c === 'somewhat' ? '#60a5fa' : '#a0a0b8'
   const statusDot = (s: string) =>
     s === 'pass' ? '#34d399' : s === 'fail' ? '#f87171' : '#fbbf24'
 
@@ -33,7 +33,7 @@ export function exportHTML(audit: Audit) {
       </td>
       <td style="padding:10px 12px;border-bottom:1px solid #2e2e38;color:#a0a0b8;font-size:12px;vertical-align:top;">${c.detail ?? ''}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #2e2e38;vertical-align:top;">
-        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${c.criticality === 'critical' ? 'rgba(248,113,113,0.15)' : c.criticality === 'high' ? 'rgba(251,191,36,0.15)' : 'rgba(96,165,250,0.15)'};color:${critColor(c.criticality ?? 'low')};">${c.criticality ?? 'low'}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${c.criticality === 'critical' ? 'rgba(248,113,113,0.15)' : c.criticality === 'important' ? 'rgba(251,191,36,0.15)' : 'rgba(96,165,250,0.15)'};color:${critColor(c.criticality ?? 'low')};">${c.criticality ?? 'low'}</span>
       </td>
     </tr>
   `).join('')
