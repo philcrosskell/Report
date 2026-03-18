@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Audit Machine — SEO & Landing Page Audit Dashboard',
-  description: 'AI-powered SEO and landing page analysis dashboard',
+  title: 'BEAL Creative - Audit Machine — AI-powered SEO & GBP Audit | Competitor Analysis',
+  description: 'AI-powered Analysis dashboard',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
