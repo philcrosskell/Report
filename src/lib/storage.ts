@@ -6,6 +6,7 @@ const KEYS = {
   weights: 'auditiq_weights',
   competitorReports: 'auditiq_competitor_reports',
   leadSearches: 'auditiq_lead_searches',
+  gbpAudits: 'auditiq_gbp_audits',
 }
 
 export const DEFAULT_WEIGHTS: LpWeights = {
@@ -86,4 +87,26 @@ export interface LeadSearch {
 export function getLeadSearches(): LeadSearch[] { return load<LeadSearch[]>(KEYS.leadSearches, []) }
 export function saveLeadSearch(s: LeadSearch): void { store(KEYS.leadSearches, [s, ...getLeadSearches().slice(0, 49)]) }
 export function deleteLeadSearch(id: string): void { store(KEYS.leadSearches, getLeadSearches().filter(s => s.id !== id)) }
+
+export interface GbpAuditData {
+  businessName: string; address: string; suburb: string; phone: string | null; website: string | null;
+  category: string; secondaryCategories: string[]; rating: number | null; reviewCount: number | null;
+  hasRecentReviews: boolean; unansweredReviews: number; ownerRespondsToReviews: boolean;
+  hoursSet: boolean; allDaysSet: boolean; holidayHoursSet: boolean;
+  hasDescription: boolean; descriptionUsesKeywords: boolean; descriptionMentionsServiceArea: boolean;
+  hasLogo: boolean; hasCoverPhoto: boolean; photoCount: number | null; hasRecentPhotos: boolean;
+  hasRecentPosts: boolean; lastPostDaysAgo: number | null;
+  hasQandA: boolean; unansweredQuestions: number; ownerQandA: boolean;
+  appointmentLink: boolean; servicesListed: boolean; serviceAreaSet: boolean; attributesSet: boolean;
+  issues: string[]; wins: string[]; pitchSummary: string; notFound: boolean;
+}
+
+export interface GbpAudit {
+  id: string; businessName: string; suburb: string; auditedAt: string; data: GbpAuditData
+}
+
+export function getGbpAudits(): GbpAudit[] { return load<GbpAudit[]>(KEYS.gbpAudits, []) }
+export function saveGbpAudit(a: GbpAudit): void { store(KEYS.gbpAudits, [a, ...getGbpAudits().slice(0, 49)]) }
+export function deleteGbpAudit(id: string): void { store(KEYS.gbpAudits, getGbpAudits().filter(a => a.id !== id)) }
+export function getGbpAuditById(id: string): GbpAudit | undefined { return getGbpAudits().find(a => a.id === id) }
 
