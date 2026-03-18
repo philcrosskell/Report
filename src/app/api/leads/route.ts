@@ -22,31 +22,46 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const response = await (client.messages as AnyRecord).create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2000,
-      system: 'You are a JSON generator. Output only valid JSON, nothing else.',
-      messages: [
-        {
-          role: 'user',
-          content: `Generate ${n} fictional but realistic ${industry} businesses near ${location} with poor websites. Return a JSON array of ${n} objects. Each object must have: businessName (string), website (string starting with https://), overallScore (integer 20-55), categories (object with keys seo, ux, conversion, mobile, content, brand all integers 20-60), criticalIssues (integer 2-6), opportunityScore (integer 6-9), pitchHook (string under 10 words), issues (array of 2 short strings), opportunities (array of 1 short string).`
-        },
-        {
-          role: 'assistant',
-          content: '['
-        }
-      ]
+      system: 'You output only raw JSON. No markdown, no backticks, no explanation. Just the JSON.',
+      messages: [{
+        role: 'user',
+        content: `Generate a JSON array of ${n} fictional but realistic ${industry} businesses near ${location} that have poor websites. Start your response with [ and end with ]. Each object must have these exact keys:
+- businessName: string
+- website: string (https://...)  
+- overallScore: integer between 20-55
+- categories: object with keys seo, ux, conversion, mobile, content, brand (each an integer 20-60)
+- criticalIssues: integer 2-6
+- opportunityScore: integer 6-9
+- pitchHook: string, max 8 words describing their main weakness
+- issues: array of exactly 2 short strings
+- opportunities: array of exactly 1 short string
+
+Start your response with [ now.`
+      }]
     })
 
-    const rawText = '[' + (response.content as AnyRecord[])
+    const rawText = (response.content as AnyRecord[])
       .filter((b: AnyRecord) => b.type === 'text')
       .map((b: AnyRecord) => b.text as string)
       .join('')
+      .trim()
 
-    // Find the last complete object — handle truncation
+    // Extract the JSON array — find from first [ to last ]
+    const start = rawText.indexOf('[')
+    const end = rawText.lastIndexOf(']')
+    
+    if (start === -1 || end === -1) {
+      return NextResponse.json({ success: false, error: 'No results — please try again' }, { status: 422 })
+    }
+
+    const jsonStr = rawText.substring(start, end + 1)
     let prospects: AnyRecord[] = []
+    
     try {
-      prospects = JSON.parse(rawText) as AnyRecord[]
+      prospects = JSON.parse(jsonStr) as AnyRecord[]
     } catch {
-      // Try to recover partial JSON by finding complete objects
-      const objMatches = rawText.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g)
+      // Try partial recovery
+      const objMatches = jsonStr.match(/\{[^{}]+\}/g)
       if (objMatches) {
         for (const m of objMatches) {
           try { prospects.push(JSON.parse(m) as AnyRecord) } catch { continue }
@@ -55,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (!prospects.length) {
-      return NextResponse.json({ success: false, error: 'No results — please try again' }, { status: 422 })
+      return NextResponse.json({ success: false, error: 'Could not parse results — please try again' }, { status: 422 })
     }
 
     return NextResponse.json({ success: true, prospects })
