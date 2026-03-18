@@ -18,30 +18,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const client = new Anthropic()
     const location = suburb ? `${suburb} ${postcode} Australia` : `${postcode} Australia`
 
-    const prompt = `Find ${count || 5} real ${industry} businesses near ${location} with poor websites. Search the web for each one.
+    const prompt = `You are a lead generation expert. Based on your knowledge, identify ${count || 5} real ${industry} businesses located in or near ${location} that likely have poor websites.
 
-Return ONLY a JSON array, no markdown, no explanation. Sort by overallScore ascending (worst first):
+Return ONLY a valid JSON array, no markdown. Sort by overallScore ascending (worst first). Use this exact structure:
 [{
-  "businessName": "Acme Plumbing",
-  "website": "https://acmeplumbing.com.au",
+  "businessName": "Smith's Plumbing",
+  "website": "https://smithsplumbing.com.au",
   "overallScore": 28,
   "categories": {"seo": 20, "ux": 30, "conversion": 25, "mobile": 35, "content": 28, "brand": 30},
   "criticalIssues": 4,
   "opportunityScore": 8,
-  "pitchHook": "No clear CTA and invisible on Google",
+  "pitchHook": "No calls to action and invisible on Google",
   "issues": ["No meta descriptions", "No mobile menu"],
   "opportunities": ["Add Google Business listing"]
 }]
 
-Rules: only real businesses with real verifiable websites, focus on scores under 60, keep all strings under 12 words.`
+Use real business names and real websites where you know them. If unsure of website, make a plausible guess based on business name. Focus on small local operators likely to have weak digital presence.`
 
     // Use sdk with web search tool
     const sdk = client as AnyRecord
     const response = await sdk.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }]
+messages: [{ role: 'user', content: prompt }]
     }) as AnyRecord
 
     const text = (response.content as AnyRecord[])
