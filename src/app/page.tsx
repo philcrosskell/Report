@@ -368,7 +368,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
                     <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
-                  <Btn sm onClick={() => setProspects(s.prospects.map((p: Record<string,unknown>) => ({ ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] })))}>Load</Btn>
+                  <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
                   <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>✕</Btn>
                 </div>
               ))}
