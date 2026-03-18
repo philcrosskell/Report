@@ -8,6 +8,7 @@ import {
   getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
   getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
   getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
+  getGbpAudits, saveGbpAudit, deleteGbpAudit, GbpAudit, GbpAuditData,
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
@@ -175,7 +176,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────────
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -185,6 +186,7 @@ const NAV_ICONS: Record<string, string> = {
   audit: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
   competitor: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
   reports: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -193,6 +195,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([])
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
+  const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
@@ -212,8 +215,9 @@ export default function Home() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', section: 'Main' },
     { id: 'projects', label: 'Projects', section: 'Main', badge: projects.length },
-  { id: 'reports', label: 'Reports', section: 'Main', badge: audits.length + compReports.length },
+  { id: 'reports', label: 'Reports', section: 'Main', badge: audits.length + compReports.length + gbpAudits.length },
     { id: 'audit', label: 'Page Audit', section: 'Tools' },
+    { id: 'gbp', label: 'GBP Audit', section: 'Tools' },
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
@@ -290,6 +294,7 @@ export default function Home() {
         {view === 'audit' && <AuditPage projects={projects} weights={weights} onRefresh={refresh} />}
         {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
+        {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
         {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
@@ -434,6 +439,255 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
               </Card>
             ))}
           </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+
+function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; reviews: number; photos: number; activity: number; localSeo: number } {
+  const pct = (val: boolean | null) => val ? 100 : 0
+  const completeness = Math.round((
+    pct(!!d.phone) + pct(!!d.website) + pct(!!d.address) + pct(d.hasDescription) +
+    pct(d.descriptionUsesKeywords) + pct(d.hoursSet) + pct(d.allDaysSet) +
+    pct(d.servicesListed) + pct(!!d.category) + pct(d.secondaryCategories?.length > 0)
+  ) / 10)
+  const reviews = Math.round((
+    (d.rating ? Math.min(d.rating / 5 * 100, 100) : 0) +
+    (d.reviewCount ? Math.min(d.reviewCount / 50 * 100, 100) : 0) +
+    pct(d.hasRecentReviews) + pct(d.ownerRespondsToReviews) +
+    (d.unansweredReviews === 0 ? 100 : d.unansweredReviews < 3 ? 50 : 0)
+  ) / 5)
+  const photos = Math.round((
+    pct(d.hasLogo) + pct(d.hasCoverPhoto) + pct(d.hasRecentPhotos) +
+    (d.photoCount ? Math.min(d.photoCount / 20 * 100, 100) : 0)
+  ) / 4)
+  const activity = Math.round((
+    pct(d.hasRecentPosts) +
+    (d.lastPostDaysAgo !== null ? (d.lastPostDaysAgo < 14 ? 100 : d.lastPostDaysAgo < 30 ? 70 : d.lastPostDaysAgo < 90 ? 40 : 0) : 0)
+  ) / 2)
+  const localSeo = Math.round((
+    pct(d.serviceAreaSet) + pct(d.attributesSet) + pct(d.appointmentLink) +
+    pct(d.hasQandA) + pct(d.ownerQandA) + pct(d.holidayHoursSet)
+  ) / 6)
+  const overall = Math.round((completeness * 0.3 + reviews * 0.3 + photos * 0.15 + activity * 0.15 + localSeo * 0.1))
+  return { overall, completeness, reviews, photos, activity, localSeo }
+}
+
+function GbpScoreBar({ label, score }: { label: string; score: number }) {
+  const col = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--accent)' : 'var(--red)'
+  return (
+    <div className="mb-2">
+      <div className="flex justify-between mb-1">
+        <span className="text-[12px]" style={{ color: 'var(--t2)' }}>{label}</span>
+        <span className="text-[12px] font-semibold" style={{ color: col }}>{score}</span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+        <div className="h-full rounded-full transition-all" style={{ width: score + '%', background: col }} />
+      </div>
+    </div>
+  )
+}
+
+function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
+  const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
+  const icon = pass === null ? '–' : pass ? '✓' : '✗'
+  return (
+    <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+      <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: col }}>{icon}</span>
+      <span style={{ color: 'var(--t2)' }}>{label}</span>
+    </div>
+  )
+}
+
+function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void }) {
+  const d = audit.data
+  const scores = scoreGbp(d)
+  const [copied, setCopied] = useState(false)
+
+  const copyPitch = () => {
+    navigator.clipboard.writeText(d.pitchSummary || '')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="text-[22px] font-semibold" style={{ color: 'var(--t1)' }}>{d.businessName}</div>
+          <div className="text-[13px]" style={{ color: 'var(--t3)' }}>{d.address}</div>
+          <div className="flex gap-3 mt-2 text-[12px]" style={{ color: 'var(--t3)' }}>
+            {d.rating && <span>★ {d.rating} ({d.reviewCount} reviews)</span>}
+            {d.category && <span>{d.category}</span>}
+            {d.phone && <span>{d.phone}</span>}
+          </div>
+        </div>
+        <div className="text-center flex-shrink-0">
+          <div className="text-[42px] font-bold leading-none" style={{ color: scores.overall >= 70 ? 'var(--green)' : scores.overall >= 40 ? 'var(--accent)' : 'var(--red)' }}>{scores.overall}</div>
+          <div className="text-[11px]" style={{ color: 'var(--t3)' }}>GBP score</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CTitle>Score breakdown</CTitle>
+          <GbpScoreBar label="Profile completeness" score={scores.completeness} />
+          <GbpScoreBar label="Reviews" score={scores.reviews} />
+          <GbpScoreBar label="Photos" score={scores.photos} />
+          <GbpScoreBar label="Posts & activity" score={scores.activity} />
+          <GbpScoreBar label="Local SEO signals" score={scores.localSeo} />
+        </Card>
+        <Card>
+          <CTitle>Issues to fix</CTitle>
+          {d.issues?.length ? d.issues.map((iss, i) => (
+            <div key={i} className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">✗</span>
+              <span style={{ color: 'var(--t2)' }}>{iss}</span>
+            </div>
+          )) : <p className="text-[12px]" style={{ color: 'var(--t3)' }}>No major issues found</p>}
+          {d.wins?.length > 0 && <>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--t3)' }}>What they do well</div>
+            {d.wins.map((w, i) => (
+              <div key={i} className="flex items-start gap-2 py-1 text-[12px]">
+                <span style={{ color: 'var(--green)' }} className="flex-shrink-0">✓</span>
+                <span style={{ color: 'var(--t2)' }}>{w}</span>
+              </div>
+            ))}
+          </>}
+        </Card>
+      </div>
+
+      <Card>
+        <div className="grid grid-cols-3 gap-6">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Profile completeness</div>
+            <GbpCheckItem label="Phone number" pass={!!d.phone} />
+            <GbpCheckItem label="Website linked" pass={!!d.website} />
+            <GbpCheckItem label="Description added" pass={d.hasDescription} />
+            <GbpCheckItem label="Description uses keywords" pass={d.descriptionUsesKeywords} warn />
+            <GbpCheckItem label="Mentions service area" pass={d.descriptionMentionsServiceArea} warn />
+            <GbpCheckItem label="Hours set (all days)" pass={d.allDaysSet} />
+            <GbpCheckItem label="Holiday hours set" pass={d.holidayHoursSet} warn />
+            <GbpCheckItem label="Services listed" pass={d.servicesListed} warn />
+            <GbpCheckItem label="Appointment link" pass={d.appointmentLink} warn />
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Reviews & photos</div>
+            <GbpCheckItem label="Has reviews" pass={(d.reviewCount || 0) > 0} />
+            <GbpCheckItem label="Recent reviews (90 days)" pass={d.hasRecentReviews} warn />
+            <GbpCheckItem label="Owner responds to reviews" pass={d.ownerRespondsToReviews} />
+            <GbpCheckItem label={d.unansweredReviews === 0 ? 'No unanswered reviews' : `${d.unansweredReviews} unanswered reviews`} pass={d.unansweredReviews === 0} />
+            <GbpCheckItem label="Logo uploaded" pass={d.hasLogo} />
+            <GbpCheckItem label="Cover photo uploaded" pass={d.hasCoverPhoto} />
+            <GbpCheckItem label="10+ photos" pass={(d.photoCount || 0) >= 10} warn />
+            <GbpCheckItem label="Recent photos added" pass={d.hasRecentPhotos} warn />
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Activity & local SEO</div>
+            <GbpCheckItem label="Posted in last 30 days" pass={d.hasRecentPosts} />
+            <GbpCheckItem label={d.lastPostDaysAgo !== null ? `Last post ${d.lastPostDaysAgo} days ago` : 'No posts found'} pass={d.lastPostDaysAgo !== null && d.lastPostDaysAgo < 30} warn />
+            <GbpCheckItem label="Q&A section active" pass={d.hasQandA} warn />
+            <GbpCheckItem label="Owner-seeded Q&A" pass={d.ownerQandA} warn />
+            <GbpCheckItem label={d.unansweredQuestions === 0 ? 'No unanswered questions' : `${d.unansweredQuestions} unanswered questions`} pass={d.unansweredQuestions === 0} />
+            <GbpCheckItem label="Service area set" pass={d.serviceAreaSet} warn />
+            <GbpCheckItem label="Attributes set" pass={d.attributesSet} warn />
+          </div>
+        </div>
+      </Card>
+
+      {d.pitchSummary && (
+        <Card>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CTitle>Pitch summary</CTitle>
+              <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
+            </div>
+            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? '✓ Copied' : 'Copy'}</Btn>
+          </div>
+        </Card>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <Btn sm danger onClick={onDelete}>Delete audit</Btn>
+      </div>
+    </div>
+  )
+}
+
+function GbpAuditPage({ onSave }: { onSave: () => void }) {
+  const [bizName, setBizName] = useState('')
+  const [suburb, setSuburb] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<GbpAudit | null>(null)
+  const [savedAudits, setSavedAudits] = useState<GbpAudit[]>(() => getGbpAudits())
+
+  const run = async () => {
+    if (!bizName || !suburb) { alert('Please enter a business name and suburb'); return }
+    setLoading(true); setError(''); setResult(null)
+    try {
+      const res = await fetch('/api/gbp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessName: bizName, suburb })
+      })
+      const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
+      if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
+      if (json.data.notFound) { setError('Business not found on Google — check the name and suburb'); return }
+      const audit: GbpAudit = { id: uid(), businessName: bizName, suburb, auditedAt: new Date().toISOString(), data: json.data }
+      saveGbpAudit(audit)
+      setSavedAudits(getGbpAudits())
+      onSave()
+      setResult(audit)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Network error')
+    } finally { setLoading(false) }
+  }
+
+  if (result) {
+    return (
+      <>
+        <TopBar title="GBP Audit" sub={result.businessName + ' · ' + result.suburb}>
+          <Btn sm onClick={() => setResult(null)}>← New audit</Btn>
+        </TopBar>
+        <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <TopBar title="GBP Audit" sub="Audit any Google Business Profile — scored and pitch-ready" />
+      <div className="flex-1 overflow-y-auto p-6">
+        <Card>
+          <CTitle>Audit a Google Business Profile</CTitle>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
+            <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
+          </div>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching GBP...' : '⟳ Run GBP Audit'}</Btn>
+          {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
+        </Card>
+
+        {savedAudits.length > 0 && (
+          <Card>
+            <CTitle>Previous GBP audits</CTitle>
+            <div className="flex flex-col gap-1 mt-2">
+              {savedAudits.map(a => (
+                <div key={a.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                  </div>
+                  <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
+                  <Btn sm onClick={() => setResult(a)}>View</Btn>
+                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>✕</Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
       </div>
     </>
@@ -1469,7 +1723,26 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'competitor' && (
           <>
-            {!compReports.length ? <Empty icon="◎" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
+            {gbpAudits.length > 0 && (
+            <div className="mb-6">
+              <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--t3)' }}>GBP Audits</div>
+              {gbpAudits.map(a => {
+                const sc = scoreGbp(a.data)
+                return (
+                  <div key={a.id} className="flex items-center gap-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="flex-1">
+                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                    </div>
+                    <span className="text-[13px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>{sc.overall}</span>
+                    <Btn sm onClick={() => setView('gbp')}>View</Btn>
+                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setGbpAudits(getGbpAudits()) }}>✕</Btn>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {!compReports.length ? <Empty icon="◎" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
               <Card>
                 <table className="w-full text-[13px]">
                   <THead cols={['Business', 'URL', 'Competitors', 'Date', '']} />
