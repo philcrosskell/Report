@@ -18,12 +18,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const client = new Anthropic()
     const location = suburb ? `${suburb} ${postcode} Australia` : `${postcode} Australia`
 
-    const prompt = `Find ${count || 5} real ${industry} businesses near ${location}. Search for each, find their website, and assess quality.
+    const prompt = `Find ${count || 5} real ${industry} businesses near ${location} with poor websites. Search the web for each one.
 
-Return ONLY a JSON array, no markdown. ${count || 5} items, sorted by overallScore ascending:
-[{"businessName":"","website":"","overallScore":0,"categories":{"seo":0,"ux":0,"conversion":0,"mobile":0,"content":0,"brand":0},"criticalIssues":0,"opportunityScore":0,"pitchHook":"","issues":["",""],"opportunities":[""]}]
+Return ONLY a JSON array, no markdown, no explanation. Sort by overallScore ascending (worst first):
+[{
+  "businessName": "Acme Plumbing",
+  "website": "https://acmeplumbing.com.au",
+  "overallScore": 28,
+  "categories": {"seo": 20, "ux": 30, "conversion": 25, "mobile": 35, "content": 28, "brand": 30},
+  "criticalIssues": 4,
+  "opportunityScore": 8,
+  "pitchHook": "No clear CTA and invisible on Google",
+  "issues": ["No meta descriptions", "No mobile menu"],
+  "opportunities": ["Add Google Business listing"]
+}]
 
-Rules: real websites only, focus on scores under 60, keep all strings under 10 words.`
+Rules: only real businesses with real verifiable websites, focus on scores under 60, keep all strings under 12 words.`
 
     // Use sdk with web search tool
     const sdk = client as AnyRecord
