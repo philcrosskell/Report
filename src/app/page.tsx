@@ -7,6 +7,7 @@ import {
   getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
   getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
   getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
+  getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
@@ -312,6 +313,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   }>>([])
   const [error, setError] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
+  const [savedSearches, setSavedSearches] = useState<LeadSearch[]>(() => getLeadSearches())
   const STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
 
   const run = async () => {
@@ -327,6 +329,9 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
       const data = await resp.json()
       clearInterval(timer)
       if (!data.success) throw new Error(data.error || 'Search failed')
+      const search: LeadSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), prospects: data.prospects || [] }
+      saveLeadSearch(search)
+      setSavedSearches(getLeadSearches())
       setProspects((data.prospects || []).map((p: Record<string,unknown>) => ({ ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] })))
     } catch(e) {
       clearInterval(timer)
@@ -353,6 +358,23 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
           <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find prospects'}</Btn>
         </Card>
 
+        {savedSearches.length > 0 && prospects.length === 0 && !loading && (
+          <Card>
+            <CTitle>Previous searches</CTitle>
+            <div className="flex flex-col gap-2 mt-2">
+              {savedSearches.map(s => (
+                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                  </div>
+                  <Btn sm onClick={() => setProspects(s.prospects.map((p: Record<string,unknown>) => ({ ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] })))}>Load</Btn>
+                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>✕</Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
         {loading && (
           <Card>
             <div className="flex flex-col items-center py-6 gap-4">
