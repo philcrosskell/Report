@@ -84,6 +84,6 @@ export interface LeadSearch {
 }
 
 export function getLeadSearches(): LeadSearch[] { return load<LeadSearch[]>(KEYS.leadSearches, []) }
-export function saveLeadSearch(s: LeadSearch): void { save(KEYS.leadSearches, [s, ...getLeadSearches().slice(0, 49)]) }
-export function deleteLeadSearch(id: string): void { save(KEYS.leadSearches, getLeadSearches().filter(s => s.id !== id)) }
+export function saveLeadSearch(s: LeadSearch): void { store(KEYS.leadSearches, [s, ...getLeadSearches().slice(0, 49)]) }
+export function deleteLeadSearch(id: string): void { store(KEYS.leadSearches, getLeadSearches().filter(s => s.id !== id)) }
 
