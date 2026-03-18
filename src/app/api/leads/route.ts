@@ -25,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       system: 'You output only raw JSON. No markdown, no backticks, no explanation. Just the JSON.',
       messages: [{
         role: 'user',
-        content: `Generate a JSON array of ${n} fictional but realistic ${industry} businesses near ${location} that have poor websites. Start your response with [ and end with ]. Each object must have these exact keys:
+        content: `Generate a JSON array of ${n} fictional but realistic ${industry} businesses that are located specifically within postcode ${postcode} in Australia. Do NOT include businesses from other postcodes or distant suburbs. Use ${location} as the location context. Start your response with [ and end with ]. Each object must have these exact keys:
 - businessName: string
 - website: string (https://...)  
 - overallScore: integer between 20-55
