@@ -327,7 +327,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
       const data = await resp.json()
       clearInterval(timer)
       if (!data.success) throw new Error(data.error || 'Search failed')
-      setProspects(data.prospects)
+      setProspects((data.prospects || []).map((p: Record<string,unknown>) => ({ ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] })))
     } catch(e) {
       clearInterval(timer)
       setError(e instanceof Error ? e.message : 'Something went wrong')
@@ -390,7 +390,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                     <div key={k}>
                       <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
                       <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                        <div className="h-full rounded-full" style={{ width: (p.categories[k] || 0) + '%', background: scoreCol(p.categories[k] || 0) }} />
+                        <div className="h-full rounded-full" style={{ width: ((p.categories?.[k]) || 0) + '%', background: scoreCol((p.categories?.[k]) || 0) }} />
                       </div>
                     </div>
                   ))}
