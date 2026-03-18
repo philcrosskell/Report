@@ -5,6 +5,7 @@ const KEYS = {
   audits: 'auditiq_audits',
   weights: 'auditiq_weights',
   competitorReports: 'auditiq_competitor_reports',
+  leadSearches: 'auditiq_lead_searches',
 }
 
 export const DEFAULT_WEIGHTS: LpWeights = {
@@ -67,3 +68,22 @@ const LOGO_KEY = 'auditiq_brand_logo'
 export function getBrandLogo(): string { return load<string>(LOGO_KEY, '') }
 export function saveBrandLogo(dataUrl: string) { store(LOGO_KEY, dataUrl) }
 export function clearBrandLogo() { localStorage.removeItem(LOGO_KEY) }
+
+export interface LeadSearch {
+  id: string
+  industry: string
+  postcode: string
+  suburb: string
+  searchedAt: string
+  prospects: Array<{
+    businessName: string; website: string; overallScore: number;
+    categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number };
+    criticalIssues: number; opportunityScore: number; pitchHook: string;
+    issues: string[]; opportunities: string[];
+  }>
+}
+
+export function getLeadSearches(): LeadSearch[] { return load<LeadSearch[]>(KEYS.leadSearches, []) }
+export function saveLeadSearch(s: LeadSearch): void { save(KEYS.leadSearches, [s, ...getLeadSearches().slice(0, 49)]) }
+export function deleteLeadSearch(id: string): void { save(KEYS.leadSearches, getLeadSearches().filter(s => s.id !== id)) }
+
