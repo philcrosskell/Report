@@ -18,29 +18,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const client = new Anthropic()
     const location = suburb ? `${suburb} ${postcode} Australia` : `${postcode} Australia`
 
-    const prompt = `You are a lead generation expert. Based on your knowledge, identify ${count || 5} real ${industry} businesses located in or near ${location} that likely have poor websites.
+    const prompt = `List ${count || 3} real ${industry} businesses near ${location} that have poor websites. Output ONLY a JSON array, nothing else, no markdown fences.
 
-Return ONLY a valid JSON array, no markdown. Sort by overallScore ascending (worst first). Use this exact structure:
-[{
-  "businessName": "Smith's Plumbing",
-  "website": "https://smithsplumbing.com.au",
-  "overallScore": 28,
-  "categories": {"seo": 20, "ux": 30, "conversion": 25, "mobile": 35, "content": 28, "brand": 30},
-  "criticalIssues": 4,
-  "opportunityScore": 8,
-  "pitchHook": "No calls to action and invisible on Google",
-  "issues": ["No meta descriptions", "No mobile menu"],
-  "opportunities": ["Add Google Business listing"]
-}]
+Each object MUST have exactly these keys with real values (not empty strings, not zero):
+businessName, website, overallScore, categories (object with keys seo ux conversion mobile content brand all numbers 0-100), criticalIssues, opportunityScore, pitchHook, issues (array of 2 strings), opportunities (array of 1 string)
 
-Use real business names and real websites where you know them. If unsure of website, make a plausible guess based on business name. Focus on small local operators likely to have weak digital presence.`
+Example of ONE object (output ${count || 3} like this):
+{"businessName":"Albury Plumbing Co","website":"https://alburyplumbing.com.au","overallScore":32,"categories":{"seo":25,"ux":35,"conversion":28,"mobile":40,"content":30,"brand":32},"criticalIssues":4,"opportunityScore":8,"pitchHook":"No CTAs and not ranking locally","issues":["No meta tags","Slow mobile load"],"opportunities":["Claim Google Business"]}
+
+Output the JSON array now:`
 
     // Use sdk with web search tool
     const sdk = client as AnyRecord
     const response = await sdk.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4000,
-messages: [{ role: 'user', content: prompt }]
+system: 'You are a JSON API. You ONLY output raw JSON arrays. Never output text, explanations, or markdown. Only output a JSON array of objects.',
+      messages: [{ role: 'user', content: prompt }]
     }) as AnyRecord
 
     const text = (response.content as AnyRecord[])
