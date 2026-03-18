@@ -1723,10 +1723,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'competitor' && (
           <>
-            {gbpAudits.length > 0 && (
+            {getGbpAudits().length > 0 && (
             <div className="mb-6">
               <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--t3)' }}>GBP Audits</div>
-              {gbpAudits.map(a => {
+              {getGbpAudits().map(a => {
                 const sc = scoreGbp(a.data)
                 return (
                   <div key={a.id} className="flex items-center gap-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
