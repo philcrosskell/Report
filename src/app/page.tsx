@@ -266,7 +266,7 @@ export default function Home() {
                     background: view === item.id ? 'var(--accent)' : 'transparent',
                     fontWeight: view === item.id ? 700 : 400,
                   }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{item.id === 'lead' ? (<><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></>) : (<path d={NAV_ICONS[item.id]} />)}</svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{item.id === 'lead' ? (<g><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></g>) : (<path d={NAV_ICONS[item.id]} />)}</svg>
                   <span className="flex-1 text-left">{item.label}</span>
                   {'badge' in item && (item.badge as number) > 0 && (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
