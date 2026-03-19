@@ -14,12 +14,12 @@ import {
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── helpers ──────────────────────────────────────────────────────────────────
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
 function stag(n: number | null | undefined) { if (!n) return 'purple'; if (n >= 70) return 'green'; if (n >= 40) return 'amber'; return 'red' }
 function gcol(g: string) { return g === 'A' || g === 'B' ? 'var(--green)' : g === 'C' || g === 'D' ? 'var(--amber)' : 'var(--red)' }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ primitives Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── primitives ───────────────────────────────────────────────────────────────
 function Tag({ color, children }: { color: string; children: React.ReactNode }) {
   const m: Record<string, string> = { green: 'bg-emerald-400/10 text-emerald-400', amber: 'bg-yellow-400/10 text-yellow-400', red: 'bg-red-400/10 text-red-400', purple: 'bg-yellow-400/10 text-yellow-400', blue: 'bg-blue-400/10 text-blue-400', grey: 'bg-zinc-400/10 text-zinc-400' }
   return <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${m[color] ?? m.purple}`}>{children}</span>
@@ -175,7 +175,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ app Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── app ──────────────────────────────────────────────────────────────────────
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
@@ -302,7 +302,7 @@ export default function Home() {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Dashboard Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
   const [industry, setIndustry] = useState('')
@@ -360,7 +360,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Searching...' : 'Ã¢ÂÂ³ Find prospects'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find prospects'}</Btn>
         </Card>
 
         {savedSearches.length > 0 && prospects.length === 0 && !loading && (
@@ -370,8 +370,8 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
               {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} ÃÂ· {s.postcode}{s.suburb ? ' ÃÂ· ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects ÃÂ· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
                   <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>Ã¢ÂÂ</Btn>
@@ -652,7 +652,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   if (result) {
     return (
       <>
-        <TopBar title="GBP Audit" sub={result.businessName + ' ÃÂ· ' + result.suburb}>
+        <TopBar title="GBP Audit" sub={result.businessName + ' · ' + result.suburb}>
           <Btn sm onClick={() => setResult(null)}>Ã¢ÂÂ New audit</Btn>
         </TopBar>
         <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
@@ -670,7 +670,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
             <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Searching GBP...' : 'Ã¢ÂÂ³ Run GBP Audit'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching GBP...' : '⟳ Run GBP Audit'}</Btn>
           {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
         </Card>
 
@@ -682,7 +682,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                 <div key={a.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} ÃÂ· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
@@ -704,7 +704,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   return (
     <>
       <TopBar title="Dashboard" sub="Overview of all projects and audits">
-        <div className="flex gap-2"><Btn onClick={onAudit}>Ã¢ÂÂ³ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
+        <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
@@ -745,7 +745,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Projects Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Projects ─────────────────────────────────────────────────────────────────
 function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[]; audits: Audit[]; onRefresh: () => void; onAudit: () => void }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
@@ -827,7 +827,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Audit Page Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Audit Page ───────────────────────────────────────────────────────────────
 function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weights: LpWeights; onRefresh: () => void }) {
   const [url, setUrl] = useState(''), [label, setLabel] = useState(''), [industry, setIndustry] = useState(''), [location, setLocation] = useState(''), [projectId, setProjectId] = useState(''), [assignedTo, setAssignedTo] = useState('unassigned')
   const [loading, setLoading] = useState(false), [stepIdx, setStepIdx] = useState(0)
@@ -902,7 +902,7 @@ const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', la
               </div>
             )}
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Analysing...' : 'Ã¢ÂÂ³ Analyse Page'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Analysing...' : '⟳ Analyse Page'}</Btn>
         </Card>
 
         {loading && (
@@ -932,7 +932,7 @@ const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', la
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Shared Audit Result View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Shared Audit Result View ─────────────────────────────────────────────────
 function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onTabChange }: {
   report: AuditReport; url: string; label: string; auditId: string
   tabs?: { id: string; label: string }[]
@@ -1025,7 +1025,7 @@ function ExportAuditBtn({ auditId }: { auditId: string }) {
   return <Btn sm onClick={go}>Ã¢ÂÂ Export PDF</Btn>
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Gap Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Gap Tab ──────────────────────────────────────────────────────────────────
 function GapTab({ r }: { r: AuditReport }) {
   const g = r.gapAnalysis
   if (!g) return <Card><div style={{ color: 'var(--t3)' }}>Gap analysis not available.</div></Card>
@@ -1077,7 +1077,7 @@ function GapTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SEO Tab — Seobility style Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── SEO Tab — Seobility style ────────────────────────────────────────────────
 function SeoTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.seoCategories) as (keyof SeoCategories)[]
   return (
@@ -1139,7 +1139,7 @@ function SeoTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ LP Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── LP Tab ───────────────────────────────────────────────────────────────────
 function LpTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.lpScoring) as (keyof LpScoring)[]
   const gc = gcol(r.scores.grade)
@@ -1178,7 +1178,7 @@ function LpTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Fixes Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Fixes Tab ────────────────────────────────────────────────────────────────
 function FixesTab({ r }: { r: AuditReport }) {
   return (
     <Card>
@@ -1202,7 +1202,7 @@ function FixesTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Positioning Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Positioning Tab ──────────────────────────────────────────────────────────
 function CompTab({ r }: { r: AuditReport }) {
   const c = r.competitorAnalysis
   return (
@@ -1243,7 +1243,7 @@ function CompTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SW Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── SW Tab ───────────────────────────────────────────────────────────────────
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
@@ -1257,7 +1257,7 @@ function SwTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Recs Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Recs Tab ─────────────────────────────────────────────────────────────────
 function RecsTab({ r }: { r: AuditReport }) {
   return (
     <Card>
@@ -1276,7 +1276,7 @@ function RecsTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Competitor Analysis Page Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Competitor Analysis Page ─────────────────────────────────────────────────
 function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { projects: Project[]; onRefresh: () => void; brandLogo: string; onLogoChange: (l: string) => void }) {
   const [mode, setMode] = useState<'manual' | 'project'>('manual')
   const [bizName, setBizName] = useState(''), [bizUrl, setBizUrl] = useState(''), [market, setMarket] = useState('')
@@ -1392,7 +1392,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               </div>
               <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>Appears on the report cover. PNG, JPG, or SVG.</div>
             </div>
-            <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Analysing market...' : 'Ã¢ÂÂ³ Run Competitor Analysis'}</Btn>
+            <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Analysing market...' : '⟳ Run Competitor Analysis'}</Btn>
           </div>
         </Card>
 
@@ -1415,7 +1415,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
                 <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
-                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} ÃÂ· {result.profiles.length} businesses analysed</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
                 <>
@@ -1441,7 +1441,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Competitor Intelligence Report View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Competitor Intelligence Report View ──────────────────────────────────────
 function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
@@ -1451,7 +1451,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report ÃÂ· {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report · {r.date}</div>
           </div>
         </div>
       )}
@@ -1638,7 +1638,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Reports Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Reports ──────────────────────────────────────────────────────────────────
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
   const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
@@ -1709,7 +1709,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits ÃÂ· ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
@@ -1820,7 +1820,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Settings Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ─── Settings ─────────────────────────────────────────────────────────────────
 function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeights) => void }) {
   const [w, setW] = useState(weights)
   const total = Object.values(w).reduce((a, b) => a + b, 0)
