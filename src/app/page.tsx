@@ -1047,7 +1047,7 @@ function GapTab({ r }: { r: AuditReport }) {
       </Card>
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CTitle>�ÂÂ´ Critical Issues</CTitle>
+          <CTitle>⚡ Critical Issues</CTitle>
           {g.criticalIssues.map((item, i) => (
             <div key={i} className="mb-4 pb-4 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-start gap-2 mb-1.5">
@@ -1070,7 +1070,7 @@ function GapTab({ r }: { r: AuditReport }) {
               </div>
             ))}
           </Card>
-          <Card><CTitle>�ÂÂ Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
+          <Card><CTitle>🎯 Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
           <div className="rounded-xl p-5 border" style={{ background: 'rgba(255,229,0,0.05)', borderColor: 'rgba(255,229,0,0.3)' }}>
             <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>★ Top Recommendation</div>
             <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
