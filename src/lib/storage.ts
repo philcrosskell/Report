@@ -79,7 +79,7 @@ export interface LeadSearch {
   searchedAt: string
   prospects: Array<{
     businessName: string; website: string; overallScore: number;
-    categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number };
+    categories: Record<string, number>;
     criticalIssues: number; opportunityScore: number; pitchHook: string;
     issues: string[]; opportunities: string[];
   }>
