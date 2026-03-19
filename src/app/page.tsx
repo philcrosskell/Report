@@ -14,12 +14,12 @@ import {
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
-// âââ helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ helpers Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
 function stag(n: number | null | undefined) { if (!n) return 'purple'; if (n >= 70) return 'green'; if (n >= 40) return 'amber'; return 'red' }
 function gcol(g: string) { return g === 'A' || g === 'B' ? 'var(--green)' : g === 'C' || g === 'D' ? 'var(--amber)' : 'var(--red)' }
 
-// âââ primitives âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ primitives Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function Tag({ color, children }: { color: string; children: React.ReactNode }) {
   const m: Record<string, string> = { green: 'bg-emerald-400/10 text-emerald-400', amber: 'bg-yellow-400/10 text-yellow-400', red: 'bg-red-400/10 text-red-400', purple: 'bg-yellow-400/10 text-yellow-400', blue: 'bg-blue-400/10 text-blue-400', grey: 'bg-zinc-400/10 text-zinc-400' }
   return <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded ${m[color] ?? m.purple}`}>{children}</span>
@@ -103,11 +103,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
     }
   }
 
-  // Detect bullet list pattern: "â¢ thing â¢ thing" or "- thing - thing"
-  const bulletPattern = /(?:^|[\n])\s*[â¢\-â]\s/g
+  // Detect bullet list pattern: "Ã¢ÂÂ¢ thing Ã¢ÂÂ¢ thing" or "- thing - thing"
+  const bulletPattern = /(?:^|[\n])\s*[Ã¢ÂÂ¢\-Ã¢ÂÂ]\s/g
   const bulletMatches = [...text.matchAll(bulletPattern)]
   if (bulletMatches.length >= 2) {
-    const items = text.split(/\n?\s*[â¢\-â]\s+/).map(s => s.trim()).filter(Boolean)
+    const items = text.split(/\n?\s*[Ã¢ÂÂ¢\-Ã¢ÂÂ]\s+/).map(s => s.trim()).filter(Boolean)
     if (items.length >= 2) {
       return (
         <ul className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -175,11 +175,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   )
 }
 
-// âââ app ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ app Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
-const STEPS = ['Fetching page signals', 'Analysing SEO â 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
+const STEPS = ['Fetching page signals', 'Analysing SEO Ã¢ÂÂ 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
 const NAV_ICONS: Record<string, string> = {
   dashboard: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
   projects: 'M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z',
@@ -229,7 +229,7 @@ export default function Home() {
       <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <Btn onClick={() => setViewingAudit(null)}>â Back to Reports</Btn>
+            <Btn onClick={() => setViewingAudit(null)}>Ã¢ÂÂ Back to Reports</Btn>
             <div className="flex-1">
               <div className="text-base font-semibold">{viewingAudit.label || viewingAudit.url}</div>
               <div className="text-[12px] font-mono" style={{ color: 'var(--accent2)' }}>{viewingAudit.url}</div>
@@ -249,7 +249,7 @@ export default function Home() {
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
         {/* Yellow top bar */}
         <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
-        {/* Logo area â BEAL wordmark */}
+        {/* Logo area Ã¢ÂÂ BEAL wordmark */}
         <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
           <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
@@ -302,7 +302,7 @@ export default function Home() {
   )
 }
 
-// âââ Dashboard ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Dashboard Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
   const [industry, setIndustry] = useState('')
@@ -348,7 +348,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
 
   return (
     <>
-      <TopBar title="Lead Machine" sub="Find prospects with weak websites â ranked by opportunity" />
+      <TopBar title="Lead Machine" sub="Find prospects with weak websites Ã¢ÂÂ ranked by opportunity" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Find prospects</CTitle>
@@ -360,7 +360,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Searching...' : 'â³ Find prospects'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Searching...' : 'Ã¢ÂÂ³ Find prospects'}</Btn>
         </Card>
 
         {savedSearches.length > 0 && prospects.length === 0 && !loading && (
@@ -370,11 +370,11 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
               {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} Â· {s.postcode}{s.suburb ? ' Â· ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects Â· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} ÃÂ· {s.postcode}{s.suburb ? ' ÃÂ· ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects ÃÂ· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
-                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>â</Btn>
+                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>Ã¢ÂÂ</Btn>
                 </div>
               ))}
             </div>
@@ -430,7 +430,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                 {p.issues?.length > 0 && (
                   <div className="mb-2">
                     <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Issues</div>
-                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>â {iss}</div>)}
+                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>Ã¢ÂÂ {iss}</div>)}
                   </div>
                 )}
                 <div className="flex gap-2 mt-3">
@@ -469,8 +469,8 @@ function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; rev
   ) / 2)
   const localSeo = Math.round((
     pct(d.serviceAreaSet) + pct(d.attributesSet) + pct(d.appointmentLink) +
-    pct(d.hasQandA) + pct(d.ownerQandA) + pct(d.holidayHoursSet)
-  ) / 6)
+    pct(d.holidayHoursSet)
+  ) / 4)
   const overall = Math.round((completeness * 0.3 + reviews * 0.3 + photos * 0.15 + activity * 0.15 + localSeo * 0.1))
   return { overall, completeness, reviews, photos, activity, localSeo }
 }
@@ -492,7 +492,7 @@ function GbpScoreBar({ label, score }: { label: string; score: number }) {
 
 function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
   const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
-  const icon = pass === null ? 'â' : pass ? 'â' : 'â'
+  const icon = pass === null ? 'Ã¢ÂÂ' : pass ? 'Ã¢ÂÂ' : 'Ã¢ÂÂ'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
       <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: col }}>{icon}</span>
@@ -519,7 +519,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <div className="text-[22px] font-semibold" style={{ color: 'var(--t1)' }}>{d.businessName}</div>
           <div className="text-[13px]" style={{ color: 'var(--t3)' }}>{d.address}</div>
           <div className="flex gap-3 mt-2 text-[12px]" style={{ color: 'var(--t3)' }}>
-            {d.rating && <span>â {d.rating} ({d.reviewCount} reviews)</span>}
+            {d.rating && <span>Ã¢ÂÂ {d.rating} ({d.reviewCount} reviews)</span>}
             {d.category && <span>{d.category}</span>}
             {d.phone && <span>{d.phone}</span>}
           </div>
@@ -543,7 +543,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <CTitle>Issues to fix</CTitle>
           {d.issues?.length ? d.issues.map((iss, i) => (
             <div key={i} className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">â</span>
+              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">Ã¢ÂÂ</span>
               <span style={{ color: 'var(--t2)' }}>{iss}</span>
             </div>
           )) : <p className="text-[12px]" style={{ color: 'var(--t3)' }}>No major issues found</p>}
@@ -551,7 +551,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
             <div className="text-[10px] font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--t3)' }}>What they do well</div>
             {d.wins.map((w, i) => (
               <div key={i} className="flex items-start gap-2 py-1 text-[12px]">
-                <span style={{ color: 'var(--green)' }} className="flex-shrink-0">â</span>
+                <span style={{ color: 'var(--green)' }} className="flex-shrink-0">Ã¢ÂÂ</span>
                 <span style={{ color: 'var(--t2)' }}>{w}</span>
               </div>
             ))}
@@ -587,9 +587,6 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Activity & local SEO</div>
             <GbpCheckItem label={d.lastPostDaysAgo !== null ? `Last post ${d.lastPostDaysAgo} days ago` : 'No posts found'} pass={d.hasRecentPosts} warn />
-            <GbpCheckItem label="Q&A section active" pass={d.hasQandA} warn />
-            <GbpCheckItem label="Owner-seeded Q&A" pass={d.ownerQandA} warn />
-            <GbpCheckItem label={d.unansweredQuestions === 0 ? 'No unanswered questions' : `${d.unansweredQuestions} unanswered questions`} pass={d.unansweredQuestions === 0} />
             <GbpCheckItem label="Service area set" pass={d.serviceAreaSet} warn />
             <GbpCheckItem label="Attributes set" pass={d.attributesSet} warn />
           </div>
@@ -597,10 +594,10 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
       </Card>
 
       <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}>â</span> Pass â in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>â</span> Fail â needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>â</span> Warning â could be better</span>
-        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>â</span> Unknown â not publicly visible</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}>Ã¢ÂÂ</span> Pass Ã¢ÂÂ in good shape</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Ã¢ÂÂ</span> Fail Ã¢ÂÂ needs fixing</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Ã¢ÂÂ</span> Warning Ã¢ÂÂ could be better</span>
+        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>Ã¢ÂÂ</span> Unknown Ã¢ÂÂ not publicly visible</span>
       </div>
 
       {d.pitchSummary && (
@@ -610,7 +607,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
               <CTitle>Pitch summary</CTitle>
               <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
             </div>
-            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? 'â Copied' : 'Copy'}</Btn>
+            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? 'Ã¢ÂÂ Copied' : 'Copy'}</Btn>
           </div>
         </Card>
       )}
@@ -641,7 +638,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
-      if (json.data.notFound) { setError('Business not found on Google â check the name and suburb'); return }
+      if (json.data.notFound) { setError('Business not found on Google Ã¢ÂÂ check the name and suburb'); return }
       const audit: GbpAudit = { id: uid(), businessName: bizName, suburb, auditedAt: new Date().toISOString(), data: json.data }
       saveGbpAudit(audit)
       setSavedAudits(getGbpAudits())
@@ -655,8 +652,8 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   if (result) {
     return (
       <>
-        <TopBar title="GBP Audit" sub={result.businessName + ' Â· ' + result.suburb}>
-          <Btn sm onClick={() => setResult(null)}>â New audit</Btn>
+        <TopBar title="GBP Audit" sub={result.businessName + ' ÃÂ· ' + result.suburb}>
+          <Btn sm onClick={() => setResult(null)}>Ã¢ÂÂ New audit</Btn>
         </TopBar>
         <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
       </>
@@ -665,7 +662,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
 
   return (
     <>
-      <TopBar title="GBP Audit" sub="Audit any Google Business Profile â scored and pitch-ready" />
+      <TopBar title="GBP Audit" sub="Audit any Google Business Profile Ã¢ÂÂ scored and pitch-ready" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
@@ -673,7 +670,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
             <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Searching GBP...' : 'â³ Run GBP Audit'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Searching GBP...' : 'Ã¢ÂÂ³ Run GBP Audit'}</Btn>
           {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
         </Card>
 
@@ -685,11 +682,11 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                 <div key={a.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} Â· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} ÃÂ· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
-                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>â</Btn>
+                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>Ã¢ÂÂ</Btn>
                 </div>
               ))}
             </div>
@@ -707,11 +704,11 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   return (
     <>
       <TopBar title="Dashboard" sub="Overview of all projects and audits">
-        <div className="flex gap-2"><Btn onClick={onAudit}>â³ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
+        <div className="flex gap-2"><Btn onClick={onAudit}>Ã¢ÂÂ³ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? 'â', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? 'â', 'var(--amber)']].map(([l, v, c]) => (
+          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? 'Ã¢ÂÂ', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? 'Ã¢ÂÂ', 'var(--amber)']].map(([l, v, c]) => (
             <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
@@ -720,7 +717,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
-          {!recent.length ? <Empty icon="â" title="No audits yet" sub="Run your first page audit to get started." /> : (
+          {!recent.length ? <Empty icon="Ã¢ÂÂ" title="No audits yet" sub="Run your first page audit to get started." /> : (
             <table className="w-full text-[13px]">
               <THead cols={['URL', 'Label', 'Project', 'SEO', 'LP', 'Grade', 'Date', '']} />
               <tbody>{recent.map(a => {
@@ -728,8 +725,8 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
                 return (
                   <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                     <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                    <TD>{a.label || 'â'}</TD>
-                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>â</span>}</TD>
+                    <TD>{a.label || 'Ã¢ÂÂ'}</TD>
+                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>Ã¢ÂÂ</span>}</TD>
                     <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                     <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                     <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
@@ -748,7 +745,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
   )
 }
 
-// âââ Projects âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Projects Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[]; audits: Audit[]; onRefresh: () => void; onAudit: () => void }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
@@ -775,7 +772,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
       <div className="flex-1 overflow-y-auto p-6">
         {showForm && (
           <Card>
-            <CTitle>{editing ? `Edit â ${editing.name}` : 'Create New Project'}</CTitle>
+            <CTitle>{editing ? `Edit Ã¢ÂÂ ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
               <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
@@ -790,7 +787,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
           </Card>
         )}
-        {!projects.length && !showForm ? <Empty icon="â«" title="No projects yet" sub="Create your first project." /> : (
+        {!projects.length && !showForm ? <Empty icon="Ã¢ÂÂ«" title="No projects yet" sub="Create your first project." /> : (
           <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {projects.map(p => {
               const pa = audits.filter(a => a.projectId === p.id)
@@ -801,7 +798,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                   <div className="text-[15px] font-semibold mb-1">{p.name}</div>
                   <div className="font-mono text-[12px] mb-3" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                   <div className="flex gap-4 mb-3">
-                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? 'â', 'var(--accent2)'], ['LP Avg', avgL ?? 'â', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
+                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? 'Ã¢ÂÂ', 'var(--accent2)'], ['LP Avg', avgL ?? 'Ã¢ÂÂ', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
                       <div key={String(l)}><div className="text-[10px]" style={{ color: 'var(--t3)' }}>{l}</div><div className="text-[14px] font-semibold" style={{ color: String(c) }}>{String(v)}</div></div>
                     ))}
                   </div>
@@ -809,7 +806,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                     <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
                       {p.competitors.map(c => (
                         <div key={c.name} className="flex gap-1.5 text-[12px] mb-1" style={{ color: 'var(--t2)' }}>
-                          <span style={{ color: 'var(--t3)' }}>â³</span>{c.name}
+                          <span style={{ color: 'var(--t3)' }}>Ã¢ÂÂ³</span>{c.name}
                           <span className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{c.url}</span>
                         </div>
                       ))}
@@ -830,7 +827,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
   )
 }
 
-// âââ Audit Page âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Audit Page Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weights: LpWeights; onRefresh: () => void }) {
   const [url, setUrl] = useState(''), [label, setLabel] = useState(''), [industry, setIndustry] = useState(''), [location, setLocation] = useState(''), [projectId, setProjectId] = useState(''), [assignedTo, setAssignedTo] = useState('unassigned')
   const [loading, setLoading] = useState(false), [stepIdx, setStepIdx] = useState(0)
@@ -870,11 +867,11 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
   }
 }, [])
 
-const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
   return (
     <>
-      <TopBar title="Page Audit" sub="Standalone audit tool â assign to a project or save unassigned" />
+      <TopBar title="Page Audit" sub="Standalone audit tool Ã¢ÂÂ assign to a project or save unassigned" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit any URL</CTitle>
@@ -890,7 +887,7 @@ const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: '
             <div>
               <Lbl>Assign to Project (optional)</Lbl>
               <select value={projectId} onChange={e => { setProjectId(e.target.value); setAssignedTo('unassigned') }}>
-                <option value="">â Save as standalone audit â</option>
+                <option value="">Ã¢ÂÂ Save as standalone audit Ã¢ÂÂ</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -898,14 +895,14 @@ const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: '
               <div>
                 <Lbl>Tag this URL as</Lbl>
                 <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
-                  <option value="unassigned">â Not tagged â</option>
+                  <option value="unassigned">Ã¢ÂÂ Not tagged Ã¢ÂÂ</option>
                   <option value="business">Main Business ({selectedProject.name})</option>
                   {selectedProject.competitors.map((c, i) => <option key={i} value={`competitor${i + 1}`}>Competitor {i + 1} ({c.name})</option>)}
                 </select>
               </div>
             )}
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Analysing...' : 'â³ Analyse Page'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Analysing...' : 'Ã¢ÂÂ³ Analyse Page'}</Btn>
         </Card>
 
         {loading && (
@@ -935,14 +932,14 @@ const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: '
   )
 }
 
-// âââ Shared Audit Result View âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Shared Audit Result View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onTabChange }: {
   report: AuditReport; url: string; label: string; auditId: string
   tabs?: { id: string; label: string }[]
   defaultTab?: string
   onTabChange?: (t: string) => void
 }) {
-  const TABS = tabs ?? [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+  const TABS = tabs ?? [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
   const [tab, setTab] = useState(defaultTab ?? 'gap')
   const changeTab = (t: string) => { setTab(t); onTabChange?.(t) }
 
@@ -954,8 +951,8 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
             <div className="flex items-center gap-2 mb-1">
               <div className="text-base font-semibold">{label || r.overview.pageType}</div>
               {r.scraped && !r.scraped.error
-                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">â Live data fetched</span>
-                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">â  Estimated â page not reachable</span>
+                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">Ã¢ÂÂ Live data fetched</span>
+                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">Ã¢ÂÂ  Estimated Ã¢ÂÂ page not reachable</span>
               }
             </div>
             <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
@@ -1025,10 +1022,10 @@ function ExportAuditBtn({ auditId }: { auditId: string }) {
     const { exportPDF } = await import('@/lib/pdfExport')
     exportPDF(audit)
   }
-  return <Btn sm onClick={go}>â Export PDF</Btn>
+  return <Btn sm onClick={go}>Ã¢ÂÂ Export PDF</Btn>
 }
 
-// âââ Gap Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Gap Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function GapTab({ r }: { r: AuditReport }) {
   const g = r.gapAnalysis
   if (!g) return <Card><div style={{ color: 'var(--t3)' }}>Gap analysis not available.</div></Card>
@@ -1038,7 +1035,7 @@ function GapTab({ r }: { r: AuditReport }) {
       <Card>
         <div className="flex items-center gap-6 flex-wrap">
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Current Score</div><div className="text-3xl font-bold" style={{ color: sc(g.beforeScore) }}>{g.beforeScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color={stag(g.beforeScore)}>{g.beforeGrade}</Tag></div>
-          <div className="text-2xl" style={{ color: 'var(--t3)' }}>â</div>
+          <div className="text-2xl" style={{ color: 'var(--t3)' }}>Ã¢ÂÂ</div>
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>After Fixes</div><div className="text-3xl font-bold" style={{ color: 'var(--green)' }}>{g.afterScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color="green">{g.afterGrade}</Tag></div>
           <div className="rounded-xl px-5 py-3 border" style={{ background: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.2)' }}><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--green)' }}>Potential Uplift</div><div className="text-2xl font-bold" style={{ color: 'var(--green)' }}>+{diff} pts</div></div>
           <div className="flex-1 min-w-[200px]"><SmartText text={g.executiveSummary} /></div>
@@ -1046,7 +1043,7 @@ function GapTab({ r }: { r: AuditReport }) {
       </Card>
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CTitle>ð´ Critical Issues</CTitle>
+          <CTitle>Ã°ÂÂÂ´ Critical Issues</CTitle>
           {g.criticalIssues.map((item, i) => (
             <div key={i} className="mb-4 pb-4 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-start gap-2 mb-1.5">
@@ -1061,7 +1058,7 @@ function GapTab({ r }: { r: AuditReport }) {
         </Card>
         <div>
           <Card>
-            <CTitle>â¡ Quick Wins</CTitle>
+            <CTitle>Ã¢ÂÂ¡ Quick Wins</CTitle>
             {g.quickWins.map((item, i) => (
               <div key={i} className="flex gap-3 mb-3 pb-3 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--green)' }}>{i + 1}</div>
@@ -1069,9 +1066,9 @@ function GapTab({ r }: { r: AuditReport }) {
               </div>
             ))}
           </Card>
-          <Card><CTitle>ð Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
+          <Card><CTitle>Ã°ÂÂÂ Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
           <div className="rounded-xl p-5 border" style={{ background: 'rgba(255,229,0,0.05)', borderColor: 'rgba(255,229,0,0.3)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>â Top Recommendation</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Top Recommendation</div>
             <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
           </div>
         </div>
@@ -1080,7 +1077,7 @@ function GapTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ SEO Tab â Seobility style ââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SEO Tab Ã¢ÂÂ Seobility style Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function SeoTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.seoCategories) as (keyof SeoCategories)[]
   return (
@@ -1142,7 +1139,7 @@ function SeoTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ LP Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ LP Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function LpTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.lpScoring) as (keyof LpScoring)[]
   const gc = gcol(r.scores.grade)
@@ -1181,11 +1178,11 @@ function LpTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ Fixes Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Fixes Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function FixesTab({ r }: { r: AuditReport }) {
   return (
     <Card>
-      <CTitle>Priority Fixes â Ranked by Impact</CTitle>
+      <CTitle>Priority Fixes Ã¢ÂÂ Ranked by Impact</CTitle>
       {r.priorityFixes.map(f => (
         <div key={f.rank} className="flex gap-3.5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{f.rank}</div>
@@ -1205,7 +1202,7 @@ function FixesTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ Positioning Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Positioning Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function CompTab({ r }: { r: AuditReport }) {
   const c = r.competitorAnalysis
   return (
@@ -1223,7 +1220,7 @@ function CompTab({ r }: { r: AuditReport }) {
           <CTitle>Buyer Anxieties Addressed</CTitle>
           {c.buyerAnxieties.map((b, i) => (
             <div key={i} className="flex gap-2.5 py-1.5 border-b last:border-0 items-start" style={{ borderColor: 'var(--border)' }}>
-              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? 'â' : 'â'}</span>
+              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? 'Ã¢ÂÂ' : 'Ã¢ÂÂ'}</span>
               <div><div className="text-[12px] font-semibold">{b.anxiety}</div><div className="text-[11px]" style={{ color: 'var(--t3)' }}>{b.note}</div></div>
             </div>
           ))}
@@ -1232,7 +1229,7 @@ function CompTab({ r }: { r: AuditReport }) {
       <div className="grid grid-cols-2 gap-3">
         <Card><CTitle>Table Stakes</CTitle><div className="flex flex-col gap-1.5">{c.tableStakes.map((t, i) => <Insight key={i} color="amber" text={t} />)}</div></Card>
         <Card>
-          <CTitle>White Space â Unclaimed Opportunities</CTitle>
+          <CTitle>White Space Ã¢ÂÂ Unclaimed Opportunities</CTitle>
           {c.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -1246,11 +1243,11 @@ function CompTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ SW Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SW Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      {([{ icon: 'â', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'â', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'â', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
+      {([{ icon: 'Ã¢ÂÂ', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'Ã¢ÂÂ', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'Ã¢ÂÂ', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
         <Card key={s.title}>
           <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: s.bg, color: s.tc }}>{s.icon}</div><div className="text-[14px] font-semibold">{s.title}</div></div>
           <div className="flex flex-col gap-1.5">{s.items.map((item, i) => <Insight key={i} color={s.color} text={item} />)}</div>
@@ -1260,7 +1257,7 @@ function SwTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ Recs Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Recs Tab Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function RecsTab({ r }: { r: AuditReport }) {
   return (
     <Card>
@@ -1279,7 +1276,7 @@ function RecsTab({ r }: { r: AuditReport }) {
   )
 }
 
-// âââ Competitor Analysis Page âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Competitor Analysis Page Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { projects: Project[]; onRefresh: () => void; brandLogo: string; onLogoChange: (l: string) => void }) {
   const [mode, setMode] = useState<'manual' | 'project'>('manual')
   const [bizName, setBizName] = useState(''), [bizUrl, setBizUrl] = useState(''), [market, setMarket] = useState('')
@@ -1357,7 +1354,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div>
               <Lbl>Select Project</Lbl>
               <select value={projectId} onChange={e => setProjectId(e.target.value)} style={{ maxWidth: 360 }}>
-                <option value="">â Select a project â</option>
+                <option value="">Ã¢ÂÂ Select a project Ã¢ÂÂ</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.competitors.length} competitors)</option>)}
               </select>
               {selectedProject && (
@@ -1381,7 +1378,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               }
                 <div className="flex gap-2">
                   <label className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border rounded-lg transition-all bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]">
-                    â Upload
+                    Ã¢ÂÂ Upload
                     <input type="file" accept="image/*,.svg" className="hidden" onChange={e => {
                       const file = e.target.files?.[0]
                       if (!file) return
@@ -1395,7 +1392,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               </div>
               <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>Appears on the report cover. PNG, JPG, or SVG.</div>
             </div>
-            <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Analysing market...' : 'â³ Run Competitor Analysis'}</Btn>
+            <Btn primary onClick={run} disabled={loading}>{loading ? 'Ã¢ÂÂ³ Analysing market...' : 'Ã¢ÂÂ³ Run Competitor Analysis'}</Btn>
           </div>
         </Card>
 
@@ -1404,7 +1401,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex flex-col items-center py-8 gap-4">
               <Spinner />
               <div className="text-[13px]" style={{ color: 'var(--t2)' }}>Analysing competitive landscape...</div>
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15â25 seconds â the AI is researching every player in your market</div>
+              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15Ã¢ÂÂ25 seconds Ã¢ÂÂ the AI is researching every player in your market</div>
             </div>
           </Card>
         )}
@@ -1417,21 +1414,21 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
-                <div className="text-[13px] font-semibold">{result.businessName} â Competitor Intelligence Report</div>
-                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} Â· {result.profiles.length} businesses analysed</div>
+                <div className="text-[13px] font-semibold">{result.businessName} Ã¢ÂÂ Competitor Intelligence Report</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} ÃÂ· {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
                 <>
                   <Btn onClick={saveReport} primary>Save Report</Btn>
-                  <Btn onClick={exportPDF}>â PDF</Btn>
-                  <Btn onClick={exportHTML}>â HTML</Btn>
+                  <Btn onClick={exportPDF}>Ã¢ÂÂ PDF</Btn>
+                  <Btn onClick={exportHTML}>Ã¢ÂÂ HTML</Btn>
                   <Btn danger onClick={() => setResult(null)}>Discard</Btn>
                 </>
               ) : (
                 <>
-                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>â Saved to Reports</div>
-                  <Btn onClick={exportPDF}>â PDF</Btn>
-                  <Btn onClick={exportHTML}>â HTML</Btn>
+                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>Ã¢ÂÂ Saved to Reports</div>
+                  <Btn onClick={exportPDF}>Ã¢ÂÂ PDF</Btn>
+                  <Btn onClick={exportHTML}>Ã¢ÂÂ HTML</Btn>
                 </>
               )}
             </div>
@@ -1444,7 +1441,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
   )
 }
 
-// âââ Competitor Intelligence Report View ââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Competitor Intelligence Report View Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
@@ -1454,7 +1451,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report Â· {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report ÃÂ· {r.date}</div>
           </div>
         </div>
       )}
@@ -1493,7 +1490,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
       {/* Hook analysis */}
       <Card>
-        <CTitle>Opening Hook Analysis â The 3-Second Test</CTitle>
+        <CTitle>Opening Hook Analysis Ã¢ÂÂ The 3-Second Test</CTitle>
         <div style={{ overflowX: 'auto' }}>
           <table className="w-full text-[13px]" style={{ minWidth: 500 }}>
             <THead cols={['Business', 'Hero Headline', 'Hook Type', 'Effectiveness']} />
@@ -1512,7 +1509,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Claims matrix */}
       <Card>
         <CTitle>How the Market Talks to Customers</CTitle>
-        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims â and how specifically.</div>
+        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims Ã¢ÂÂ and how specifically.</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="text-[12px]" style={{ minWidth: 600, width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -1527,7 +1524,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <td className="font-semibold text-[12px]" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)' }}>{row.claimType}</td>
                   {r.profiles.map(p => (
                     <td key={p.url} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: row.values[p.name] === 'Not mentioned' ? 'var(--t3)' : 'var(--t2)', fontStyle: row.values[p.name] === 'Not mentioned' ? 'italic' : 'normal' }}>
-                      {row.values[p.name] ?? 'â'}
+                      {row.values[p.name] ?? 'Ã¢ÂÂ'}
                     </td>
                   ))}
                 </tr>
@@ -1540,13 +1537,13 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Table stakes vs white space */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Card>
-          <CTitle>Table Stakes â Everyone Claims This</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects â not differentiating.</div>
-          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>â¢ {t}</div>)}
+          <CTitle>Table Stakes Ã¢ÂÂ Everyone Claims This</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects Ã¢ÂÂ not differentiating.</div>
+          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>Ã¢ÂÂ¢ {t}</div>)}
         </Card>
         <Card>
-          <CTitle>White Space â Worth Claiming</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0â1 competitors. Strong differentiation potential.</div>
+          <CTitle>White Space Ã¢ÂÂ Worth Claiming</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0Ã¢ÂÂ1 competitors. Strong differentiation potential.</div>
           {r.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -1588,14 +1585,14 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         ))}
       </div>
 
-      {/* Quick wins â 2 columns */}
+      {/* Quick wins Ã¢ÂÂ 2 columns */}
       <Card>
-        <CTitle>Quick Wins â 30 Days</CTitle>
+        <CTitle>Quick Wins Ã¢ÂÂ 30 Days</CTitle>
         <div className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Actionable changes executable without a full rebrand.</div>
         <div className="grid grid-cols-2 gap-3">
           {r.quickWins.map((w, i) => (
             <div key={i} className="flex gap-3 p-3 rounded-lg border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>â</div>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>Ã¢ÂÂ</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold mb-1 leading-snug">{w.action}</div>
                 <SmartText text={w.why} color="var(--t3)" className="mb-1.5" />
@@ -1606,7 +1603,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Summary â structured not a wall of text */}
+      {/* Summary Ã¢ÂÂ structured not a wall of text */}
       <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.15)' }}>
         <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
         {(() => {
@@ -1629,7 +1626,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
               )}
               {closing && (
                 <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(255,229,0,0.07)', borderColor: 'rgba(255,229,0,0.35)' }}>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>â Key Recommendation</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Key Recommendation</div>
                   <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{closing}</div>
                 </div>
               )}
@@ -1641,7 +1638,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
   )
 }
 
-// âââ Reports ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Reports Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
   const [tab, setTab] = useState<'audits' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
@@ -1672,10 +1669,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     return (
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-          <Btn onClick={() => setViewingComp(null)}>â Back to Reports</Btn>
+          <Btn onClick={() => setViewingComp(null)}>Ã¢ÂÂ Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
-          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} â Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
-          <Btn sm onClick={() => exportComp(viewingComp.id)}>â Export PDF</Btn>
+          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} Ã¢ÂÂ Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
+          <Btn sm onClick={() => exportComp(viewingComp.id)}>Ã¢ÂÂ Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
       </>
@@ -1684,7 +1681,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits Â· ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits ÃÂ· ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audit Reports ({audits.length})</Btn>
@@ -1693,7 +1690,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'audits' && (
           <>
-            {!sorted.length ? <Empty icon="â" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
+            {!sorted.length ? <Empty icon="Ã¢ÂÂ" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
               <Card>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="w-full text-[13px]">
@@ -1703,8 +1700,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       return (
                         <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                           <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                          <TD>{a.label || 'â'}</TD>
-                          <TD>{proj?.name ?? 'â'}</TD>
+                          <TD>{a.label || 'Ã¢ÂÂ'}</TD>
+                          <TD>{proj?.name ?? 'Ã¢ÂÂ'}</TD>
                           <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                           <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                           <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
@@ -1712,8 +1709,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                           <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                             <div className="flex gap-1.5">
                               <Btn sm onClick={() => onView(a)}>View</Btn>
-                              <Btn sm onClick={() => exportAudit(a.id)}>â PDF</Btn>
-                              <Btn sm onClick={() => exportAuditHTML(a.id)}>â HTML</Btn>
+                              <Btn sm onClick={() => exportAudit(a.id)}>Ã¢ÂÂ PDF</Btn>
+                              <Btn sm onClick={() => exportAuditHTML(a.id)}>Ã¢ÂÂ HTML</Btn>
                               <Btn sm danger onClick={() => { deleteAudit(a.id); onRefresh() }}>Delete</Btn>
                             </div>
                           </td>
@@ -1738,17 +1735,17 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                   <div key={a.id} className="flex items-center gap-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
                     <div className="flex-1">
                       <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} Â· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} ÃÂ· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                     </div>
                     <span className="text-[13px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>{sc.overall}</span>
                     
-                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); onRefresh() }}>â</Btn>
+                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); onRefresh() }}>Ã¢ÂÂ</Btn>
                   </div>
                 )
               })}
             </div>
           )}
-          {!compReports.length ? <Empty icon="â" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
+          {!compReports.length ? <Empty icon="Ã¢ÂÂ" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
               <Card>
                 <table className="w-full text-[13px]">
                   <THead cols={['Business', 'URL', 'Competitors', 'Date', '']} />
@@ -1761,8 +1758,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                         <div className="flex gap-1.5">
                           <Btn sm onClick={() => setViewingComp(r)}>View</Btn>
-                          <Btn sm onClick={() => exportComp(r.id)}>â PDF</Btn>
-                          <Btn sm onClick={() => exportCompHTML(r.id)}>â HTML</Btn>
+                          <Btn sm onClick={() => exportComp(r.id)}>Ã¢ÂÂ PDF</Btn>
+                          <Btn sm onClick={() => exportCompHTML(r.id)}>Ã¢ÂÂ HTML</Btn>
                           <Btn sm danger onClick={() => { deleteCompetitorReport(r.id); onRefresh() }}>Delete</Btn>
                         </div>
                       </td>
@@ -1778,7 +1775,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
   )
 }
 
-// âââ Settings âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Settings Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeights) => void }) {
   const [w, setW] = useState(weights)
   const total = Object.values(w).reduce((a, b) => a + b, 0)
@@ -1801,12 +1798,12 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
         </Card>
         <Card>
           <CTitle>Environment Variables</CTitle>
-          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel â Settings â Environment Variables</strong>.</p>
+          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel Ã¢ÂÂ Settings Ã¢ÂÂ Environment Variables</strong>.</p>
           {[{ key: 'ANTHROPIC_API_KEY', desc: 'Claude API key (recommended)', href: 'https://console.anthropic.com' }, { key: 'OPENAI_API_KEY', desc: 'OpenAI API key (alternative)', href: 'https://platform.openai.com' }, { key: 'AI_PROVIDER', desc: "Set to 'anthropic' or 'openai'" }, { key: 'PAGESPEED_API_KEY', desc: 'Google PageSpeed (optional)', href: 'https://console.cloud.google.com' }].map(v => (
             <div key={v.key} className="flex items-center gap-3 mb-2 flex-wrap">
               <code className="font-mono text-[11px] rounded px-1.5 py-0.5 min-w-[180px]" style={{ background: 'var(--bg4)', color: 'var(--accent2)' }}>{v.key}</code>
               <span className="text-[12px]" style={{ color: 'var(--t3)' }}>{v.desc}</span>
-              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>â Get key</a>}
+              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Get key</a>}
             </div>
           ))}
         </Card>
