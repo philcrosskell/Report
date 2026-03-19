@@ -352,12 +352,12 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
 
   return (
     <>
-      <TopBar title="Lead Machine" sub="Find prospects with weak websites — ranked by opportunity" />
+      <TopBar title="Lead Machine" sub="Search a keyword to find local prospects with weak online presence" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Find prospects</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
+            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1924,7 +1924,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         <Card>
           <CTitle>Find top performers</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
+            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
