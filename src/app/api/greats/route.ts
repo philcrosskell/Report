@@ -16,57 +16,62 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const client = new Anthropic()
-    const location = suburb ? suburb + ' ' + postcode + ' Australia' : postcode + ' Australia'
+    const location = suburb ? suburb + ' ' + postcode : postcode
+    const locationFull = suburb ? suburb + ' NSW ' + postcode : 'NSW ' + postcode
     const n = parseInt(count || '5')
 
     const response = await (client.messages as AnyRecord).create({
       model: 'claude-sonnet-4-6',
       max_tokens: 3000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      system: 'You are a digital marketing analyst. Search for real, existing businesses and evaluate their online presence. Output only raw JSON — no markdown, no backticks.',
+      system: 'You are a local business researcher. Find real businesses using local directories and Google Maps. Never include businesses that just have SEO landing pages targeting the area without a real physical presence. Output only raw JSON.',
       messages: [{
         role: 'user',
-        content: `Search Google to find REAL ${industry} businesses that actually exist in ${location}.
+        content: `I need to find REAL ${industry} businesses that are genuinely located in ${locationFull} Australia. NOT businesses that just have SEO pages targeting the area.
 
-Do 2-3 searches:
-1. Search: "${industry} ${suburb || postcode} site:google.com" or "${industry} near ${suburb || postcode} NSW"  
-2. Search: "best ${industry} ${suburb || postcode}" to find well-reviewed ones
-3. Search: "${industry} ${suburb || postcode} reviews" to find ones with strong online presence
+Search these sources specifically:
+1. Search: site:yellowpages.com.au "${industry}" "${location}"
+2. Search: site:localsearch.com.au "${industry}" "${location}"
+3. Search: "${industry}" "${location}" "NSW" Google Maps reviews
 
-Find ${n} REAL businesses that actually exist in or near ${location}. Only include businesses with real websites. Look for ones that have strong online presence: good Google reviews, professional website, active GBP.
+From the results, find ${n} businesses that:
+- Have a real physical address in ${location} area
+- Are NOT just national agencies with local landing pages
+- Actually operate in the ${location} region
+- Have strong online presence: good reviews, professional website, active Google Business Profile
 
-Return ONLY a raw JSON array (no markdown) of ${n} objects, each with:
-- businessName: real business name you found
-- website: their actual website URL (must start with https://)
-- overallScore: integer 65-98 (how strong is their online presence overall)
+Return ONLY a raw JSON array of ${n} objects:
+- businessName: real business name
+- website: their actual website URL (https://...)
+- overallScore: integer 65-98 (how strong is their digital presence)
 - categories: object with keys seo, ux, conversion, mobile, content, brand (each 60-99)
-- reviewCount: number of Google reviews you found (or estimate from what you saw)
-- reviewRating: their Google rating (e.g. 4.8)
+- reviewCount: number of Google reviews
+- reviewRating: Google rating e.g. 4.8
 - strengthScore: integer 7-10
-- whyTheyRank: one sentence max 12 words, the main reason they rank well locally
-- strengths: array of 3 short strings — specific things they do well online
-- keyTactics: array of 2 short strings — specific tactics worth copying
+- whyTheyRank: one sentence max 12 words — the main reason they dominate locally
+- strengths: array of 3 short strings
+- keyTactics: array of 2 short strings worth copying
 
-Only include businesses with real websites. Start response with [ now.`
+Start with [`
       }]
     })
 
-    const text = (response.content as AnyRecord[])
+    const rawText = (response.content as AnyRecord[])
       .filter((b: AnyRecord) => b.type === 'text')
       .map((b: AnyRecord) => b.text as string)
       .join('').trim()
 
-    const start = text.indexOf('[')
-    const end = text.lastIndexOf(']')
+    const start = rawText.indexOf('[')
+    const end = rawText.lastIndexOf(']')
     if (start === -1 || end === -1) {
       return NextResponse.json({ success: false, error: 'No results found — please try again' }, { status: 422 })
     }
 
     let greats: AnyRecord[] = []
     try {
-      greats = JSON.parse(text.substring(start, end + 1)) as AnyRecord[]
+      greats = JSON.parse(rawText.substring(start, end + 1)) as AnyRecord[]
     } catch {
-      const objMatches = text.substring(start, end + 1).match(/\{[^{}]+\}/g)
+      const objMatches = rawText.substring(start, end + 1).match(/\{[^{}]+\}/g)
       if (objMatches) {
         for (const m of objMatches) {
           try { greats.push(JSON.parse(m) as AnyRecord) } catch { continue }
