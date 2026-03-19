@@ -1,0 +1,44 @@
+import type { GbpAudit, GbpAuditData } from './storage'
+
+function scoreGbp(d: GbpAuditData) {
+  const pct = (val: boolean | null) => val ? 100 : 0
+  const completeness = Math.round((pct(!!d.phone) + pct(!!d.website) + pct(!!d.address) + pct(d.hasDescription) + pct(d.descriptionUsesKeywords) + pct(d.hoursSet) + pct(d.allDaysSet) + pct(d.servicesListed) + pct(!!d.category) + pct(d.secondaryCategories?.length > 0)) / 10)
+  const reviews = Math.round(((d.rating ? Math.min(d.rating / 5 * 100, 100) : 0) + (d.reviewCount ? Math.min(d.reviewCount / 50 * 100, 100) : 0) + pct(d.hasRecentReviews) + pct(d.ownerRespondsToReviews) + (d.unansweredReviews === 0 ? 100 : d.unansweredReviews < 3 ? 50 : 0)) / 5)
+  const photos = Math.round((pct(d.hasLogo) + pct(d.hasCoverPhoto) + pct(d.hasRecentPhotos) + (d.photoCount ? Math.min(d.photoCount / 20 * 100, 100) : 0)) / 4)
+  const activity = Math.round((pct(d.hasRecentPosts) + (d.lastPostDaysAgo !== null ? (d.lastPostDaysAgo < 14 ? 100 : d.lastPostDaysAgo < 30 ? 75 : d.lastPostDaysAgo < 60 ? 40 : d.lastPostDaysAgo < 90 ? 20 : 0) : 0)) / 2)
+  const localSeo = Math.round((pct(d.serviceAreaSet) + pct(d.attributesSet) + pct(d.appointmentLink) + pct(d.holidayHoursSet)) / 4)
+  const overall = Math.round((completeness * 0.3 + reviews * 0.3 + photos * 0.15 + activity * 0.15 + localSeo * 0.1))
+  return { overall, completeness, reviews, photos, activity, localSeo }
+}
+
+const scoreColor = (s: number) => s >= 70 ? '#10B981' : s >= 40 ? '#FFE500' : '#EF4444'
+
+function bar(label: string, score: number) {
+  const col = scoreColor(score)
+  return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px;color:#9CA3C4">${label}</span><span style="font-size:13px;font-weight:700;color:${col}">${score}</span></div><div style="height:5px;background:#1E2235;border-radius:3px;overflow:hidden"><div style="height:100%;width:${score}%;background:${col};border-radius:3px"></div></div></div>`
+}
+
+function checkItem(label: string, pass: boolean | null, warn = false) {
+  const col = pass === null ? '#6B7280' : pass ? '#10B981' : warn ? '#FFE500' : '#EF4444'
+  const icon = pass === null ? '-' : pass ? '&#10003;' : '&#10007;'
+  return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #1E2235"><span style="font-weight:700;flex-shrink:0;color:${col};margin-top:1px">${icon}</span><span style="font-size:12px;color:#9CA3C4">${label}</span></div>`
+}
+
+export function exportGbpHTML(audit: GbpAudit): void {
+  const d = audit.data
+  const scores = scoreGbp(d)
+  const date = new Date(audit.auditedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+  const overallCol = scoreColor(scores.overall)
+  const issuesHtml = (d.issues ?? []).map(i => `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #1E2235"><span style="color:#EF4444;font-weight:700;flex-shrink:0">&#10007;</span><span style="font-size:13px;color:#9CA3C4">${i}</span></div>`).join('')
+  const winsHtml = (d.wins ?? []).map(w => `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #1E2235"><span style="color:#10B981;font-weight:700;flex-shrink:0">&#10003;</span><span style="font-size:13px;color:#9CA3C4">${w}</span></div>`).join('')
+  const col1 = [checkItem('Phone number',!!d.phone),checkItem('Website linked',!!d.website),checkItem('Description added',d.hasDescription),checkItem('Description uses keywords',d.descriptionUsesKeywords,true),checkItem('Mentions service area',d.descriptionMentionsServiceArea,true),checkItem('Hours set (all days)',d.allDaysSet),checkItem('Holiday hours set',d.holidayHoursSet,true),checkItem('Services listed',d.servicesListed,true),checkItem('Appointment link',d.appointmentLink,true)].join('')
+  const col2 = [checkItem('Has reviews',(d.reviewCount||0)>0),checkItem('Recent reviews (90 days)',d.hasRecentReviews,true),checkItem('Owner responds to reviews',d.ownerRespondsToReviews),checkItem(d.unansweredReviews===0?'No unanswered reviews':`${d.unansweredReviews} unanswered reviews`,d.unansweredReviews===0),checkItem('Logo uploaded',d.hasLogo),checkItem('Cover photo uploaded',d.hasCoverPhoto),checkItem('10+ photos',(d.photoCount||0)>=10,true),checkItem('Recent photos added',d.hasRecentPhotos,true)].join('')
+  const col3 = [checkItem(d.lastPostDaysAgo!==null?`Last post ${d.lastPostDaysAgo} days ago`:'No posts found',d.hasRecentPosts,true),checkItem('Service area set',d.serviceAreaSet,true),checkItem('Attributes set',d.attributesSet,true)].join('')
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GBP Audit — ${d.businessName}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07090F;color:#fff;padding:40px 24px}.card{background:#0E1120;border:1px solid #1E2235;border-radius:12px;padding:24px;margin-bottom:24px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}.sec-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1E2235}@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}</style></head><body><div style="max-width:900px;margin:0 auto"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px"><div><div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:6px">GBP Audit — Audit Machine by BEAL Creative</div><div style="font-size:28px;font-weight:700;color:#fff">${d.businessName}</div><div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:4px">${d.address||''}</div><div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:rgba(255,255,255,.35)">${d.rating?`<span>★ ${d.rating} (${d.reviewCount} reviews)</span>`:''}${d.category?`<span>${d.category}</span>`:''}${d.phone?`<span>${d.phone}</span>`:''}</div><div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:6px">Audited ${date}</div></div><div style="text-align:center;flex-shrink:0"><div style="font-size:56px;font-weight:800;line-height:1;color:${overallCol}">${scores.overall}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">GBP Score</div></div></div><div class="grid2"><div class="card"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:14px">Score breakdown</div>${bar('Profile completeness',scores.completeness)}${bar('Reviews',scores.reviews)}${bar('Photos',scores.photos)}${bar('Posts & activity',scores.activity)}${bar('Local SEO signals',scores.localSeo)}</div><div class="card"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:14px">Issues to fix</div>${issuesHtml||'<p style="font-size:13px;color:rgba(255,255,255,.3)">No major issues found</p>'}${d.wins?.length?`<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:14px;margin-bottom:4px">What they do well</div>${winsHtml}`:''}</div></div><div class="card"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:16px">Full checklist</div><div class="grid3"><div><div class="sec-label">Profile completeness</div>${col1}</div><div><div class="sec-label">Reviews &amp; photos</div>${col2}</div><div><div class="sec-label">Activity &amp; local SEO</div>${col3}</div></div><div style="display:flex;gap:20px;margin-top:16px;font-size:11px;color:rgba(255,255,255,.3)"><span><span style="color:#10B981;font-weight:700">&#10003;</span> Pass</span><span><span style="color:#EF4444;font-weight:700">&#10007;</span> Fail</span><span><span style="color:#FFE500;font-weight:700">&#10007;</span> Warning</span><span><span style="font-weight:700">-</span> Unknown</span></div></div>${d.pitchSummary?`<div class="card"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:10px">Pitch summary</div><p style="font-size:14px;line-height:1.7;color:#9CA3C4">${d.pitchSummary}</p></div>`:''}</div></body></html>`
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `gbp-audit-${(d.businessName||'report').replace(/[^a-z0-9]/gi,'-').toLowerCase()}-${Date.now()}.html`
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+}
