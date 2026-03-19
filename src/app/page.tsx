@@ -1501,7 +1501,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
             <tbody>{r.profiles.map(p => (
               <tr key={p.url} className="hover:bg-[var(--bg3)] transition-colors">
                 <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{p.name}</td>
-                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)', fontStyle: 'italic' }}>&ldquo;{p.hookHeadline}&rdquo;</td>
+                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)', fontStyle: 'italic' }}>“{p.hookHeadline}”</td>
                 <TD><Tag color={p.hookType === 'Outcome' ? 'green' : p.hookType === 'Transformation+Proof' ? 'green' : p.hookType === 'Services List' ? 'amber' : 'blue'}>{p.hookType}</Tag></TD>
                 <TD>{p.hookEffectiveness}</TD>
               </tr>
@@ -1993,10 +1993,10 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>
-                      {s.industry} &middot; {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}
+                      {s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}
                     </div>
                     <div className="text-[11px]" style={{ color: 'var(--t3)' }}>
-                      {s.greats.length} businesses &middot; {new Date(s.searchedAt).toLocaleDateString('en-AU')}
+                      {s.greats.length} businesses · {new Date(s.searchedAt).toLocaleDateString('en-AU')}
                     </div>
                   </div>
                   <Btn sm onClick={() => { setGreats(s.greats); setSelected(new Set<number>()) }}>Load</Btn>
@@ -2033,7 +2033,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
             <div className="flex items-center justify-between mb-3">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
                 {selected.size > 0
-                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected &mdash; pick a project below</span>
+                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected — pick a project below</span>
                   : 'Click cards to select, then add as competitors to a project'}
               </div>
               <Btn sm onClick={() => {
@@ -2081,7 +2081,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                         <div className="text-[11px] font-mono" style={{ color: 'var(--t3)' }}>{g.website}</div>
                         {g.reviewCount > 0 && (
                           <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>
-                            {g.reviewRating} &middot; {g.reviewCount} reviews
+                            {g.reviewRating} · {g.reviewCount} reviews
                           </div>
                         )}
                       </div>
@@ -2130,7 +2130,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                         </div>
                         {g.keyTactics.map((t, j) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--accent)' }}>&rarr;</span>{t}
+                            <span style={{ color: 'var(--accent)' }}>→</span>{t}
                           </div>
                         ))}
                       </div>
