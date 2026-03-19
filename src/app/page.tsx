@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport } from '@/lib/types'
+import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
 import {
   getProjects, addProject, updateProject, deleteProject,
   getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
