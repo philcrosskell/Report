@@ -4,6 +4,25 @@ import Anthropic from '@anthropic-ai/sdk'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyRecord = Record<string, any>
 
+const POSTCODE_COORDS: Record<string, { lat: number; lng: number }> = {
+  '2640': { lat: -36.0737, lng: 146.9135 },
+  '2641': { lat: -36.0200, lng: 146.9300 },
+  '3000': { lat: -37.8136, lng: 144.9631 },
+  '2000': { lat: -33.8688, lng: 151.2093 },
+  '4000': { lat: -27.4698, lng: 153.0251 },
+  '5000': { lat: -34.9285, lng: 138.6007 },
+  '6000': { lat: -31.9505, lng: 115.8605 },
+}
+
+async function getPostcodeCoords(postcode: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
+  if (POSTCODE_COORDS[postcode]) return POSTCODE_COORDS[postcode]
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}+Australia&key=${apiKey}`
+  const res = await fetch(url)
+  const data = await res.json() as AnyRecord
+  const loc = data.results?.[0]?.geometry?.location
+  return loc ? { lat: loc.lat, lng: loc.lng } : null
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as AnyRecord
@@ -14,47 +33,94 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: 'Keyword and postcode are required' }, { status: 400 })
     }
 
-    const client = new Anthropic()
-    const location = suburb ? suburb + ' NSW' : 'NSW ' + postcode
+    const placesKey = process.env.GOOGLE_PLACES_API_KEY
+    if (!placesKey) {
+      return NextResponse.json({ success: false, error: 'Google Places API key not configured' }, { status: 500 })
+    }
+
     const n = parseInt(count || '5')
 
+    // Step 1: Get coordinates for postcode
+    const coords = await getPostcodeCoords(postcode, placesKey)
+    if (!coords) {
+      return NextResponse.json({ success: false, error: 'Could not locate postcode — please try again' }, { status: 422 })
+    }
+
+    // Step 2: Search Google Places — returns businesses with verified real addresses
+    const searchQuery = suburb ? `${industry} ${suburb}` : `${industry}`
+    const placesRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': placesKey,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.websiteUri,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.regularOpeningHours,places.photos,places.businessStatus',
+      },
+      body: JSON.stringify({
+        textQuery: searchQuery,
+        locationBias: {
+          circle: {
+            center: { latitude: coords.lat, longitude: coords.lng },
+            radius: 20000
+          }
+        },
+        maxResultCount: Math.min(n * 3, 20),
+      })
+    })
+
+    const placesData = await placesRes.json() as AnyRecord
+    const places: AnyRecord[] = placesData.places || []
+
+    if (!places.length) {
+      return NextResponse.json({ success: false, error: 'No businesses found for that keyword and location' }, { status: 422 })
+    }
+
+    // Step 3: Filter to businesses in the postcode/suburb area
+    const targetSuburb = (suburb || '').toLowerCase()
+    const localPlaces = places.filter((p: AnyRecord) => {
+      const addr = (p.formattedAddress || '').toLowerCase()
+      return addr.includes(postcode) || (targetSuburb && addr.includes(targetSuburb)) || addr.includes('albury') || addr.includes('wodonga')
+    })
+    const candidates = localPlaces.length >= 2 ? localPlaces : places
+
+    // Step 4: Ask Claude to score by STRENGTH (Greats = find top performers)
+    const businessList = candidates.slice(0, n + 3).map((p: AnyRecord) => ({
+      name: p.displayName?.text || '',
+      address: p.formattedAddress || '',
+      website: p.websiteUri || 'No website',
+      rating: p.rating || null,
+      reviewCount: p.userRatingCount || 0,
+      phone: p.nationalPhoneNumber || null,
+      hasOpeningHours: !!p.regularOpeningHours,
+      photoCount: p.photos?.length || 0,
+      businessStatus: p.businessStatus || 'OPERATIONAL',
+    }))
+
+    const client = new Anthropic()
     const response = await (client.messages as AnyRecord).create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      system: 'You are a local business researcher. You find real businesses by searching Google, then verify each one is genuinely local by checking their website for a physical address. Output only raw JSON.',
+      max_tokens: 2000,
+      system: 'You score local businesses by strength of their online presence. Output only raw JSON array.',
       messages: [{
         role: 'user',
-        content: `I need to find real ${industry} businesses genuinely located in ${location} ${postcode}.
+        content: `These are real local businesses found via Google Places API near ${suburb || postcode} NSW. Score each by how STRONG their online presence is — higher score = stronger = best competitor benchmark.
 
-STEP 1 — Search for candidates:
-Search: "${industry} ${suburb || postcode}"
-Search: "${industry} ${suburb || ''} NSW"
-Collect the websites of up to 15 results.
+Businesses:
+${JSON.stringify(businessList, null, 2)}
 
-STEP 2 — Verify each is genuinely local:
-For each website found, fetch the page (homepage or /contact page) and look for a physical street address. The business is GENUINELY LOCAL only if their website shows a street address in ${location} or postcode ${postcode} or nearby suburbs.
-- If no physical address is found anywhere on their site: NOT LOCAL
-- If the only mention of "${suburb || postcode}" is in their page copy or URL slug (like /web-design-albury/): NOT LOCAL — this is just an SEO page
-- If they have a real street address in the area: LOCAL
-
-STEP 3 — From the verified local businesses, return the ${n} with the STRONGEST online presence (most reviews, best website, strong SEO) — these are the top performers worth studying.
-
-Return ONLY a raw JSON array (no markdown) with these fields:
+Return a JSON array of ${Math.min(n, businessList.length)} objects (pick the ${Math.min(n, businessList.length)} strongest):
 - businessName: string
-- website: string (https://...)
-- address: the physical address you found
-- isLocal: true or false
-- overallScore: integer 65-98 (higher = stronger online presence)
-- categories: object with keys seo, ux, conversion, mobile, content, brand (each 60-99)
-- reviewCount: number of Google reviews
-- reviewRating: Google rating e.g. 4.8
+- website: string
+- address: string (their real verified address from Google)
+- overallScore: integer 60-98 (higher = stronger)
+- categories: object with keys seo, ux, conversion, mobile, content, brand (each 55-99)
+- reviewCount: number (from the data above)
+- reviewRating: number (from the data above)
 - strengthScore: integer 7-10
-- whyTheyRank: one sentence max 12 words — the main reason they rank well locally
+- whyTheyRank: max 12 words — why they dominate locally
 - strengths: array of 3 short strings
 - keyTactics: array of 2 short strings worth copying
 
-Only include businesses where isLocal is true. Start with [`
+Businesses with more reviews, higher ratings, and a real website should score highest. Start with [`
       }]
     })
 
@@ -66,7 +132,7 @@ Only include businesses where isLocal is true. Start with [`
     const start = text.indexOf('[')
     const end = text.lastIndexOf(']')
     if (start === -1 || end === -1) {
-      return NextResponse.json({ success: false, error: 'No local businesses found — please try again' }, { status: 422 })
+      return NextResponse.json({ success: false, error: 'Could not score results — please try again' }, { status: 422 })
     }
 
     let greats: AnyRecord[] = []
@@ -81,11 +147,8 @@ Only include businesses where isLocal is true. Start with [`
       }
     }
 
-    // Filter to only genuinely local businesses
-    greats = greats.filter(p => p.isLocal !== false)
-
     if (!greats.length) {
-      return NextResponse.json({ success: false, error: 'No verified local businesses found — try a different keyword' }, { status: 422 })
+      return NextResponse.json({ success: false, error: 'Could not parse results — please try again' }, { status: 422 })
     }
 
     return NextResponse.json({ success: true, greats })
