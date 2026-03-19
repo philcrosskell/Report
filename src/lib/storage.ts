@@ -115,7 +115,7 @@ export interface Great {
   businessName: string
   website: string
   overallScore: number
-  categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number }
+  categories: Record<string, number>
   reviewCount: number
   reviewRating: number
   strengthScore: number
