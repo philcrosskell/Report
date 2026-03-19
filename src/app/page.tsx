@@ -1640,12 +1640,16 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
 // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Reports Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
-  const [tab, setTab] = useState<'audits' | 'competitor'>('audits')
+  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
+  const [viewingGbp, setViewingGbp] = useState<GbpAudit | null>(null)
+  const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
   const [storedLogo, setStoredLogo] = useState<string>('')
   const sorted = [...audits].reverse()
 
   useEffect(() => { setStoredLogo(getBrandLogo()) }, [])
+
+  const refreshGbp = () => { setGbpAudits(getGbpAudits()); onRefresh() }
 
   const exportAudit = async (id: string) => {
     const audit = getAuditById(id); if (!audit) return
@@ -1663,7 +1667,31 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     const rep = compReports.find(r => r.id === id); if (!rep) return
     const { exportCompetitorHTML } = await import('@/lib/competitorHtmlExport'); exportCompetitorHTML(rep)
   }
+  const exportGbpPdf = async (id: string) => {
+    const a = gbpAudits.find(x => x.id === id); if (!a) return
+    const { exportGbpPDF } = await import('@/lib/gbpPdfExport'); exportGbpPDF(a)
+  }
+  const exportGbpHtml = async (id: string) => {
+    const a = gbpAudits.find(x => x.id === id); if (!a) return
+    const { exportGbpHTML } = await import('@/lib/gbpHtmlExport'); exportGbpHTML(a)
+  }
 
+  if (viewingGbp) {
+    return (
+      <>
+        <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          <Btn onClick={() => setViewingGbp(null)}>← Back to Reports</Btn>
+          <div className="flex-1">
+            <div className="text-base font-semibold">{viewingGbp.businessName} — GBP Audit</div>
+            <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingGbp.suburb} · {new Date(viewingGbp.auditedAt).toLocaleDateString('en-AU')}</div>
+          </div>
+          <Btn sm onClick={() => exportGbpPdf(viewingGbp.id)}>↓ PDF</Btn>
+          <Btn sm onClick={() => exportGbpHtml(viewingGbp.id)}>↓ HTML</Btn>
+        </div>
+        <GbpReport audit={viewingGbp} onDelete={() => { deleteGbpAudit(viewingGbp.id); refreshGbp(); setViewingGbp(null) }} />
+      </>
+    )
+  }
 
   if (viewingComp) {
     return (
@@ -1684,7 +1712,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
       <TopBar title="Reports" sub={`${audits.length} page audits ÃÂ· ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
-          <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audit Reports ({audits.length})</Btn>
+          <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
+          <Btn onClick={() => setTab('gbp')} primary={tab === 'gbp'}>GBP Audits ({gbpAudits.length})</Btn>
           <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Intelligence ({compReports.length})</Btn>
         </div>
 
@@ -1724,28 +1753,44 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
           </>
         )}
 
+        {tab === 'gbp' && (
+          <>
+            {!gbpAudits.length ? <Empty icon="◎" title="No GBP audits yet" sub="Run a GBP audit to generate your first Google Business Profile report." /> : (
+              <Card>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="w-full text-[13px]">
+                    <THead cols={['Business', 'Suburb', 'Score', 'Rating', 'Reviews', 'Date', '']} />
+                    <tbody>{[...gbpAudits].map(a => {
+                      const sc = scoreGbp(a.data)
+                      return (
+                        <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
+                          <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600, color: 'var(--t1)' }}>{a.businessName}</td>
+                          <TD>{a.suburb}</TD>
+                          <TD><Tag color={sc.overall >= 70 ? 'green' : sc.overall >= 40 ? 'amber' : 'red'}>{sc.overall}</Tag></TD>
+                          <TD>{a.data.rating ? `★ ${a.data.rating}` : '—'}</TD>
+                          <TD>{a.data.reviewCount ?? '—'}</TD>
+                          <TD>{new Date(a.auditedAt).toLocaleDateString('en-AU')}</TD>
+                          <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+                            <div className="flex gap-1.5">
+                              <Btn sm onClick={() => setViewingGbp(a)}>View</Btn>
+                              <Btn sm onClick={() => exportGbpPdf(a.id)}>↓ PDF</Btn>
+                              <Btn sm onClick={() => exportGbpHtml(a.id)}>↓ HTML</Btn>
+                              <Btn sm danger onClick={() => { deleteGbpAudit(a.id); refreshGbp() }}>Delete</Btn>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}</tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+          </>
+        )}
+
         {tab === 'competitor' && (
           <>
-            {getGbpAudits().length > 0 && (
-            <div className="mb-6">
-              <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--t3)' }}>GBP Audits</div>
-              {getGbpAudits().map(a => {
-                const sc = scoreGbp(a.data)
-                return (
-                  <div key={a.id} className="flex items-center gap-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} ÃÂ· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
-                    </div>
-                    <span className="text-[13px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>{sc.overall}</span>
-                    
-                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); onRefresh() }}>Ã¢ÂÂ</Btn>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-          {!compReports.length ? <Empty icon="Ã¢ÂÂ" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
+            {!compReports.length ? <Empty icon="◎" title="No competitor reports yet" sub="Run a competitor analysis to generate your first intelligence report." /> : (
               <Card>
                 <table className="w-full text-[13px]">
                   <THead cols={['Business', 'URL', 'Competitors', 'Date', '']} />
@@ -1758,8 +1803,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                         <div className="flex gap-1.5">
                           <Btn sm onClick={() => setViewingComp(r)}>View</Btn>
-                          <Btn sm onClick={() => exportComp(r.id)}>Ã¢ÂÂ PDF</Btn>
-                          <Btn sm onClick={() => exportCompHTML(r.id)}>Ã¢ÂÂ HTML</Btn>
+                          <Btn sm onClick={() => exportComp(r.id)}>↓ PDF</Btn>
+                          <Btn sm onClick={() => exportCompHTML(r.id)}>↓ HTML</Btn>
                           <Btn sm danger onClick={() => { deleteCompetitorReport(r.id); onRefresh() }}>Delete</Btn>
                         </div>
                       </td>
@@ -1770,43 +1815,6 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
             )}
           </>
         )}
-      </div>
-    </>
-  )
-}
-
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Settings Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeights) => void }) {
-  const [w, setW] = useState(weights)
-  const total = Object.values(w).reduce((a, b) => a + b, 0)
-  const labels: Record<keyof LpWeights, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
-  return (
-    <>
-      <TopBar title="Settings" sub="Configure scoring weights and API keys" />
-      <div className="flex-1 overflow-y-auto p-6">
-        <Card>
-          <CTitle>LP Scoring Weights</CTitle>
-          <p className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Total should equal 100. Current: <strong style={{ color: total === 100 ? 'var(--green)' : 'var(--red)' }}>{total}</strong></p>
-          {(Object.keys(w) as (keyof LpWeights)[]).map(k => (
-            <div key={k} className="flex items-center gap-3 mb-3">
-              <span className="text-[13px] min-w-[200px]" style={{ color: 'var(--t2)' }}>{labels[k]}</span>
-              <input type="range" min="0" max="40" step="1" value={w[k]} onChange={e => setW({ ...w, [k]: parseInt(e.target.value) })} style={{ flex: 1, padding: 0, height: 4 }} />
-              <span className="font-mono text-[12px] min-w-[28px]" style={{ color: 'var(--accent2)' }}>{w[k]}</span>
-            </div>
-          ))}
-          <Btn primary cls="mt-2" onClick={() => { onSave(w); alert('Weights saved.') }}>Save Weights</Btn>
-        </Card>
-        <Card>
-          <CTitle>Environment Variables</CTitle>
-          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel Ã¢ÂÂ Settings Ã¢ÂÂ Environment Variables</strong>.</p>
-          {[{ key: 'ANTHROPIC_API_KEY', desc: 'Claude API key (recommended)', href: 'https://console.anthropic.com' }, { key: 'OPENAI_API_KEY', desc: 'OpenAI API key (alternative)', href: 'https://platform.openai.com' }, { key: 'AI_PROVIDER', desc: "Set to 'anthropic' or 'openai'" }, { key: 'PAGESPEED_API_KEY', desc: 'Google PageSpeed (optional)', href: 'https://console.cloud.google.com' }].map(v => (
-            <div key={v.key} className="flex items-center gap-3 mb-2 flex-wrap">
-              <code className="font-mono text-[11px] rounded px-1.5 py-0.5 min-w-[180px]" style={{ background: 'var(--bg4)', color: 'var(--accent2)' }}>{v.key}</code>
-              <span className="text-[12px]" style={{ color: 'var(--t3)' }}>{v.desc}</span>
-              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Get key</a>}
-            </div>
-          ))}
-        </Card>
       </div>
     </>
   )
