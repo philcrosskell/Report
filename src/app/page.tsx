@@ -103,11 +103,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
     }
   }
 
-  // Detect bullet list pattern: "Ã¢ÂÂ¢ thing Ã¢ÂÂ¢ thing" or "- thing - thing"
-  const bulletPattern = /(?:^|[\n])\s*[Ã¢ÂÂ¢\-Ã¢ÂÂ]\s/g
+  // Detect bullet list pattern: "• thing • thing" or "- thing - thing"
+  const bulletPattern = /(?:^|[\n])\s*[•\--]\s/g
   const bulletMatches = [...text.matchAll(bulletPattern)]
   if (bulletMatches.length >= 2) {
-    const items = text.split(/\n?\s*[Ã¢ÂÂ¢\-Ã¢ÂÂ]\s+/).map(s => s.trim()).filter(Boolean)
+    const items = text.split(/\n?\s*[•\--]\s+/).map(s => s.trim()).filter(Boolean)
     if (items.length >= 2) {
       return (
         <ul className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -179,7 +179,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
-const STEPS = ['Fetching page signals', 'Analysing SEO Ã¢ÂÂ 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
+const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
 const NAV_ICONS: Record<string, string> = {
   dashboard: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
   projects: 'M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z',
@@ -249,7 +249,7 @@ export default function Home() {
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
         {/* Yellow top bar */}
         <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
-        {/* Logo area Ã¢ÂÂ BEAL wordmark */}
+        {/* Logo area — BEAL wordmark */}
         <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
           <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
@@ -348,7 +348,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
 
   return (
     <>
-      <TopBar title="Lead Machine" sub="Find prospects with weak websites Ã¢ÂÂ ranked by opportunity" />
+      <TopBar title="Lead Machine" sub="Find prospects with weak websites — ranked by opportunity" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Find prospects</CTitle>
@@ -430,7 +430,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                 {p.issues?.length > 0 && (
                   <div className="mb-2">
                     <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Issues</div>
-                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>Ã¢ÂÂ {iss}</div>)}
+                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>✗ {iss}</div>)}
                   </div>
                 )}
                 <div className="flex gap-2 mt-3">
@@ -492,7 +492,7 @@ function GbpScoreBar({ label, score }: { label: string; score: number }) {
 
 function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
   const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
-  const icon = pass === null ? 'Ã¢ÂÂ' : pass ? 'Ã¢ÂÂ' : 'Ã¢ÂÂ'
+  const icon = pass === null ? '-' : pass ? '✓' : '✗'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
       <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: col }}>{icon}</span>
@@ -543,7 +543,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <CTitle>Issues to fix</CTitle>
           {d.issues?.length ? d.issues.map((iss, i) => (
             <div key={i} className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">Ã¢ÂÂ</span>
+              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">✗</span>
               <span style={{ color: 'var(--t2)' }}>{iss}</span>
             </div>
           )) : <p className="text-[12px]" style={{ color: 'var(--t3)' }}>No major issues found</p>}
@@ -551,7 +551,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
             <div className="text-[10px] font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--t3)' }}>What they do well</div>
             {d.wins.map((w, i) => (
               <div key={i} className="flex items-start gap-2 py-1 text-[12px]">
-                <span style={{ color: 'var(--green)' }} className="flex-shrink-0">Ã¢ÂÂ</span>
+                <span style={{ color: 'var(--green)' }} className="flex-shrink-0">✓</span>
                 <span style={{ color: 'var(--t2)' }}>{w}</span>
               </div>
             ))}
@@ -594,10 +594,10 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
       </Card>
 
       <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}>Ã¢ÂÂ</span> Pass Ã¢ÂÂ in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Ã¢ÂÂ</span> Fail Ã¢ÂÂ needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Ã¢ÂÂ</span> Warning Ã¢ÂÂ could be better</span>
-        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>Ã¢ÂÂ</span> Unknown Ã¢ÂÂ not publicly visible</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}>✓</span> Pass — in good shape</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>✗</span> Fail — needs fixing</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>✗</span> Warning — could be better</span>
+        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>-</span> Unknown — not publicly visible</span>
       </div>
 
       {d.pitchSummary && (
@@ -607,7 +607,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
               <CTitle>Pitch summary</CTitle>
               <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
             </div>
-            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? 'Ã¢ÂÂ Copied' : 'Copy'}</Btn>
+            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? '✓ Copied' : 'Copy'}</Btn>
           </div>
         </Card>
       )}
@@ -638,7 +638,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
-      if (json.data.notFound) { setError('Business not found on Google Ã¢ÂÂ check the name and suburb'); return }
+      if (json.data.notFound) { setError('Business not found on Google — check the name and suburb'); return }
       const audit: GbpAudit = { id: uid(), businessName: bizName, suburb, auditedAt: new Date().toISOString(), data: json.data }
       saveGbpAudit(audit)
       setSavedAudits(getGbpAudits())
@@ -662,7 +662,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
 
   return (
     <>
-      <TopBar title="GBP Audit" sub="Audit any Google Business Profile Ã¢ÂÂ scored and pitch-ready" />
+      <TopBar title="GBP Audit" sub="Audit any Google Business Profile — scored and pitch-ready" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
@@ -708,7 +708,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? 'Ã¢ÂÂ', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? 'Ã¢ÂÂ', 'var(--amber)']].map(([l, v, c]) => (
+          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
             <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
@@ -725,8 +725,8 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
                 return (
                   <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                     <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                    <TD>{a.label || 'Ã¢ÂÂ'}</TD>
-                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>Ã¢ÂÂ</span>}</TD>
+                    <TD>{a.label || '—'}</TD>
+                    <TD>{proj?.name ?? <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
                     <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                     <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                     <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
@@ -772,7 +772,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
       <div className="flex-1 overflow-y-auto p-6">
         {showForm && (
           <Card>
-            <CTitle>{editing ? `Edit Ã¢ÂÂ ${editing.name}` : 'Create New Project'}</CTitle>
+            <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
               <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
@@ -798,7 +798,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                   <div className="text-[15px] font-semibold mb-1">{p.name}</div>
                   <div className="font-mono text-[12px] mb-3" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                   <div className="flex gap-4 mb-3">
-                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? 'Ã¢ÂÂ', 'var(--accent2)'], ['LP Avg', avgL ?? 'Ã¢ÂÂ', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
+                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? '—', 'var(--accent2)'], ['LP Avg', avgL ?? '—', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
                       <div key={String(l)}><div className="text-[10px]" style={{ color: 'var(--t3)' }}>{l}</div><div className="text-[14px] font-semibold" style={{ color: String(c) }}>{String(v)}</div></div>
                     ))}
                   </div>
@@ -871,7 +871,7 @@ const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', la
 
   return (
     <>
-      <TopBar title="Page Audit" sub="Standalone audit tool Ã¢ÂÂ assign to a project or save unassigned" />
+      <TopBar title="Page Audit" sub="Standalone audit tool — assign to a project or save unassigned" />
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit any URL</CTitle>
@@ -887,7 +887,7 @@ const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', la
             <div>
               <Lbl>Assign to Project (optional)</Lbl>
               <select value={projectId} onChange={e => { setProjectId(e.target.value); setAssignedTo('unassigned') }}>
-                <option value="">Ã¢ÂÂ Save as standalone audit Ã¢ÂÂ</option>
+                <option value="">— Save as standalone audit —</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -895,7 +895,7 @@ const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', la
               <div>
                 <Lbl>Tag this URL as</Lbl>
                 <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
-                  <option value="unassigned">Ã¢ÂÂ Not tagged Ã¢ÂÂ</option>
+                  <option value="unassigned">— Not tagged —</option>
                   <option value="business">Main Business ({selectedProject.name})</option>
                   {selectedProject.competitors.map((c, i) => <option key={i} value={`competitor${i + 1}`}>Competitor {i + 1} ({c.name})</option>)}
                 </select>
@@ -951,8 +951,8 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
             <div className="flex items-center gap-2 mb-1">
               <div className="text-base font-semibold">{label || r.overview.pageType}</div>
               {r.scraped && !r.scraped.error
-                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">Ã¢ÂÂ Live data fetched</span>
-                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">Ã¢ÂÂ  Estimated Ã¢ÂÂ page not reachable</span>
+                ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">✓ Live data fetched</span>
+                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">Ã¢ÂÂ  Estimated — page not reachable</span>
               }
             </div>
             <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
@@ -1077,7 +1077,7 @@ function GapTab({ r }: { r: AuditReport }) {
   )
 }
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SEO Tab Ã¢ÂÂ Seobility style Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ SEO Tab — Seobility style Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function SeoTab({ r }: { r: AuditReport }) {
   const cats = Object.keys(r.seoCategories) as (keyof SeoCategories)[]
   return (
@@ -1182,7 +1182,7 @@ function LpTab({ r }: { r: AuditReport }) {
 function FixesTab({ r }: { r: AuditReport }) {
   return (
     <Card>
-      <CTitle>Priority Fixes Ã¢ÂÂ Ranked by Impact</CTitle>
+      <CTitle>Priority Fixes — Ranked by Impact</CTitle>
       {r.priorityFixes.map(f => (
         <div key={f.rank} className="flex gap-3.5 py-3.5 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent2)' }}>{f.rank}</div>
@@ -1220,7 +1220,7 @@ function CompTab({ r }: { r: AuditReport }) {
           <CTitle>Buyer Anxieties Addressed</CTitle>
           {c.buyerAnxieties.map((b, i) => (
             <div key={i} className="flex gap-2.5 py-1.5 border-b last:border-0 items-start" style={{ borderColor: 'var(--border)' }}>
-              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? 'Ã¢ÂÂ' : 'Ã¢ÂÂ'}</span>
+              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? '✓' : 'Ã¢ÂÂ'}</span>
               <div><div className="text-[12px] font-semibold">{b.anxiety}</div><div className="text-[11px]" style={{ color: 'var(--t3)' }}>{b.note}</div></div>
             </div>
           ))}
@@ -1229,7 +1229,7 @@ function CompTab({ r }: { r: AuditReport }) {
       <div className="grid grid-cols-2 gap-3">
         <Card><CTitle>Table Stakes</CTitle><div className="flex flex-col gap-1.5">{c.tableStakes.map((t, i) => <Insight key={i} color="amber" text={t} />)}</div></Card>
         <Card>
-          <CTitle>White Space Ã¢ÂÂ Unclaimed Opportunities</CTitle>
+          <CTitle>White Space — Unclaimed Opportunities</CTitle>
           {c.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -1247,7 +1247,7 @@ function CompTab({ r }: { r: AuditReport }) {
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      {([{ icon: 'Ã¢ÂÂ', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'Ã¢ÂÂ', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'Ã¢ÂÂ', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
+      {([{ icon: '✓', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'Ã¢ÂÂ', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'Ã¢ÂÂ', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
         <Card key={s.title}>
           <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: s.bg, color: s.tc }}>{s.icon}</div><div className="text-[14px] font-semibold">{s.title}</div></div>
           <div className="flex flex-col gap-1.5">{s.items.map((item, i) => <Insight key={i} color={s.color} text={item} />)}</div>
@@ -1354,7 +1354,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div>
               <Lbl>Select Project</Lbl>
               <select value={projectId} onChange={e => setProjectId(e.target.value)} style={{ maxWidth: 360 }}>
-                <option value="">Ã¢ÂÂ Select a project Ã¢ÂÂ</option>
+                <option value="">— Select a project —</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.competitors.length} competitors)</option>)}
               </select>
               {selectedProject && (
@@ -1401,7 +1401,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex flex-col items-center py-8 gap-4">
               <Spinner />
               <div className="text-[13px]" style={{ color: 'var(--t2)' }}>Analysing competitive landscape...</div>
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15Ã¢ÂÂ25 seconds Ã¢ÂÂ the AI is researching every player in your market</div>
+              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>This takes 15-25 seconds — the AI is researching every player in your market</div>
             </div>
           </Card>
         )}
@@ -1414,7 +1414,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
-                <div className="text-[13px] font-semibold">{result.businessName} Ã¢ÂÂ Competitor Intelligence Report</div>
+                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
                 <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} ÃÂ· {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
@@ -1426,7 +1426,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
                 </>
               ) : (
                 <>
-                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>Ã¢ÂÂ Saved to Reports</div>
+                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div>
                   <Btn onClick={exportPDF}>Ã¢ÂÂ PDF</Btn>
                   <Btn onClick={exportHTML}>Ã¢ÂÂ HTML</Btn>
                 </>
@@ -1490,7 +1490,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
       {/* Hook analysis */}
       <Card>
-        <CTitle>Opening Hook Analysis Ã¢ÂÂ The 3-Second Test</CTitle>
+        <CTitle>Opening Hook Analysis — The 3-Second Test</CTitle>
         <div style={{ overflowX: 'auto' }}>
           <table className="w-full text-[13px]" style={{ minWidth: 500 }}>
             <THead cols={['Business', 'Hero Headline', 'Hook Type', 'Effectiveness']} />
@@ -1509,7 +1509,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Claims matrix */}
       <Card>
         <CTitle>How the Market Talks to Customers</CTitle>
-        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims Ã¢ÂÂ and how specifically.</div>
+        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims — and how specifically.</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="text-[12px]" style={{ minWidth: 600, width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -1524,7 +1524,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <td className="font-semibold text-[12px]" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)' }}>{row.claimType}</td>
                   {r.profiles.map(p => (
                     <td key={p.url} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: row.values[p.name] === 'Not mentioned' ? 'var(--t3)' : 'var(--t2)', fontStyle: row.values[p.name] === 'Not mentioned' ? 'italic' : 'normal' }}>
-                      {row.values[p.name] ?? 'Ã¢ÂÂ'}
+                      {row.values[p.name] ?? '—'}
                     </td>
                   ))}
                 </tr>
@@ -1537,13 +1537,13 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
       {/* Table stakes vs white space */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Card>
-          <CTitle>Table Stakes Ã¢ÂÂ Everyone Claims This</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects Ã¢ÂÂ not differentiating.</div>
-          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>Ã¢ÂÂ¢ {t}</div>)}
+          <CTitle>Table Stakes — Everyone Claims This</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects — not differentiating.</div>
+          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>• {t}</div>)}
         </Card>
         <Card>
-          <CTitle>White Space Ã¢ÂÂ Worth Claiming</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0Ã¢ÂÂ1 competitors. Strong differentiation potential.</div>
+          <CTitle>White Space — Worth Claiming</CTitle>
+          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0-1 competitors. Strong differentiation potential.</div>
           {r.whiteSpace.map((w, i) => (
             <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
@@ -1585,9 +1585,9 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         ))}
       </div>
 
-      {/* Quick wins Ã¢ÂÂ 2 columns */}
+      {/* Quick wins — 2 columns */}
       <Card>
-        <CTitle>Quick Wins Ã¢ÂÂ 30 Days</CTitle>
+        <CTitle>Quick Wins — 30 Days</CTitle>
         <div className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Actionable changes executable without a full rebrand.</div>
         <div className="grid grid-cols-2 gap-3">
           {r.quickWins.map((w, i) => (
@@ -1603,7 +1603,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Summary Ã¢ÂÂ structured not a wall of text */}
+      {/* Summary — structured not a wall of text */}
       <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.15)' }}>
         <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
         {(() => {
@@ -1671,7 +1671,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
           <Btn onClick={() => setViewingComp(null)}>Ã¢ÂÂ Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
-          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} Ã¢ÂÂ Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
+          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
           <Btn sm onClick={() => exportComp(viewingComp.id)}>Ã¢ÂÂ Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
@@ -1700,8 +1700,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       return (
                         <tr key={a.id} className="hover:bg-[var(--bg3)] transition-colors">
                           <TD mono><a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>{a.url}</a></TD>
-                          <TD>{a.label || 'Ã¢ÂÂ'}</TD>
-                          <TD>{proj?.name ?? 'Ã¢ÂÂ'}</TD>
+                          <TD>{a.label || '—'}</TD>
+                          <TD>{proj?.name ?? '—'}</TD>
                           <TD><Tag color={stag(a.scores.seo)}>{a.scores.seo}</Tag></TD>
                           <TD><Tag color={stag(a.scores.lp)}>{a.scores.lp}</Tag></TD>
                           <TD><Tag color="purple">{a.scores.grade}</Tag></TD>
