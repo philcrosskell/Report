@@ -229,7 +229,7 @@ export default function Home() {
       <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <Btn onClick={() => setViewingAudit(null)}>Ã¢ÂÂ Back to Reports</Btn>
+            <Btn onClick={() => setViewingAudit(null)}>← Back to Reports</Btn>
             <div className="flex-1">
               <div className="text-base font-semibold">{viewingAudit.label || viewingAudit.url}</div>
               <div className="text-[12px] font-mono" style={{ color: 'var(--accent2)' }}>{viewingAudit.url}</div>
@@ -374,7 +374,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                     <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
-                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>Ã¢ÂÂ</Btn>
+                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>✕</Btn>
                 </div>
               ))}
             </div>
@@ -519,7 +519,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <div className="text-[22px] font-semibold" style={{ color: 'var(--t1)' }}>{d.businessName}</div>
           <div className="text-[13px]" style={{ color: 'var(--t3)' }}>{d.address}</div>
           <div className="flex gap-3 mt-2 text-[12px]" style={{ color: 'var(--t3)' }}>
-            {d.rating && <span>Ã¢ÂÂ {d.rating} ({d.reviewCount} reviews)</span>}
+            {d.rating && <span>★ {d.rating} ({d.reviewCount} reviews)</span>}
             {d.category && <span>{d.category}</span>}
             {d.phone && <span>{d.phone}</span>}
           </div>
@@ -653,7 +653,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
     return (
       <>
         <TopBar title="GBP Audit" sub={result.businessName + ' · ' + result.suburb}>
-          <Btn sm onClick={() => setResult(null)}>Ã¢ÂÂ New audit</Btn>
+          <Btn sm onClick={() => setResult(null)}>← New audit</Btn>
         </TopBar>
         <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
       </>
@@ -686,7 +686,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
-                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>Ã¢ÂÂ</Btn>
+                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>✕</Btn>
                 </div>
               ))}
             </div>
@@ -717,7 +717,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
-          {!recent.length ? <Empty icon="Ã¢ÂÂ" title="No audits yet" sub="Run your first page audit to get started." /> : (
+          {!recent.length ? <Empty icon="⊙" title="No audits yet" sub="Run your first page audit to get started." /> : (
             <table className="w-full text-[13px]">
               <THead cols={['URL', 'Label', 'Project', 'SEO', 'LP', 'Grade', 'Date', '']} />
               <tbody>{recent.map(a => {
@@ -787,7 +787,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
           </Card>
         )}
-        {!projects.length && !showForm ? <Empty icon="Ã¢ÂÂ«" title="No projects yet" sub="Create your first project." /> : (
+        {!projects.length && !showForm ? <Empty icon="◫" title="No projects yet" sub="Create your first project." /> : (
           <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {projects.map(p => {
               const pa = audits.filter(a => a.projectId === p.id)
@@ -806,7 +806,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                     <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
                       {p.competitors.map(c => (
                         <div key={c.name} className="flex gap-1.5 text-[12px] mb-1" style={{ color: 'var(--t2)' }}>
-                          <span style={{ color: 'var(--t3)' }}>Ã¢ÂÂ³</span>{c.name}
+                          <span style={{ color: 'var(--t3)' }}>↳</span>{c.name}
                           <span className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{c.url}</span>
                         </div>
                       ))}
@@ -867,7 +867,7 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
   }
 }, [])
 
-const TABS = [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
   return (
     <>
@@ -939,7 +939,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
   defaultTab?: string
   onTabChange?: (t: string) => void
 }) {
-  const TABS = tabs ?? [{ id: 'gap', label: 'Ã¢ÂÂ¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+  const TABS = tabs ?? [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
   const [tab, setTab] = useState(defaultTab ?? 'gap')
   const changeTab = (t: string) => { setTab(t); onTabChange?.(t) }
 
@@ -952,7 +952,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
               <div className="text-base font-semibold">{label || r.overview.pageType}</div>
               {r.scraped && !r.scraped.error
                 ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400">✓ Live data fetched</span>
-                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">Ã¢ÂÂ  Estimated — page not reachable</span>
+                : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400">⚠ Estimated — page not reachable</span>
               }
             </div>
             <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
@@ -1022,7 +1022,7 @@ function ExportAuditBtn({ auditId }: { auditId: string }) {
     const { exportPDF } = await import('@/lib/pdfExport')
     exportPDF(audit)
   }
-  return <Btn sm onClick={go}>Ã¢ÂÂ Export PDF</Btn>
+  return <Btn sm onClick={go}>↓ Export PDF</Btn>
 }
 
 // ─── Gap Tab ──────────────────────────────────────────────────────────────────
@@ -1035,7 +1035,7 @@ function GapTab({ r }: { r: AuditReport }) {
       <Card>
         <div className="flex items-center gap-6 flex-wrap">
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Current Score</div><div className="text-3xl font-bold" style={{ color: sc(g.beforeScore) }}>{g.beforeScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color={stag(g.beforeScore)}>{g.beforeGrade}</Tag></div>
-          <div className="text-2xl" style={{ color: 'var(--t3)' }}>Ã¢ÂÂ</div>
+          <div className="text-2xl" style={{ color: 'var(--t3)' }}>→</div>
           <div><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>After Fixes</div><div className="text-3xl font-bold" style={{ color: 'var(--green)' }}>{g.afterScore}<span className="text-base font-normal" style={{ color: 'var(--t3)' }}>/100</span></div><Tag color="green">{g.afterGrade}</Tag></div>
           <div className="rounded-xl px-5 py-3 border" style={{ background: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.2)' }}><div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--green)' }}>Potential Uplift</div><div className="text-2xl font-bold" style={{ color: 'var(--green)' }}>+{diff} pts</div></div>
           <div className="flex-1 min-w-[200px]"><SmartText text={g.executiveSummary} /></div>
@@ -1043,7 +1043,7 @@ function GapTab({ r }: { r: AuditReport }) {
       </Card>
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CTitle>Ã°ÂÂÂ´ Critical Issues</CTitle>
+          <CTitle>�ÂÂ´ Critical Issues</CTitle>
           {g.criticalIssues.map((item, i) => (
             <div key={i} className="mb-4 pb-4 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-start gap-2 mb-1.5">
@@ -1058,7 +1058,7 @@ function GapTab({ r }: { r: AuditReport }) {
         </Card>
         <div>
           <Card>
-            <CTitle>Ã¢ÂÂ¡ Quick Wins</CTitle>
+            <CTitle>⚡ Quick Wins</CTitle>
             {g.quickWins.map((item, i) => (
               <div key={i} className="flex gap-3 mb-3 pb-3 border-b last:border-0 last:mb-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--green)' }}>{i + 1}</div>
@@ -1066,9 +1066,9 @@ function GapTab({ r }: { r: AuditReport }) {
               </div>
             ))}
           </Card>
-          <Card><CTitle>Ã°ÂÂÂ Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
+          <Card><CTitle>�ÂÂ Positioning Gap</CTitle><SmartText text={g.positioningGap} /></Card>
           <div className="rounded-xl p-5 border" style={{ background: 'rgba(255,229,0,0.05)', borderColor: 'rgba(255,229,0,0.3)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Top Recommendation</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent2)' }}>★ Top Recommendation</div>
             <SmartText text={g.topRecommendation} color="var(--t1)" className="font-semibold" />
           </div>
         </div>
@@ -1220,7 +1220,7 @@ function CompTab({ r }: { r: AuditReport }) {
           <CTitle>Buyer Anxieties Addressed</CTitle>
           {c.buyerAnxieties.map((b, i) => (
             <div key={i} className="flex gap-2.5 py-1.5 border-b last:border-0 items-start" style={{ borderColor: 'var(--border)' }}>
-              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? '✓' : 'Ã¢ÂÂ'}</span>
+              <span className="text-[12px] mt-0.5 flex-shrink-0" style={{ color: b.addressed ? 'var(--green)' : 'var(--red)' }}>{b.addressed ? '✓' : '✕'}</span>
               <div><div className="text-[12px] font-semibold">{b.anxiety}</div><div className="text-[11px]" style={{ color: 'var(--t3)' }}>{b.note}</div></div>
             </div>
           ))}
@@ -1247,7 +1247,7 @@ function CompTab({ r }: { r: AuditReport }) {
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      {([{ icon: '✓', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: 'Ã¢ÂÂ', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: 'Ã¢ÂÂ', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
+      {([{ icon: '✓', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: '✕', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: '◎', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
         <Card key={s.title}>
           <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: s.bg, color: s.tc }}>{s.icon}</div><div className="text-[14px] font-semibold">{s.title}</div></div>
           <div className="flex flex-col gap-1.5">{s.items.map((item, i) => <Insight key={i} color={s.color} text={item} />)}</div>
@@ -1378,7 +1378,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               }
                 <div className="flex gap-2">
                   <label className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border rounded-lg transition-all bg-[var(--bg3)] border-[var(--border2)] text-[var(--t1)] hover:bg-[var(--bg4)]">
-                    Ã¢ÂÂ Upload
+                    ↑ Upload
                     <input type="file" accept="image/*,.svg" className="hidden" onChange={e => {
                       const file = e.target.files?.[0]
                       if (!file) return
@@ -1420,15 +1420,15 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               {!saved ? (
                 <>
                   <Btn onClick={saveReport} primary>Save Report</Btn>
-                  <Btn onClick={exportPDF}>Ã¢ÂÂ PDF</Btn>
-                  <Btn onClick={exportHTML}>Ã¢ÂÂ HTML</Btn>
+                  <Btn onClick={exportPDF}>↓ PDF</Btn>
+                  <Btn onClick={exportHTML}>↓ HTML</Btn>
                   <Btn danger onClick={() => setResult(null)}>Discard</Btn>
                 </>
               ) : (
                 <>
                   <div className="text-[13px]" style={{ color: 'var(--green)' }}>✓ Saved to Reports</div>
-                  <Btn onClick={exportPDF}>Ã¢ÂÂ PDF</Btn>
-                  <Btn onClick={exportHTML}>Ã¢ÂÂ HTML</Btn>
+                  <Btn onClick={exportPDF}>↓ PDF</Btn>
+                  <Btn onClick={exportHTML}>↓ HTML</Btn>
                 </>
               )}
             </div>
@@ -1592,7 +1592,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         <div className="grid grid-cols-2 gap-3">
           {r.quickWins.map((w, i) => (
             <div key={i} className="flex gap-3 p-3 rounded-lg border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>Ã¢ÂÂ</div>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: w.effort === 'Easy' ? 'rgba(52,211,153,0.2)' : w.effort === 'Medium' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)', color: w.effort === 'Easy' ? 'var(--green)' : w.effort === 'Medium' ? 'var(--amber)' : 'var(--red)' }}>☐</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold mb-1 leading-snug">{w.action}</div>
                 <SmartText text={w.why} color="var(--t3)" className="mb-1.5" />
@@ -1626,7 +1626,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
               )}
               {closing && (
                 <div className="mt-3 p-3 rounded-lg border" style={{ background: 'rgba(255,229,0,0.07)', borderColor: 'rgba(255,229,0,0.35)' }}>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Key Recommendation</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--accent2)' }}>★ Key Recommendation</div>
                   <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{closing}</div>
                 </div>
               )}
@@ -1697,10 +1697,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     return (
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-          <Btn onClick={() => setViewingComp(null)}>Ã¢ÂÂ Back to Reports</Btn>
+          <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
           <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
-          <Btn sm onClick={() => exportComp(viewingComp.id)}>Ã¢ÂÂ Export PDF</Btn>
+          <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
       </>
@@ -1719,7 +1719,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
         {tab === 'audits' && (
           <>
-            {!sorted.length ? <Empty icon="Ã¢ÂÂ" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
+            {!sorted.length ? <Empty icon="⊙" title="No page audits yet" sub="Run a page audit to generate your first report." /> : (
               <Card>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="w-full text-[13px]">
@@ -1738,8 +1738,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                           <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
                             <div className="flex gap-1.5">
                               <Btn sm onClick={() => onView(a)}>View</Btn>
-                              <Btn sm onClick={() => exportAudit(a.id)}>Ã¢ÂÂ PDF</Btn>
-                              <Btn sm onClick={() => exportAuditHTML(a.id)}>Ã¢ÂÂ HTML</Btn>
+                              <Btn sm onClick={() => exportAudit(a.id)}>↓ PDF</Btn>
+                              <Btn sm onClick={() => exportAuditHTML(a.id)}>↓ HTML</Btn>
                               <Btn sm danger onClick={() => { deleteAudit(a.id); onRefresh() }}>Delete</Btn>
                             </div>
                           </td>
@@ -1843,12 +1843,12 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
         </Card>
         <Card>
           <CTitle>Environment Variables</CTitle>
-          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel Ã¢ÂÂ Settings Ã¢ÂÂ Environment Variables</strong>.</p>
+          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel → Settings → Environment Variables</strong>.</p>
           {[{ key: 'ANTHROPIC_API_KEY', desc: 'Claude API key (recommended)', href: 'https://console.anthropic.com' }, { key: 'OPENAI_API_KEY', desc: 'OpenAI API key (alternative)', href: 'https://platform.openai.com' }, { key: 'AI_PROVIDER', desc: "Set to 'anthropic' or 'openai'" }, { key: 'PAGESPEED_API_KEY', desc: 'Google PageSpeed (optional)', href: 'https://console.cloud.google.com' }].map(v => (
             <div key={v.key} className="flex items-center gap-3 mb-2 flex-wrap">
               <code className="font-mono text-[11px] rounded px-1.5 py-0.5 min-w-[180px]" style={{ background: 'var(--bg4)', color: 'var(--accent2)' }}>{v.key}</code>
               <span className="text-[12px]" style={{ color: 'var(--t3)' }}>{v.desc}</span>
-              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Get key</a>}
+              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>→ Get key</a>}
             </div>
           ))}
         </Card>
