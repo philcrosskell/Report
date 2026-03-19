@@ -1862,7 +1862,7 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
 }
 
 
-// ─── The Greats ───────────────────────────────────────────────────────────────
+// ─── The Greats ────────────────────────────────────────────────────────────────
 function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh: () => void }) {
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
@@ -1881,21 +1881,23 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   const run = async () => {
     if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
     setLoading(true); setError(''); setGreats([]); setSelected(new Set()); setAdded(false); setStepIdx(0)
-    const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2500)
+    const timer = setInterval(() => setStepIdx((s: number) => s < STEPS.length - 1 ? s + 1 : s), 2500)
     try {
-      const resp = await fetch('/api/greats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ industry, postcode, suburb, count })
-      })
-      const data = await resp.json()
+      const resp = await fetch('/api/greats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ industry, postcode, suburb, count }) })
+      const data = await resp.json() as { success: boolean; greats?: Record<string, unknown>[]; error?: string }
       clearInterval(timer)
       if (!data.success) throw new Error(data.error || 'Search failed')
       const results: Great[] = (data.greats || []).map((g: Record<string, unknown>) => ({
-        ...g,
-        categories: (g.categories as Record<string, number>) || { seo: 0, ux: 0, conversion: 0, mobile: 0, content: 0, brand: 0 },
-        strengths: (g.strengths as string[]) || [],
-        keyTactics: (g.keyTactics as string[]) || [],
+        businessName: String(g.businessName || ''),
+        website: String(g.website || ''),
+        overallScore: Number(g.overallScore || 0),
+        categories: (g.categories as Record<string, number>) || {},
+        reviewCount: Number(g.reviewCount || 0),
+        reviewRating: Number(g.reviewRating || 0),
+        strengthScore: Number(g.strengthScore || 0),
+        whyTheyRank: String(g.whyTheyRank || ''),
+        strengths: Array.isArray(g.strengths) ? (g.strengths as string[]) : [],
+        keyTactics: Array.isArray(g.keyTactics) ? (g.keyTactics as string[]) : [],
       }))
       const search: GreatsSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results }
       saveGreatsSearch(search)
@@ -1908,18 +1910,18 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   }
 
   const toggleSelect = (i: number) => {
-    setSelected(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s })
+    setSelected((prev: Set<number>) => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s })
     setAdded(false)
   }
 
   const addToProject = () => {
     if (!targetProject || selected.size === 0) return
-    const proj = projects.find(p => p.id === targetProject)
+    const proj = projects.find((p: Project) => p.id === targetProject)
     if (!proj) return
-    const toAdd = [...selected].map(i => greats[i]).filter((g): g is Great => !!g)
-    const newCompetitors = [...(proj.competitors || [])]
-    toAdd.forEach(g => {
-      if (!newCompetitors.find(c => c.url === g.website)) {
+    const toAdd: Great[] = [...selected].map((i: number) => greats[i]).filter((g: Great | undefined): g is Great => g !== undefined)
+    const newCompetitors: Competitor[] = [...(proj.competitors || [])]
+    toAdd.forEach((g: Great) => {
+      if (!newCompetitors.find((c: Competitor) => c.url === g.website)) {
         newCompetitors.push({ name: g.businessName, url: g.website })
       }
     })
@@ -1930,7 +1932,8 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
     setTimeout(() => setAdded(false), 3000)
   }
 
-  const scoreCol = (n: number) => n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
+  const scoreCol = (n: number): string => n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
+  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
 
   return (
     <>
@@ -1953,7 +1956,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <Card>
             <CTitle>Previous searches</CTitle>
             <div className="flex flex-col gap-2 mt-2">
-              {savedSearches.map(s => (
+              {savedSearches.map((s: GreatsSearch) => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
@@ -1973,7 +1976,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
               <Spinner />
               <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}</div>
               <div className="flex flex-col gap-1.5">
-                {STEPS.map((step, i) => (
+                {STEPS.map((step: string, i: number) => (
                   <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
                     <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
                     {step}
@@ -1990,14 +1993,16 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <>
             <div className="flex items-center justify-between mb-3">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
-                {selected.size > 0 ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected</span> : 'Select businesses to add as competitors to a project'}
+                {selected.size > 0
+                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected — pick a project below to add them as competitors</span>
+                  : 'Click cards to select businesses, then add them as competitors to a project'}
               </div>
-              <Btn sm onClick={() => { selected.size === greats.length ? setSelected(new Set()) : setSelected(new Set(greats.map((_, i) => i))) }}>
+              <Btn sm onClick={() => { selected.size === greats.length ? setSelected(new Set()) : setSelected(new Set(greats.map((_: Great, i: number) => i))) }}>
                 {selected.size === greats.length ? 'Deselect all' : 'Select all'}
               </Btn>
             </div>
             <div className="flex flex-col gap-3">
-              {greats.map((g, i) => {
+              {greats.map((g: Great, i: number) => {
                 const isSelected = selected.has(i)
                 return (
                   <div key={i} onClick={() => toggleSelect(i)} className="cursor-pointer transition-all" style={{ borderRadius: 12, border: '2px solid', borderColor: isSelected ? 'var(--accent)' : 'var(--border)', background: isSelected ? 'rgba(255,229,0,0.04)' : 'var(--bg2)', padding: 20 }}>
@@ -2021,11 +2026,11 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      {(['seo','ux','conversion','mobile','content','brand'] as const).map(k => (
+                      {CAT_KEYS.map((k: string) => (
                         <div key={k}>
-                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
+                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase() + k.slice(1)}</div>
                           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                            <div className="h-full rounded-full" style={{ width: ((g.categories?.[k]) || 0) + '%', background: scoreCol((g.categories?.[k]) || 0) }} />
+                            <div className="h-full rounded-full" style={{ width: (g.categories[k] || 0) + '%', background: scoreCol(g.categories[k] || 0) }} />
                           </div>
                         </div>
                       ))}
@@ -2034,7 +2039,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>What they do well</div>
-                        {(g.strengths || []).map((s, j) => (
+                        {g.strengths.map((s: string, j: number) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
                             <span style={{ color: 'var(--green)' }}>✓</span>{s}
                           </div>
@@ -2042,7 +2047,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                       </div>
                       <div>
                         <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
-                        {(g.keyTactics || []).map((t, j) => (
+                        {g.keyTactics.map((t: string, j: number) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
                             <span style={{ color: 'var(--accent)' }}>→</span>{t}
                           </div>
@@ -2063,7 +2068,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <div className="flex-1">
             <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
               <option value="">Add to project...</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {projects.map((p: Project) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <Btn primary onClick={addToProject} disabled={!targetProject}>
