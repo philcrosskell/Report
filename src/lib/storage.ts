@@ -7,6 +7,7 @@ const KEYS = {
   competitorReports: 'auditiq_competitor_reports',
   leadSearches: 'auditiq_lead_searches',
   gbpAudits: 'auditiq_gbp_audits',
+  greatsSearches: 'auditiq_greats_searches',
 }
 
 export const DEFAULT_WEIGHTS: LpWeights = {
@@ -110,3 +111,28 @@ export function saveGbpAudit(a: GbpAudit): void { store(KEYS.gbpAudits, [a, ...g
 export function deleteGbpAudit(id: string): void { store(KEYS.gbpAudits, getGbpAudits().filter(a => a.id !== id)) }
 export function getGbpAuditById(id: string): GbpAudit | undefined { return getGbpAudits().find(a => a.id === id) }
 
+export interface Great {
+  businessName: string
+  website: string
+  overallScore: number
+  categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number }
+  reviewCount: number
+  reviewRating: number
+  strengthScore: number
+  whyTheyRank: string
+  strengths: string[]
+  keyTactics: string[]
+}
+
+export interface GreatsSearch {
+  id: string
+  industry: string
+  postcode: string
+  suburb: string
+  searchedAt: string
+  greats: Great[]
+}
+
+export function getGreatsSearches(): GreatsSearch[] { return load<GreatsSearch[]>(KEYS.greatsSearches, []) }
+export function saveGreatsSearch(s: GreatsSearch): void { store(KEYS.greatsSearches, [s, ...getGreatsSearches().slice(0, 49)]) }
+export function deleteGreatsSearch(id: string): void { store(KEYS.greatsSearches, getGreatsSearches().filter(s => s.id !== id)) }
