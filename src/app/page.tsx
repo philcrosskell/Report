@@ -9,6 +9,7 @@ import {
   getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
   getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
   getGbpAudits, saveGbpAudit, deleteGbpAudit, GbpAudit, GbpAuditData,
+  getGreatsSearches, saveGreatsSearch, deleteGreatsSearch, GreatsSearch, Great,
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
@@ -176,7 +177,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────────
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -187,6 +188,7 @@ const NAV_ICONS: Record<string, string> = {
   competitor: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
   reports: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+  greats: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -220,6 +222,7 @@ export default function Home() {
     { id: 'gbp', label: 'GBP Audit', section: 'Tools' },
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
+    { id: 'greats', label: 'The Greats', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
   ] as const
 
@@ -296,6 +299,7 @@ export default function Home() {
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
         {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
+        {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
     </div>
@@ -1853,6 +1857,222 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
           ))}
         </Card>
       </div>
+    </>
+  )
+}
+
+
+// ─── The Greats ───────────────────────────────────────────────────────────────
+function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh: () => void }) {
+  const [industry, setIndustry] = useState('')
+  const [postcode, setPostcode] = useState('')
+  const [suburb, setSuburb] = useState('')
+  const [count, setCount] = useState('5')
+  const [loading, setLoading] = useState(false)
+  const [greats, setGreats] = useState<Great[]>([])
+  const [error, setError] = useState('')
+  const [stepIdx, setStepIdx] = useState(0)
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [targetProject, setTargetProject] = useState('')
+  const [added, setAdded] = useState(false)
+  const [savedSearches, setSavedSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
+  const STEPS = ['Scanning local market...', 'Finding top performers...', 'Analysing online presence...', 'Scoring GBP signals...', 'Ranking by strength...']
+
+  const run = async () => {
+    if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
+    setLoading(true); setError(''); setGreats([]); setSelected(new Set()); setAdded(false); setStepIdx(0)
+    const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2500)
+    try {
+      const resp = await fetch('/api/greats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ industry, postcode, suburb, count })
+      })
+      const data = await resp.json()
+      clearInterval(timer)
+      if (!data.success) throw new Error(data.error || 'Search failed')
+      const results: Great[] = (data.greats || []).map((g: Record<string, unknown>) => ({
+        ...g,
+        categories: (g.categories as Record<string, number>) || { seo: 0, ux: 0, conversion: 0, mobile: 0, content: 0, brand: 0 },
+        strengths: (g.strengths as string[]) || [],
+        keyTactics: (g.keyTactics as string[]) || [],
+      }))
+      const search: GreatsSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results }
+      saveGreatsSearch(search)
+      setSavedSearches(getGreatsSearches())
+      setGreats(results)
+    } catch (e) {
+      clearInterval(timer)
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+    } finally { setLoading(false) }
+  }
+
+  const toggleSelect = (i: number) => {
+    setSelected(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s })
+    setAdded(false)
+  }
+
+  const addToProject = () => {
+    if (!targetProject || selected.size === 0) return
+    const proj = projects.find(p => p.id === targetProject)
+    if (!proj) return
+    const toAdd = [...selected].map(i => greats[i]).filter(Boolean)
+    const newCompetitors = [...(proj.competitors || [])]
+    toAdd.forEach(g => {
+      if (!newCompetitors.find(c => c.url === g.website)) {
+        newCompetitors.push({ name: g.businessName, url: g.website })
+      }
+    })
+    const { updateProject } = require('@/lib/storage') as typeof import('@/lib/storage')
+    updateProject({ ...proj, competitors: newCompetitors })
+    onRefresh()
+    setAdded(true)
+    setSelected(new Set())
+    setTimeout(() => setAdded(false), 3000)
+  }
+
+  const scoreCol = (n: number) => n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
+
+  return (
+    <>
+      <TopBar title="The Greats" sub="Find the best businesses in any market — learn what makes them rank" />
+      <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.size > 0 ? 96 : 24 }}>
+        <Card>
+          <CTitle>Find top performers</CTitle>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury" className="inp w-full" /></div>
+            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
+          </div>
+          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find The Greats'}</Btn>
+        </Card>
+
+        {savedSearches.length > 0 && greats.length === 0 && !loading && (
+          <Card>
+            <CTitle>Previous searches</CTitle>
+            <div className="flex flex-col gap-2 mt-2">
+              {savedSearches.map(s => (
+                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                  </div>
+                  <Btn sm onClick={() => { setGreats(s.greats); setSelected(new Set()) }}>Load</Btn>
+                  <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>✕</Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {loading && (
+          <Card>
+            <div className="flex flex-col items-center py-6 gap-4">
+              <Spinner />
+              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}</div>
+              <div className="flex flex-col gap-1.5">
+                {STEPS.map((step, i) => (
+                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
+                    <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
+                    {step}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
+
+        {greats.length > 0 && (
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
+                {selected.size > 0 ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected</span> : 'Select businesses to add as competitors to a project'}
+              </div>
+              <Btn sm onClick={() => { selected.size === greats.length ? setSelected(new Set()) : setSelected(new Set(greats.map((_, i) => i))) }}>
+                {selected.size === greats.length ? 'Deselect all' : 'Select all'}
+              </Btn>
+            </div>
+            <div className="flex flex-col gap-3">
+              {greats.map((g, i) => {
+                const isSelected = selected.has(i)
+                return (
+                  <div key={i} onClick={() => toggleSelect(i)} className="cursor-pointer transition-all" style={{ borderRadius: 12, border: '2px solid', borderColor: isSelected ? 'var(--accent)' : 'var(--border)', background: isSelected ? 'rgba(255,229,0,0.04)' : 'var(--bg2)', padding: 20 }}>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center" style={{ borderColor: isSelected ? 'var(--accent)' : 'var(--t3)', background: isSelected ? 'var(--accent)' : 'transparent' }}>
+                          {isSelected && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent)' }}>★ Top performer</span>
+                        </div>
+                        <div className="text-[11px] font-mono" style={{ color: 'var(--t3)' }}>{g.website}</div>
+                        {g.reviewCount > 0 && <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>★ {g.reviewRating} · {g.reviewCount} reviews</div>}
+                      </div>
+                      <div className="text-center flex-shrink-0">
+                        <div className="text-[28px] font-bold leading-none" style={{ color: scoreCol(g.overallScore) }}>{g.overallScore}</div>
+                        <div className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: 'var(--t3)' }}>strength</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {(['seo','ux','conversion','mobile','content','brand'] as const).map(k => (
+                        <div key={k}>
+                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
+                          <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                            <div className="h-full rounded-full" style={{ width: ((g.categories?.[k]) || 0) + '%', background: scoreCol((g.categories?.[k]) || 0) }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mb-2 pl-3 text-[12px] italic" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>What they do well</div>
+                        {(g.strengths || []).map((s, j) => (
+                          <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
+                            <span style={{ color: 'var(--green)' }}>✓</span>{s}
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
+                        {(g.keyTactics || []).map((t, j) => (
+                          <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
+                            <span style={{ color: 'var(--accent)' }}>→</span>{t}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {selected.size > 0 && (
+        <div className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}>
+          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.size} business{selected.size !== 1 ? 'es' : ''} selected</div>
+          <div className="flex-1">
+            <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
+              <option value="">Add to project...</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <Btn primary onClick={addToProject} disabled={!targetProject}>
+            {added ? '✓ Added!' : '→ Add as competitors'}
+          </Btn>
+          <Btn onClick={() => setSelected(new Set())}>Cancel</Btn>
+        </div>
+      )}
     </>
   )
 }
