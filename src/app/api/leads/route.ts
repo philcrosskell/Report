@@ -16,38 +16,42 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const client = new Anthropic()
-    const location = suburb ? suburb + ' ' + postcode + ' Australia' : postcode + ' Australia'
+    const location = suburb ? suburb + ' ' + postcode : postcode
+    const locationFull = suburb ? suburb + ' NSW ' + postcode : 'NSW ' + postcode
     const n = parseInt(count || '5')
 
     const response = await (client.messages as AnyRecord).create({
       model: 'claude-sonnet-4-6',
       max_tokens: 3000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      system: 'You are a digital marketing analyst finding real local businesses with weak online presence. Search for real businesses, then evaluate their websites. Output only raw JSON — no markdown, no backticks.',
+      system: 'You are a local business researcher. Find real businesses using local directories and Google Maps. Never include businesses that just have SEO landing pages targeting the area without a real physical presence. Output only raw JSON.',
       messages: [{
         role: 'user',
-        content: `Search Google to find REAL ${industry} businesses that actually exist in ${location}.
+        content: `I need to find REAL ${industry} businesses that are genuinely located in ${locationFull} Australia. NOT businesses that just have SEO pages targeting the area.
 
-Do 2-3 searches:
-1. Search: "${industry} ${suburb || postcode} NSW" to find actual local businesses
-2. Search: "${industry} near ${suburb || postcode}" to find more
-3. Search: "${industry} ${suburb || postcode} contact" to find ones with websites
+Search these sources specifically:
+1. Search: site:yellowpages.com.au "${industry}" "${location}"
+2. Search: site:localsearch.com.au "${industry}" "${location}"  
+3. Search: "${industry}" "${location}" "NSW" -site:jezweb.com.au -site:niftywebsites.com.au -site:simplepixels.com.au
 
-Find ${n} REAL businesses that actually exist in or near ${location} that match the search keyword "${industry}". Only include businesses with real websites. Focus on finding ones with a WEAK online presence — outdated sites, few reviews, poor SEO — as these are the best prospects to pitch digital marketing services to.
+From the results, find ${n} businesses that:
+- Have a real physical address in ${location} area
+- Are NOT just national agencies with local landing pages
+- Actually operate in the ${location} region
 
-Return ONLY a raw JSON array (no markdown) of ${n} objects, each with:
-- businessName: real business name you found
-- website: their actual website URL (must start with https://, or use their Facebook/Google listing URL if no website)
+Return ONLY a raw JSON array of ${n} objects:
+- businessName: real business name
+- website: their actual website URL (https://...) or their directory listing URL if no website
 - industry: "${industry}"
-- overallScore: integer 20-55 (how weak is their online presence — lower = weaker = better prospect)
-- categories: object with keys seo, ux, conversion, mobile, content, brand (each 20-60)
+- overallScore: integer 15-55 (how weak is their digital presence)
+- categories: object with keys seo, ux, conversion, mobile, content, brand (each 15-60)
 - criticalIssues: integer 2-6
 - opportunityScore: integer 6-9
 - pitchHook: max 8 words describing their main weakness
-- issues: array of exactly 2 short strings describing specific weaknesses
-- opportunities: array of exactly 1 short string describing the biggest opportunity
+- issues: array of 2 short strings
+- opportunities: array of 1 short string
 
-Only include businesses that actually exist in or near ${location}. Start response with [ now.`
+Start with [`
       }]
     })
 
@@ -58,18 +62,15 @@ Only include businesses that actually exist in or near ${location}. Start respon
 
     const start = rawText.indexOf('[')
     const end = rawText.lastIndexOf(']')
-
     if (start === -1 || end === -1) {
-      return NextResponse.json({ success: false, error: 'No results — please try again' }, { status: 422 })
+      return NextResponse.json({ success: false, error: 'No results found — please try again' }, { status: 422 })
     }
 
-    const jsonStr = rawText.substring(start, end + 1)
     let prospects: AnyRecord[] = []
-
     try {
-      prospects = JSON.parse(jsonStr) as AnyRecord[]
+      prospects = JSON.parse(rawText.substring(start, end + 1)) as AnyRecord[]
     } catch {
-      const objMatches = jsonStr.match(/\{[^{}]+\}/g)
+      const objMatches = rawText.substring(start, end + 1).match(/\{[^{}]+\}/g)
       if (objMatches) {
         for (const m of objMatches) {
           try { prospects.push(JSON.parse(m) as AnyRecord) } catch { continue }
