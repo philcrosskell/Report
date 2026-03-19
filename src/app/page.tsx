@@ -1923,7 +1923,6 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         newCompetitors.push({ name: g.businessName, url: g.website })
       }
     })
-    const { updateProject } = require('@/lib/storage') as typeof import('@/lib/storage')
     updateProject({ ...proj, competitors: newCompetitors })
     onRefresh()
     setAdded(true)
