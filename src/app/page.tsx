@@ -417,7 +417,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                   <div className="text-[24px] font-bold" style={{ color: scoreCol(p.overallScore) }}>{p.overallScore}</div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  {(['seo','ux','conversion','mobile','content','brand']).map(k => (
+                  {(['seo','ux','conversion','mobile','content','brand']).map((k: string) => (
                     <div key={k}>
                       <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
                       <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
@@ -1916,7 +1916,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
     if (!targetProject || selected.size === 0) return
     const proj = projects.find(p => p.id === targetProject)
     if (!proj) return
-    const toAdd = [...selected].map(i => greats[i]).filter(Boolean)
+    const toAdd = [...selected].map(i => greats[i]).filter((g): g is Great => !!g)
     const newCompetitors = [...(proj.competitors || [])]
     toAdd.forEach(g => {
       if (!newCompetitors.find(c => c.url === g.website)) {
