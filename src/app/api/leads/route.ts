@@ -33,7 +33,7 @@ Do 2-3 searches:
 2. Search: "${industry} near ${suburb || postcode}" to find more
 3. Search: "${industry} ${suburb || postcode} contact" to find ones with websites
 
-Find ${n} REAL businesses that actually exist in or near ${location}. Only include businesses with real websites. Focus on finding ones with a WEAK online presence — outdated sites, few reviews, poor SEO — as these are the best prospects to pitch digital marketing services to.
+Find ${n} REAL businesses that actually exist in or near ${location} that match the search keyword "${industry}". Only include businesses with real websites. Focus on finding ones with a WEAK online presence — outdated sites, few reviews, poor SEO — as these are the best prospects to pitch digital marketing services to.
 
 Return ONLY a raw JSON array (no markdown) of ${n} objects, each with:
 - businessName: real business name you found
