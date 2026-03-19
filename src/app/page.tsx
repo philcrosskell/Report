@@ -1819,3 +1819,40 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     </>
   )
 }
+
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Settings Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeights) => void }) {
+  const [w, setW] = useState(weights)
+  const total = Object.values(w).reduce((a, b) => a + b, 0)
+  const labels: Record<keyof LpWeights, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
+  return (
+    <>
+      <TopBar title="Settings" sub="Configure scoring weights and API keys" />
+      <div className="flex-1 overflow-y-auto p-6">
+        <Card>
+          <CTitle>LP Scoring Weights</CTitle>
+          <p className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Total should equal 100. Current: <strong style={{ color: total === 100 ? 'var(--green)' : 'var(--red)' }}>{total}</strong></p>
+          {(Object.keys(w) as (keyof LpWeights)[]).map(k => (
+            <div key={k} className="flex items-center gap-3 mb-3">
+              <span className="text-[13px] min-w-[200px]" style={{ color: 'var(--t2)' }}>{labels[k]}</span>
+              <input type="range" min="0" max="40" step="1" value={w[k]} onChange={e => setW({ ...w, [k]: parseInt(e.target.value) })} style={{ flex: 1, padding: 0, height: 4 }} />
+              <span className="font-mono text-[12px] min-w-[28px]" style={{ color: 'var(--accent2)' }}>{w[k]}</span>
+            </div>
+          ))}
+          <Btn primary cls="mt-2" onClick={() => { onSave(w); alert('Weights saved.') }}>Save Weights</Btn>
+        </Card>
+        <Card>
+          <CTitle>Environment Variables</CTitle>
+          <p className="text-[12px] mb-4 leading-relaxed" style={{ color: 'var(--t3)' }}>Set in <code className="font-mono rounded px-1" style={{ background: 'var(--bg3)' }}>.env.local</code> locally, or <strong>Vercel Ã¢ÂÂ Settings Ã¢ÂÂ Environment Variables</strong>.</p>
+          {[{ key: 'ANTHROPIC_API_KEY', desc: 'Claude API key (recommended)', href: 'https://console.anthropic.com' }, { key: 'OPENAI_API_KEY', desc: 'OpenAI API key (alternative)', href: 'https://platform.openai.com' }, { key: 'AI_PROVIDER', desc: "Set to 'anthropic' or 'openai'" }, { key: 'PAGESPEED_API_KEY', desc: 'Google PageSpeed (optional)', href: 'https://console.cloud.google.com' }].map(v => (
+            <div key={v.key} className="flex items-center gap-3 mb-2 flex-wrap">
+              <code className="font-mono text-[11px] rounded px-1.5 py-0.5 min-w-[180px]" style={{ background: 'var(--bg4)', color: 'var(--accent2)' }}>{v.key}</code>
+              <span className="text-[12px]" style={{ color: 'var(--t3)' }}>{v.desc}</span>
+              {'href' in v && <a href={v.href} target="_blank" rel="noreferrer" className="text-[12px] ml-auto" style={{ color: 'var(--accent2)' }}>Ã¢ÂÂ Get key</a>}
+            </div>
+          ))}
+        </Card>
+      </div>
+    </>
+  )
+}
