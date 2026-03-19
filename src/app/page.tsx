@@ -1735,8 +1735,8 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                       <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                     </div>
                     <span className="text-[13px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>{sc.overall}</span>
-                    <Btn sm onClick={() => setView('gbp')}>View</Btn>
-                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setGbpAudits(getGbpAudits()) }}>✕</Btn>
+                    
+                    <Btn sm danger onClick={() => { deleteGbpAudit(a.id); onRefresh() }}>✕</Btn>
                   </div>
                 )
               })}
