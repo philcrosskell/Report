@@ -1862,7 +1862,7 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
 }
 
 
-// ─── The Greats ────────────────────────────────────────────────────────────────
+// --- The Greats ------------------------------------------------------------------
 function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh: () => void }) {
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
@@ -1872,18 +1872,23 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   const [greats, setGreats] = useState<Great[]>([])
   const [error, setError] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
-  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [selected, setSelected] = useState<Set<number>>(new Set<number>())
   const [targetProject, setTargetProject] = useState('')
   const [added, setAdded] = useState(false)
   const [savedSearches, setSavedSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
   const STEPS = ['Scanning local market...', 'Finding top performers...', 'Analysing online presence...', 'Scoring GBP signals...', 'Ranking by strength...']
+  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
 
   const run = async () => {
     if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
-    setLoading(true); setError(''); setGreats([]); setSelected(new Set()); setAdded(false); setStepIdx(0)
-    const timer = setInterval(() => setStepIdx((s: number) => s < STEPS.length - 1 ? s + 1 : s), 2500)
+    setLoading(true); setError(''); setGreats([]); setSelected(new Set<number>()); setAdded(false); setStepIdx(0)
+    const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2500)
     try {
-      const resp = await fetch('/api/greats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ industry, postcode, suburb, count }) })
+      const resp = await fetch('/api/greats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ industry, postcode, suburb, count })
+      })
       const data = await resp.json() as { success: boolean; greats?: Record<string, unknown>[]; error?: string }
       clearInterval(timer)
       if (!data.success) throw new Error(data.error || 'Search failed')
@@ -1899,7 +1904,10 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         strengths: Array.isArray(g.strengths) ? (g.strengths as string[]) : [],
         keyTactics: Array.isArray(g.keyTactics) ? (g.keyTactics as string[]) : [],
       }))
-      const search: GreatsSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results }
+      const search: GreatsSearch = {
+        id: Date.now().toString(), industry, postcode,
+        suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results
+      }
       saveGreatsSearch(search)
       setSavedSearches(getGreatsSearches())
       setGreats(results)
@@ -1910,60 +1918,89 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   }
 
   const toggleSelect = (i: number) => {
-    setSelected((prev: Set<number>) => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s })
+    setSelected(prev => {
+      const s = new Set<number>(prev)
+      s.has(i) ? s.delete(i) : s.add(i)
+      return s
+    })
     setAdded(false)
   }
 
   const addToProject = () => {
     if (!targetProject || selected.size === 0) return
-    const proj = projects.find((p: Project) => p.id === targetProject)
+    const proj = projects.find(p => p.id === targetProject)
     if (!proj) return
-    const toAdd: Great[] = [...selected].map((i: number) => greats[i]).filter((g: Great | undefined): g is Great => g !== undefined)
+    const toAdd: Great[] = [...selected]
+      .map(i => greats[i])
+      .filter((g): g is Great => g !== undefined)
     const newCompetitors: Competitor[] = [...(proj.competitors || [])]
-    toAdd.forEach((g: Great) => {
-      if (!newCompetitors.find((c: Competitor) => c.url === g.website)) {
+    toAdd.forEach(g => {
+      if (!newCompetitors.find(c => c.url === g.website)) {
         newCompetitors.push({ name: g.businessName, url: g.website })
       }
     })
     updateProject({ ...proj, competitors: newCompetitors })
     onRefresh()
     setAdded(true)
-    setSelected(new Set())
+    setSelected(new Set<number>())
     setTimeout(() => setAdded(false), 3000)
   }
 
-  const scoreCol = (n: number): string => n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
-  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
+  const scoreCol = (n: number): string =>
+    n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
 
   return (
     <>
-      <TopBar title="The Greats" sub="Find the best businesses in any market — learn what makes them rank" />
+      <TopBar title="The Greats" sub="Find the best businesses in any market and learn what makes them rank" />
       <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.size > 0 ? 96 : 24 }}>
+
         <Card>
           <CTitle>Find top performers</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
+            <div>
+              <Lbl>Industry *</Lbl>
+              <input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" />
+            </div>
+            <div>
+              <Lbl>Postcode *</Lbl>
+              <input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury" className="inp w-full" /></div>
-            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
+            <div>
+              <Lbl>Suburb (optional)</Lbl>
+              <input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury" className="inp w-full" />
+            </div>
+            <div>
+              <Lbl>Results</Lbl>
+              <select value={count} onChange={e => setCount(e.target.value)} className="inp w-full">
+                <option value="3">3 businesses</option>
+                <option value="5">5 businesses</option>
+                <option value="8">8 businesses</option>
+              </select>
+            </div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find The Greats'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>
+            {loading ? 'Searching...' : 'Find The Greats'}
+          </Btn>
         </Card>
 
         {savedSearches.length > 0 && greats.length === 0 && !loading && (
           <Card>
             <CTitle>Previous searches</CTitle>
             <div className="flex flex-col gap-2 mt-2">
-              {savedSearches.map((s: GreatsSearch) => (
+              {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>
+                      {s.industry} &middot; {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}
+                    </div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>
+                      {s.greats.length} businesses &middot; {new Date(s.searchedAt).toLocaleDateString('en-AU')}
+                    </div>
                   </div>
-                  <Btn sm onClick={() => { setGreats(s.greats); setSelected(new Set()) }}>Load</Btn>
-                  <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>✕</Btn>
+                  <Btn sm onClick={() => { setGreats(s.greats); setSelected(new Set<number>()) }}>Load</Btn>
+                  <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>X</Btn>
                 </div>
               ))}
             </div>
@@ -1976,7 +2013,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
               <Spinner />
               <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}</div>
               <div className="flex flex-col gap-1.5">
-                {STEPS.map((step: string, i: number) => (
+                {STEPS.map((step, i) => (
                   <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
                     <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
                     {step}
@@ -1987,69 +2024,113 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           </Card>
         )}
 
-        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
+        {error && (
+          <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>
+        )}
 
         {greats.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-3">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
                 {selected.size > 0
-                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected — pick a project below to add them as competitors</span>
-                  : 'Click cards to select businesses, then add them as competitors to a project'}
+                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected &mdash; pick a project below</span>
+                  : 'Click cards to select, then add as competitors to a project'}
               </div>
-              <Btn sm onClick={() => { selected.size === greats.length ? setSelected(new Set()) : setSelected(new Set(greats.map((_: Great, i: number) => i))) }}>
+              <Btn sm onClick={() => {
+                selected.size === greats.length
+                  ? setSelected(new Set<number>())
+                  : setSelected(new Set<number>(greats.map((_, i) => i)))
+              }}>
                 {selected.size === greats.length ? 'Deselect all' : 'Select all'}
               </Btn>
             </div>
+
             <div className="flex flex-col gap-3">
-              {greats.map((g: Great, i: number) => {
-                const isSelected = selected.has(i)
+              {greats.map((g, i) => {
+                const isSel = selected.has(i)
                 return (
-                  <div key={i} onClick={() => toggleSelect(i)} className="cursor-pointer transition-all" style={{ borderRadius: 12, border: '2px solid', borderColor: isSelected ? 'var(--accent)' : 'var(--border)', background: isSelected ? 'rgba(255,229,0,0.04)' : 'var(--bg2)', padding: 20 }}>
+                  <div
+                    key={i}
+                    onClick={() => toggleSelect(i)}
+                    className="cursor-pointer"
+                    style={{
+                      borderRadius: 12, padding: 20,
+                      border: '2px solid ' + (isSel ? 'var(--accent)' : 'var(--border)'),
+                      background: isSel ? 'rgba(255,229,0,0.04)' : 'var(--bg2)'
+                    }}
+                  >
                     <div className="flex items-start gap-3 mb-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center" style={{ borderColor: isSelected ? 'var(--accent)' : 'var(--t3)', background: isSelected ? 'var(--accent)' : 'transparent' }}>
-                          {isSelected && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
+                        <div
+                          className="w-5 h-5 rounded border-2 flex items-center justify-center"
+                          style={{
+                            borderColor: isSel ? 'var(--accent)' : 'var(--t3)',
+                            background: isSel ? 'var(--accent)' : 'transparent'
+                          }}
+                        >
+                          {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>&#10003;</span>}
                         </div>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent)' }}>★ Top performer</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent)' }}>
+                            Top performer
+                          </span>
                         </div>
                         <div className="text-[11px] font-mono" style={{ color: 'var(--t3)' }}>{g.website}</div>
-                        {g.reviewCount > 0 && <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>★ {g.reviewRating} · {g.reviewCount} reviews</div>}
+                        {g.reviewCount > 0 && (
+                          <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>
+                            {g.reviewRating} &middot; {g.reviewCount} reviews
+                          </div>
+                        )}
                       </div>
                       <div className="text-center flex-shrink-0">
-                        <div className="text-[28px] font-bold leading-none" style={{ color: scoreCol(g.overallScore) }}>{g.overallScore}</div>
+                        <div className="text-[28px] font-bold leading-none" style={{ color: scoreCol(g.overallScore) }}>
+                          {g.overallScore}
+                        </div>
                         <div className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: 'var(--t3)' }}>strength</div>
                       </div>
                     </div>
+
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      {CAT_KEYS.map((k: string) => (
+                      {CAT_KEYS.map(k => (
                         <div key={k}>
-                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase() + k.slice(1)}</div>
+                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>
+                            {k.charAt(0).toUpperCase() + k.slice(1)}
+                          </div>
                           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                            <div className="h-full rounded-full" style={{ width: (g.categories[k] || 0) + '%', background: scoreCol(g.categories[k] || 0) }} />
+                            <div className="h-full rounded-full" style={{
+                              width: (g.categories[k] || 0) + '%',
+                              background: scoreCol(g.categories[k] || 0)
+                            }} />
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="mb-2 pl-3 text-[12px] italic" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</div>
+
+                    <div className="mb-2 pl-3 text-[12px] italic" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>
+                      {g.whyTheyRank}
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>What they do well</div>
-                        {g.strengths.map((s: string, j: number) => (
+                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>
+                          What they do well
+                        </div>
+                        {g.strengths.map((s, j) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--green)' }}>✓</span>{s}
+                            <span style={{ color: 'var(--green)' }}>&#10003;</span>{s}
                           </div>
                         ))}
                       </div>
                       <div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
-                        {g.keyTactics.map((t: string, j: number) => (
+                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>
+                          Tactics to borrow
+                        </div>
+                        {g.keyTactics.map((t, j) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--accent)' }}>→</span>{t}
+                            <span style={{ color: 'var(--accent)' }}>&rarr;</span>{t}
                           </div>
                         ))}
                       </div>
@@ -2063,18 +2144,25 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
       </div>
 
       {selected.size > 0 && (
-        <div className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}>
-          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.size} business{selected.size !== 1 ? 'es' : ''} selected</div>
+        <div
+          className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3"
+          style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}
+        >
+          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>
+            {selected.size} business{selected.size !== 1 ? 'es' : ''} selected
+          </div>
           <div className="flex-1">
             <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
               <option value="">Add to project...</option>
-              {projects.map((p: Project) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
             </select>
           </div>
           <Btn primary onClick={addToProject} disabled={!targetProject}>
-            {added ? '✓ Added!' : '→ Add as competitors'}
+            {added ? 'Added!' : 'Add as competitors'}
           </Btn>
-          <Btn onClick={() => setSelected(new Set())}>Cancel</Btn>
+          <Btn onClick={() => setSelected(new Set<number>())}>Cancel</Btn>
         </div>
       )}
     </>
