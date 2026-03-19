@@ -298,8 +298,8 @@ export default function Home() {
         {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
-        {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
+        {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
     </div>
@@ -417,7 +417,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                   <div className="text-[24px] font-bold" style={{ color: scoreCol(p.overallScore) }}>{p.overallScore}</div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  {(['seo','ux','conversion','mobile','content','brand']).map((k: string) => (
+                  {(['seo','ux','conversion','mobile','content','brand'] as const).map(k => (
                     <div key={k}>
                       <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
                       <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
@@ -1862,7 +1862,6 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
 }
 
 
-// --- The Greats ------------------------------------------------------------------
 function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh: () => void }) {
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
@@ -1872,16 +1871,15 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   const [greats, setGreats] = useState<Great[]>([])
   const [error, setError] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
-  const [selected, setSelected] = useState<Set<number>>(new Set<number>())
+  const [selected, setSelected] = useState<number[]>([])
   const [targetProject, setTargetProject] = useState('')
   const [added, setAdded] = useState(false)
   const [savedSearches, setSavedSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
   const STEPS = ['Scanning local market...', 'Finding top performers...', 'Analysing online presence...', 'Scoring GBP signals...', 'Ranking by strength...']
-  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
 
   const run = async () => {
     if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
-    setLoading(true); setError(''); setGreats([]); setSelected(new Set<number>()); setAdded(false); setStepIdx(0)
+    setLoading(true); setError(''); setGreats([]); setSelected([]); setAdded(false); setStepIdx(0)
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2500)
     try {
       const resp = await fetch('/api/greats', {
@@ -1889,7 +1887,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ industry, postcode, suburb, count })
       })
-      const data = await resp.json() as { success: boolean; greats?: Record<string, unknown>[]; error?: string }
+      const data = await resp.json()
       clearInterval(timer)
       if (!data.success) throw new Error(data.error || 'Search failed')
       const results: Great[] = (data.greats || []).map((g: Record<string, unknown>) => ({
@@ -1904,85 +1902,56 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         strengths: Array.isArray(g.strengths) ? (g.strengths as string[]) : [],
         keyTactics: Array.isArray(g.keyTactics) ? (g.keyTactics as string[]) : [],
       }))
-      const search: GreatsSearch = {
-        id: Date.now().toString(), industry, postcode,
-        suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results
-      }
+      const search: GreatsSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results }
       saveGreatsSearch(search)
       setSavedSearches(getGreatsSearches())
       setGreats(results)
-    } catch (e) {
+    } catch(e) {
       clearInterval(timer)
       setError(e instanceof Error ? e.message : 'Something went wrong')
     } finally { setLoading(false) }
   }
 
   const toggleSelect = (i: number) => {
-    setSelected(prev => {
-      const s = new Set<number>(prev)
-      s.has(i) ? s.delete(i) : s.add(i)
-      return s
-    })
+    setSelected(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])
     setAdded(false)
   }
 
   const addToProject = () => {
-    if (!targetProject || selected.size === 0) return
+    if (!targetProject || selected.length === 0) return
     const proj = projects.find(p => p.id === targetProject)
     if (!proj) return
-    const toAdd: Great[] = [...selected]
-      .map(i => greats[i])
-      .filter((g): g is Great => g !== undefined)
-    const newCompetitors: Competitor[] = [...(proj.competitors || [])]
-    toAdd.forEach(g => {
-      if (!newCompetitors.find(c => c.url === g.website)) {
-        newCompetitors.push({ name: g.businessName, url: g.website })
+    const newComps: Competitor[] = [...(proj.competitors || [])]
+    selected.forEach(i => {
+      const g = greats[i]
+      if (g && !newComps.find(c => c.url === g.website)) {
+        newComps.push({ name: g.businessName, url: g.website })
       }
     })
-    updateProject({ ...proj, competitors: newCompetitors })
+    updateProject({ ...proj, competitors: newComps })
     onRefresh()
     setAdded(true)
-    setSelected(new Set<number>())
+    setSelected([])
     setTimeout(() => setAdded(false), 3000)
   }
 
-  const scoreCol = (n: number): string =>
-    n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
+  const scoreCol = (n: number) => n >= 80 ? 'var(--green)' : n >= 60 ? 'var(--accent)' : 'var(--red)'
 
   return (
     <>
-      <TopBar title="The Greats" sub="Find the best businesses in any market and learn what makes them rank" />
-      <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.size > 0 ? 96 : 24 }}>
-
+      <TopBar title="The Greats" sub="Find the best businesses in any market to use as competitor benchmarks" />
+      <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Find top performers</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <Lbl>Industry *</Lbl>
-              <input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" />
-            </div>
-            <div>
-              <Lbl>Postcode *</Lbl>
-              <input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" />
-            </div>
+            <div><Lbl>Industry *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. plumber, dentist, gym" className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div>
-              <Lbl>Suburb (optional)</Lbl>
-              <input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury" className="inp w-full" />
-            </div>
-            <div>
-              <Lbl>Results</Lbl>
-              <select value={count} onChange={e => setCount(e.target.value)} className="inp w-full">
-                <option value="3">3 businesses</option>
-                <option value="5">5 businesses</option>
-                <option value="8">8 businesses</option>
-              </select>
-            </div>
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury" className="inp w-full" /></div>
+            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>
-            {loading ? 'Searching...' : 'Find The Greats'}
-          </Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find The Greats'}</Btn>
         </Card>
 
         {savedSearches.length > 0 && greats.length === 0 && !loading && (
@@ -1992,14 +1961,10 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
               {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>
-                      {s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}
-                    </div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>
-                      {s.greats.length} businesses · {new Date(s.searchedAt).toLocaleDateString('en-AU')}
-                    </div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses found</div>
                   </div>
-                  <Btn sm onClick={() => { setGreats(s.greats); setSelected(new Set<number>()) }}>Load</Btn>
+                  <Btn sm onClick={() => { setGreats(s.greats); setSelected([]) }}>Load</Btn>
                   <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>X</Btn>
                 </div>
               ))}
@@ -2011,7 +1976,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <Card>
             <div className="flex flex-col items-center py-6 gap-4">
               <Spinner />
-              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}</div>
+              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
               <div className="flex flex-col gap-1.5">
                 {STEPS.map((step, i) => (
                   <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
@@ -2024,145 +1989,73 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           </Card>
         )}
 
-        {error && (
-          <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>
-        )}
+        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {greats.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
-                {selected.size > 0
-                  ? <span style={{ color: 'var(--accent)' }}>{selected.size} selected — pick a project below</span>
-                  : 'Click cards to select, then add as competitors to a project'}
-              </div>
-              <Btn sm onClick={() => {
-                selected.size === greats.length
-                  ? setSelected(new Set<number>())
-                  : setSelected(new Set<number>(greats.map((_, i) => i)))
-              }}>
-                {selected.size === greats.length ? 'Deselect all' : 'Select all'}
+          <div className="flex flex-col gap-3 mt-4">
+            <div className="flex items-center justify-between px-1">
+              <p className="text-[12px]" style={{ color: 'var(--t3)' }}>
+                {selected.length > 0
+                  ? selected.length + ' selected — choose a project below to add as competitors'
+                  : 'Click a card to select businesses, then add them to a project'}
+              </p>
+              <Btn sm onClick={() => selected.length === greats.length ? setSelected([]) : setSelected(greats.map((_, i) => i))}>
+                {selected.length === greats.length ? 'Deselect all' : 'Select all'}
               </Btn>
             </div>
-
-            <div className="flex flex-col gap-3">
-              {greats.map((g, i) => {
-                const isSel = selected.has(i)
-                return (
-                  <div
-                    key={i}
-                    onClick={() => toggleSelect(i)}
-                    className="cursor-pointer"
-                    style={{
-                      borderRadius: 12, padding: 20,
-                      border: '2px solid ' + (isSel ? 'var(--accent)' : 'var(--border)'),
-                      background: isSel ? 'rgba(255,229,0,0.04)' : 'var(--bg2)'
-                    }}
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <div
-                          className="w-5 h-5 rounded border-2 flex items-center justify-center"
-                          style={{
-                            borderColor: isSel ? 'var(--accent)' : 'var(--t3)',
-                            background: isSel ? 'var(--accent)' : 'transparent'
-                          }}
-                        >
-                          {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,229,0,0.12)', color: 'var(--accent)' }}>
-                            Top performer
-                          </span>
-                        </div>
-                        <div className="text-[11px] font-mono" style={{ color: 'var(--t3)' }}>{g.website}</div>
-                        {g.reviewCount > 0 && (
-                          <div className="text-[11px] mt-1" style={{ color: 'var(--t3)' }}>
-                            {g.reviewRating} · {g.reviewCount} reviews
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-center flex-shrink-0">
-                        <div className="text-[28px] font-bold leading-none" style={{ color: scoreCol(g.overallScore) }}>
-                          {g.overallScore}
-                        </div>
-                        <div className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: 'var(--t3)' }}>strength</div>
-                      </div>
+            {greats.map((g, i) => {
+              const isSel = selected.includes(i)
+              return (
+                <Card key={i} cls={isSel ? 'ring-2 ring-[var(--accent)]' : ''}>
+                  <div className="flex items-center gap-3 mb-2" onClick={() => toggleSelect(i)} style={{ cursor: 'pointer' }}>
+                    <div className="w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center" style={{ borderColor: isSel ? 'var(--accent)' : 'var(--t3)', background: isSel ? 'var(--accent)' : 'transparent' }}>
+                      {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
                     </div>
-
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {CAT_KEYS.map(k => (
-                        <div key={k}>
-                          <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>
-                            {k.charAt(0).toUpperCase() + k.slice(1)}
-                          </div>
-                          <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                            <div className="h-full rounded-full" style={{
-                              width: (g.categories[k] || 0) + '%',
-                              background: scoreCol(g.categories[k] || 0)
-                            }} />
-                          </div>
-                        </div>
-                      ))}
+                    <div className="flex-1">
+                      <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{g.website}</div>
                     </div>
-
-                    <div className="mb-2 pl-3 text-[12px] italic" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>
-                      {g.whyTheyRank}
+                    <div className="text-[24px] font-bold" style={{ color: scoreCol(g.overallScore) }}>{g.overallScore}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {(['seo','ux','conversion','mobile','content','brand'] as const).map(k => (
+                      <div key={k}>
+                        <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
+                        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                          <div className="h-full rounded-full" style={{ width: (g.categories[k]||0)+'%', background: scoreCol(g.categories[k]||0) }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[12px] mb-2 pl-3 italic" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>What they do well</div>
+                      {g.strengths.map((s, j) => <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}><span style={{ color: 'var(--green)' }}>+</span>{s}</div>)}
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>
-                          What they do well
-                        </div>
-                        {g.strengths.map((s, j) => (
-                          <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--green)' }}>✓</span>{s}
-                          </div>
-                        ))}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>
-                          Tactics to borrow
-                        </div>
-                        {g.keyTactics.map((t, j) => (
-                          <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--accent)' }}>→</span>{t}
-                          </div>
-                        ))}
-                      </div>
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
+                      {g.keyTactics.map((t, j) => <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}><span style={{ color: 'var(--accent)' }}>*</span>{t}</div>)}
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </>
+                </Card>
+              )
+            })}
+          </div>
         )}
       </div>
 
-      {selected.size > 0 && (
-        <div
-          className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3"
-          style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}
-        >
-          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>
-            {selected.size} business{selected.size !== 1 ? 'es' : ''} selected
-          </div>
+      {selected.length > 0 && (
+        <div className="border-t px-6 py-4 flex items-center gap-3 flex-shrink-0" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2 }}>
+          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.length} selected</div>
           <div className="flex-1">
             <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
-              <option value="">Add to project...</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
+              <option value="">Add to project as competitors...</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
-          <Btn primary onClick={addToProject} disabled={!targetProject}>
-            {added ? 'Added!' : 'Add as competitors'}
-          </Btn>
-          <Btn onClick={() => setSelected(new Set<number>())}>Cancel</Btn>
+          <Btn primary onClick={addToProject} disabled={!targetProject}>{added ? 'Added!' : 'Add to project'}</Btn>
+          <Btn onClick={() => setSelected([])}>Cancel</Btn>
         </div>
       )}
     </>
