@@ -2068,7 +2068,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                             background: isSel ? 'var(--accent)' : 'transparent'
                           }}
                         >
-                          {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>&#10003;</span>}
+                          {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
                         </div>
                       </div>
                       <div className="flex-1">
@@ -2120,7 +2120,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
                         </div>
                         {g.strengths.map((s, j) => (
                           <div key={j} className="flex gap-1.5 text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>
-                            <span style={{ color: 'var(--green)' }}>&#10003;</span>{s}
+                            <span style={{ color: 'var(--green)' }}>✓</span>{s}
                           </div>
                         ))}
                       </div>
