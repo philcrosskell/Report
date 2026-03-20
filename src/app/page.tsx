@@ -14,6 +14,12 @@ import {
 } from '@/lib/storage'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
+function normaliseUrl(v: string): string {
+  if (!v) return v
+  const t = v.trim()
+  if (t.startsWith('http://') || t.startsWith('https://')) return t
+  return 'https://' + t
+}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
@@ -361,7 +367,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find prospects'}</Btn>
@@ -404,7 +410,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {prospects.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-3 mt-4">
             {prospects.map((p, i) => (
               <Card key={i}>
                 <div className="flex items-center gap-3 mb-2">
@@ -711,11 +717,18 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
-            <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+        <div className="grid grid-cols-6 gap-3 mb-5">
+          {([
+            ['Projects', projects.length, 'var(--accent2)', 'projects'],
+            ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
+            ['GBP Audits', gbpAudits.length, 'var(--accent)', 'reports'],
+            ['Competitor Analysis', competitorReports.length, 'var(--green)', 'competitor'],
+            ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
+            ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
+          ] as [string, number, string, string][]).map(([l, v, col, target]) => (
+            <div key={l} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
             </div>
           ))}
         </div>
@@ -778,8 +791,8 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
           <Card>
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
+              <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" onBlur={e => { const v = normaliseUrl(e.target.value); e.target.value = v }} /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -998,7 +1011,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         </div>
       </Card>
 
-      <div className="flex gap-1 border-b mb-5 flex-wrap" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex gap-1 border-b mt-5 mb-6 flex-wrap" style={{ borderColor: 'var(--border)' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => changeTab(t.id)}
             className="px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-all whitespace-nowrap"
@@ -1418,7 +1431,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
-                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
+                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Analysis Report</div>
                 <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
@@ -1445,7 +1458,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
   )
 }
 
-// ─── Competitor Intelligence Report View ──────────────────────────────────────
+// ─── Competitor Analysis Report View ──────────────────────────────────────
 function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
@@ -1455,7 +1468,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report · {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report · {r.date}</div>
           </div>
         </div>
       )}
@@ -1644,7 +1657,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
-  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor'>('audits')
+  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor' | 'leads' | 'greats'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
   const [viewingGbp, setViewingGbp] = useState<GbpAudit | null>(null)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
@@ -1703,7 +1716,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
           <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
-          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
+          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Analysis</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
           <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
@@ -1713,12 +1726,14 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page · ${gbpAudits.length} GBP · ${compReports.length} competitor · ${leadSearches.length} leads · ${greatsSearches.length} greats`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
           <Btn onClick={() => setTab('gbp')} primary={tab === 'gbp'}>GBP Audits ({gbpAudits.length})</Btn>
-          <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Intelligence ({compReports.length})</Btn>
+          <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Analysis ({compReports.length})</Btn>
+          <Btn onClick={() => setTab('leads')} primary={tab === 'leads'}>Lead Machine ({leadSearches.length})</Btn>
+          <Btn onClick={() => setTab('greats')} primary={tab === 'greats'}>The Greats ({greatsSearches.length})</Btn>
         </div>
 
         {tab === 'audits' && (
@@ -1817,6 +1832,68 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                 </table>
               </Card>
             )}
+          </>
+        )}
+
+        {tab === 'leads' && (
+          <>
+            {leadSearches.length === 0
+              ? <Card><Empty icon="⊙" title="No lead searches yet" sub="Run Lead Machine to find prospects." /></Card>
+              : leadSearches.map(s => (
+                <Card key={s.id}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {s.prospects.length} prospects</div>
+                    </div>
+                    <Btn sm danger onClick={() => { deleteLeadSearch(s.id); refresh() }}>Delete</Btn>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {s.prospects.map((p: Record<string, unknown>, i: number) => (
+                      <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{String(p.businessName)}</div>
+                          <div className="text-[20px] font-bold" style={{ color: 'var(--red)' }}>{String(p.overallScore)}</div>
+                        </div>
+                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{String(p.website)}</div>
+                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{String(p.pitchHook || '')}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))
+            }
+          </>
+        )}
+
+        {tab === 'greats' && (
+          <>
+            {greatsSearches.length === 0
+              ? <Card><Empty icon="⊙" title="No Greats searches yet" sub="Run The Greats to find top performers." /></Card>
+              : greatsSearches.map(s => (
+                <Card key={s.id}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {s.greats.length} businesses</div>
+                    </div>
+                    <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); refresh() }}>Delete</Btn>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {s.greats.map((g: Record<string, unknown>, i: number) => (
+                      <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{String(g.businessName)}</div>
+                          <div className="text-[20px] font-bold" style={{ color: 'var(--green)' }}>{String(g.overallScore)}</div>
+                        </div>
+                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{String(g.website)}</div>
+                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{String(g.whyTheyRank || '')}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))
+            }
           </>
         )}
       </div>
@@ -1972,7 +2049,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {greats.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="flex items-center justify-between">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
                 {selected.length > 0
