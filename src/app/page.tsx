@@ -713,7 +713,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
-        <divclassName="grid grid-cols-6 gap-3 mb-5">
+        <div className="grid grid-cols-6 gap-3 mb-5">
           {([
             {l:'Projects', v:projects.length, col:'var(--accent2)', t:'projects'},
             {l:'Pages Audited', v:audits.length, col:'var(--t1)', t:'audit'},
