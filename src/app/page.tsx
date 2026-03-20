@@ -14,8 +14,7 @@ import {
 } from '@/lib/storage'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
-function navTo(view: string, setter: (v: View) => void) { setter(view as View) }
-function normaliseUrl(v: string): string {
+function normaliseUrl(v) {
   if (!v) return v
   const t = v.trim()
   if (t.startsWith('http://') || t.startsWith('https://')) return t
@@ -731,7 +730,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
           ].map(([l, v, col, target]) => (
-            <div key={String(l)} onClick={() => navTo(String(target), setView)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div key={String(l)} onClick={() => (setView as Function)(target)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: String(col) }}>{String(v)}</div>
             </div>
