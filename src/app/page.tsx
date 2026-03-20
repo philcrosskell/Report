@@ -361,7 +361,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching...' : '⟳ Find prospects'}</Btn>
@@ -778,8 +778,8 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
           <Card>
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
+              <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -998,7 +998,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         </div>
       </Card>
 
-      <div className="flex gap-1 border-b mb-5 flex-wrap" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex gap-1 border-b mt-6 mb-6 flex-wrap" style={{ borderColor: 'var(--border)' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => changeTab(t.id)}
             className="px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-all whitespace-nowrap"
@@ -1418,7 +1418,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <div className="flex items-center gap-3 mb-4 p-4 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
-                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Intelligence Report</div>
+                <div className="text-[13px] font-semibold">{result.businessName} — Competitor Analysis Report</div>
                 <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
@@ -1445,7 +1445,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
   )
 }
 
-// ─── Competitor Intelligence Report View ──────────────────────────────────────
+// ─── Competitor Analysis Report View ──────────────────────────────────────
 function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceReport; brandLogo?: string }) {
   return (
     <div>
@@ -1455,7 +1455,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Intelligence Report · {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report · {r.date}</div>
           </div>
         </div>
       )}
@@ -1703,7 +1703,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
           <Btn onClick={() => setViewingComp(null)}>← Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
-          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Intelligence</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
+          <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} — Competitor Analysis</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
           <Btn sm onClick={() => exportComp(viewingComp.id)}>↓ Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
@@ -1718,7 +1718,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
           <Btn onClick={() => setTab('gbp')} primary={tab === 'gbp'}>GBP Audits ({gbpAudits.length})</Btn>
-          <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Intelligence ({compReports.length})</Btn>
+          <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Analysis ({compReports.length})</Btn>
         </div>
 
         {tab === 'audits' && (
