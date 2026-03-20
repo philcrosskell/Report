@@ -14,12 +14,6 @@ import {
 } from '@/lib/storage'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
-function normaliseUrl(v) {
-  if (!v) return v
-  const t = v.trim()
-  if (t.startsWith('http://') || t.startsWith('https://')) return t
-  return 'https://' + t
-}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
@@ -204,10 +198,8 @@ export default function Home() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
-  const [leadSearches, setLeadSearches] = useState<LeadSearch[]>(() => getLeadSearches())
-  const [greatsSearches, setGreatsSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
-  const [leadSearches, setLeadSearches] = useState<any[]>(() => getLeadSearches())
-  const [greatsSearches, setGreatsSearches] = useState<any[]>(() => getGreatsSearches())
+  const [leadSearches, setLeadSearches] = useState(() => getLeadSearches())
+  const [greatsSearches, setGreatsSearches] = useState(() => getGreatsSearches())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
@@ -722,17 +714,17 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <divclassName="grid grid-cols-6 gap-3 mb-5">
-          {[
-            ['Projects', projects.length, 'var(--accent2)', 'projects'],
-            ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
-            ['GBP Audits', gbpAudits.length, 'var(--accent)', 'reports'],
-            ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
-            ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
-            ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
-          ].map(([l, v, col, target]) => (
-            <div key={String(l)} onClick={() => (setView as Function)(target)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          {([
+            {l:'Projects', v:projects.length, col:'var(--accent2)', t:'projects'},
+            {l:'Pages Audited', v:audits.length, col:'var(--t1)', t:'audit'},
+            {l:'GBP Audits', v:gbpAudits.length, col:'var(--accent)', t:'reports'},
+            {l:'Competitor Analysis', v:compReports.length, col:'var(--green)', t:'competitor'},
+            {l:'Lead Searches', v:leadSearches.length, col:'var(--amber)', t:'lead'},
+            {l:'The Greats', v:greatsSearches.length, col:'var(--accent)', t:'greats'},
+          ]).map(({l, v, col, t}) => (
+            <div key={l} onClick={() => setView(t)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: String(col) }}>{String(v)}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
             </div>
           ))}
         </div>
@@ -796,7 +788,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -1359,8 +1351,8 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
           {mode === 'manual' ? (
             <>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
-                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
+                <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
+                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
               </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
@@ -1947,7 +1939,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find The Greats'}</Btn>
