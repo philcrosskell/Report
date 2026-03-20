@@ -13,12 +13,6 @@ import {
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
-function normaliseUrl(v) {
-  if (!v) return v
-  const t = v.trim()
-  if (t.startsWith('http://') || t.startsWith('https://')) return t
-  return 'https://' + t
-}
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -364,7 +358,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
           <CTitle>Find prospects</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
@@ -678,7 +672,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
           <CTitle>Audit a Google Business Profile</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
-            <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, NSW" className="inp w-full" /></div>
+            <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching GBP...' : '⟳ Run GBP Audit'}</Btn>
           {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
@@ -718,22 +712,12 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
-          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Projects</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent2)' }}>{projects.length}</div>
-          </div>
-          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Pages Audited</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--t1)' }}>{audits.length}</div>
-          </div>
-          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>GBP Audits</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{gbpAudits.length}</div>
-          </div>
-          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Competitor Analysis</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--green)' }}>{compReports.length}</div>
-          </div>
+          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
+            <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+              <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
+            </div>
+          ))}
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
@@ -795,7 +779,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -896,12 +880,12 @@ const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO
         <Card>
           <CTitle>Audit any URL</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Page URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="https://example.com/any-page" /></div>
+            <div><Lbl>Page URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://example.com/any-page" /></div>
             <div><Lbl>Page Label (optional)</Lbl><input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Homepage, Pricing" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Industry (optional)</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Digital marketing agency" className="inp w-full" /></div>
-            <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
+            <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Melbourne, VIC" className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
@@ -1359,7 +1343,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} onBlur={e => setBizUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
               </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
@@ -1941,7 +1925,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <CTitle>Find top performers</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
