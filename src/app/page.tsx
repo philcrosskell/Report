@@ -13,6 +13,12 @@ import {
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
 
+function normaliseUrl(v) {
+  if (!v) return v
+  const t = v.trim()
+  if (t.startsWith('http://') || t.startsWith('https://')) return t
+  return 'https://' + t
+}
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -779,13 +785,13 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
               <div key={i} className="grid grid-cols-2 gap-3 mb-2.5">
-                <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></div>
-                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} type="url" /></div>
+                <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, name: e.target.value } : x))} /></div>
+                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, url: e.target.value } : x))} type="url" /></div>
               </div>
             ))}
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
@@ -880,7 +886,7 @@ const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO
         <Card>
           <CTitle>Audit any URL</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Page URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="https://example.com/any-page" /></div>
+            <div><Lbl>Page URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="https://example.com/any-page" /></div>
             <div><Lbl>Page Label (optional)</Lbl><input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Homepage, Pricing" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-3">
@@ -1343,14 +1349,14 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} onBlur={e => setBizUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
               </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
               {comps.map((c, i) => (
                 <div key={i} className="grid grid-cols-2 gap-3 mb-2.5">
-                  <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="e.g. Rival Co" /></div>
-                  <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} type="url" placeholder="https://rival.com" /></div>
+                  <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, name: e.target.value } : x))} placeholder="e.g. Rival Co" /></div>
+                  <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, url: e.target.value } : x))} type="url" placeholder="https://rival.com" /></div>
                 </div>
               ))}
             </>
