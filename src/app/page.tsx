@@ -1734,7 +1734,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page · ${gbpAudits.length} GBP · ${compReports.length} competitor · ${leadSearches.length} leads · ${greatsSearches.length} greats`} />
+      <TopBar title="Reports" sub={`${audits.length} page | ${gbpAudits.length} GBP | ${compReports.length} competitor | ${leadSearches.length} leads | ${greatsSearches.length} greats`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
