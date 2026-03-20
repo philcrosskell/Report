@@ -358,7 +358,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
           <CTitle>Find prospects</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
@@ -885,7 +885,7 @@ const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO
           </div>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Industry (optional)</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Digital marketing agency" className="inp w-full" /></div>
-            <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Melbourne, VIC" className="inp w-full" /></div>
+            <div><Lbl>Location (optional)</Lbl><input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
@@ -1925,7 +1925,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
           <CTitle>Find top performers</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 2640" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
