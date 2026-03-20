@@ -198,8 +198,6 @@ export default function Home() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
-  const [leadSearches, setLeadSearches] = useState(() => getLeadSearches())
-  const [greatsSearches, setGreatsSearches] = useState(() => getGreatsSearches())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
@@ -406,7 +404,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {prospects.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             {prospects.map((p, i) => (
               <Card key={i}>
                 <div className="flex items-center gap-3 mb-2">
@@ -713,32 +711,13 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-6 gap-3 mb-5">
-          <div onClick={() => setView('projects')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Projects</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent2)' }}>{projects.length}</div>
-          </div>
-          <div onClick={() => setView('audit')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Pages Audited</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--t1)' }}>{audits.length}</div>
-          </div>
-          <div onClick={() => setView('reports')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>GBP Audits</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{gbpAudits.length}</div>
-          </div>
-          <div onClick={() => setView('competitor')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Competitor Analysis</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--green)' }}>{compReports.length}</div>
-          </div>
-          <div onClick={() => setView('lead')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Lead Searches</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--amber)' }}>{leadSearches.length}</div>
-          </div>
-          <div onClick={() => setView('greats')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>The Greats</div>
-            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{greatsSearches.length}</div>
-          </div>
-        </div>
+        <div className="grid grid-cols-4 gap-3 mb-5">
+          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
+            <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+              <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
+            </div>
+          ))}
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
@@ -1363,8 +1342,8 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
           {mode === 'manual' ? (
             <>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+                <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Acme Corp" /></div>
+                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="https://acmecorp.com" /></div>
               </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
@@ -1665,7 +1644,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
-  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor' | 'leads' | 'greats'>('audits')
+  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
   const [viewingGbp, setViewingGbp] = useState<GbpAudit | null>(null)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
@@ -1734,14 +1713,12 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page | ${gbpAudits.length} GBP | ${compReports.length} competitor | ${leadSearches.length} leads | ${greatsSearches.length} greats`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
           <Btn onClick={() => setTab('gbp')} primary={tab === 'gbp'}>GBP Audits ({gbpAudits.length})</Btn>
           <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Analysis ({compReports.length})</Btn>
-          <Btn onClick={() => setTab('leads')} primary={tab === 'leads'}>Lead Machine ({leadSearches.length})</Btn>
-          <Btn onClick={() => setTab('greats')} primary={tab === 'greats'}>The Greats ({greatsSearches.length})</Btn>
         </div>
 
         {tab === 'audits' && (
@@ -1951,7 +1928,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
             <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Melbourne" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find The Greats'}</Btn>
@@ -1995,7 +1972,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {greats.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             <div className="flex items-center justify-between">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
                 {selected.length > 0
