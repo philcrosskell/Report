@@ -790,8 +790,8 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
               <div key={i} className="grid grid-cols-2 gap-3 mb-2.5">
-                <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, name: e.target.value } : x))} /></div>
-                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, url: e.target.value } : x))} type="url" /></div>
+                <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></div>
+                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} type="url" /></div>
               </div>
             ))}
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
@@ -1355,8 +1355,8 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               <SectionDivider label="Competitors" />
               {comps.map((c, i) => (
                 <div key={i} className="grid grid-cols-2 gap-3 mb-2.5">
-                  <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, name: e.target.value } : x))} placeholder="e.g. Rival Co" /></div>
-                  <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j)) => j === i ? { ...x, url: e.target.value } : x))} type="url" placeholder="https://rival.com" /></div>
+                  <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="e.g. Rival Co" /></div>
+                  <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} type="url" placeholder="https://rival.com" /></div>
                 </div>
               ))}
             </>
