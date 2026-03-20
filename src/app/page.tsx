@@ -207,7 +207,7 @@ export default function Home() {
 
   useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
-    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setLeadSearches(getLeadSearches()); setGreatsSearches(getGreatsSearches()); setReady(true)
+    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setReady(true)
   }, [])
 
   const refresh = useCallback(() => {
