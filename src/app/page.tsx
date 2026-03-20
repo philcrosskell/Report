@@ -719,7 +719,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-6 gap-3 mb-5">
+        <divclassName="grid grid-cols-6 gap-3 mb-5">
           {([
             ['Projects', projects.length, 'var(--accent2)', 'projects'],
             ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
@@ -1013,7 +1013,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         </div>
       </Card>
 
-      <div className="flex gap-1 border-b mt-5 mb-6 flex-wrap" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex gap-1 border-b mt-6 mb-6 flex-wrap" style={{ borderColor: 'var(--border)' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => changeTab(t.id)}
             className="px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-all whitespace-nowrap"
@@ -1836,29 +1836,32 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
             )}
           </>
         )}
+      </div>
+    </>
+  )
 
         {tab === 'leads' && (
           <>
             {leadSearches.length === 0
               ? <Card><Empty icon="⊙" title="No lead searches yet" sub="Run Lead Machine to find prospects." /></Card>
-              : leadSearches.map(s => (
+              : leadSearches.map((s: LeadSearch) => (
                 <Card key={s.id}>
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {s.prospects.length} prospects</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {(s.prospects || []).length} prospects</div>
                     </div>
-                    <Btn sm danger onClick={() => { deleteLeadSearch(s.id); refresh() }}>Delete</Btn>
+                    <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setLeadSearches(getLeadSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {s.prospects.map((p: Record<string, unknown>, i: number) => (
+                    {(s.prospects || []).map((p: LeadSearch['prospects'][0], i: number) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
-                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{String(p.businessName)}</div>
-                          <div className="text-[20px] font-bold" style={{ color: 'var(--red)' }}>{String(p.overallScore)}</div>
+                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
+                          <div className="text-[18px] font-bold" style={{ color: 'var(--red)' }}>{p.overallScore}</div>
                         </div>
-                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{String(p.website)}</div>
-                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{String(p.pitchHook || '')}</div>
+                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{p.website}</div>
+                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{p.pitchHook || ''}</div>
                       </div>
                     ))}
                   </div>
@@ -1872,24 +1875,24 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
           <>
             {greatsSearches.length === 0
               ? <Card><Empty icon="⊙" title="No Greats searches yet" sub="Run The Greats to find top performers." /></Card>
-              : greatsSearches.map(s => (
+              : greatsSearches.map((s: GreatsSearch) => (
                 <Card key={s.id}>
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {s.greats.length} businesses</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {(s.greats || []).length} businesses</div>
                     </div>
-                    <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); refresh() }}>Delete</Btn>
+                    <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setGreatsSearches(getGreatsSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {s.greats.map((g: Record<string, unknown>, i: number) => (
+                    {(s.greats || []).map((g: Great, i: number) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
-                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{String(g.businessName)}</div>
-                          <div className="text-[20px] font-bold" style={{ color: 'var(--green)' }}>{String(g.overallScore)}</div>
+                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
+                          <div className="text-[18px] font-bold" style={{ color: 'var(--green)' }}>{g.overallScore}</div>
                         </div>
-                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{String(g.website)}</div>
-                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{String(g.whyTheyRank || '')}</div>
+                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{g.website}</div>
+                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{g.whyTheyRank || ''}</div>
                       </div>
                     ))}
                   </div>
@@ -1898,9 +1901,6 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
             }
           </>
         )}
-      </div>
-    </>
-  )
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
