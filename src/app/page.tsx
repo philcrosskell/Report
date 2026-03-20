@@ -672,7 +672,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
           <CTitle>Audit a Google Business Profile</CTitle>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
-            <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
+            <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, NSW" className="inp w-full" /></div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? '⟳ Searching GBP...' : '⟳ Run GBP Audit'}</Btn>
           {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
