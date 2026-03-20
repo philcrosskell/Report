@@ -204,6 +204,8 @@ export default function Home() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
+  const [leadSearches, setLeadSearches] = useState<LeadSearch[]>(() => getLeadSearches())
+  const [greatsSearches, setGreatsSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
@@ -211,7 +213,7 @@ export default function Home() {
 
   useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
-    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setReady(true)
+    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setLeadSearches(getLeadSearches()); setGreatsSearches(getGreatsSearches()); setReady(true)
   }, [])
 
   const refresh = useCallback(() => {
@@ -722,7 +724,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
             ['Projects', projects.length, 'var(--accent2)', 'projects'],
             ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
             ['GBP Audits', gbpAudits.length, 'var(--accent)', 'reports'],
-            ['Competitor Analysis', competitorReports.length, 'var(--green)', 'competitor'],
+            ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
           ] as [string, number, string, string][]).map(([l, v, col, target]) => (
