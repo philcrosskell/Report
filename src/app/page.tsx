@@ -14,6 +14,12 @@ import {
 } from '@/lib/storage'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
+function normaliseUrl(v: string): string {
+  if (!v) return v
+  const t = v.trim()
+  if (t.startsWith('http://') || t.startsWith('https://')) return t
+  return 'https://' + t
+}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
@@ -198,6 +204,8 @@ export default function Home() {
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
+  const [leadSearches, setLeadSearches] = useState<LeadSearch[]>(() => getLeadSearches())
+  const [greatsSearches, setGreatsSearches] = useState<GreatsSearch[]>(() => getGreatsSearches())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
@@ -205,7 +213,7 @@ export default function Home() {
 
   useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
-    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setReady(true)
+    setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setLeadSearches(getLeadSearches()); setGreatsSearches(getGreatsSearches()); setReady(true)
   }, [])
 
   const refresh = useCallback(() => {
@@ -404,7 +412,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {prospects.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-3 mt-4">
             {prospects.map((p, i) => (
               <Card key={i}>
                 <div className="flex items-center gap-3 mb-2">
@@ -711,11 +719,18 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
         <div className="flex gap-2"><Btn onClick={onAudit}>⟳ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
-            <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+        <divclassName="grid grid-cols-6 gap-3 mb-5">
+          {[
+            ['Projects', projects.length, 'var(--accent2)', 'projects'],
+            ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
+            ['GBP Audits', gbpAudits.length, 'var(--accent)', 'reports'],
+            ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
+            ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
+            ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
+          ].map(([l, v, col, target]) => (
+            <div key={String(l)} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: String(col) }}>{String(v)}</div>
             </div>
           ))}
         </div>
@@ -779,7 +794,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -1644,7 +1659,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 function Reports({ audits, compReports, projects, onRefresh, onView }: { audits: Audit[]; compReports: SavedCompetitorReport[]; projects: Project[]; onRefresh: () => void; onView: (a: Audit) => void }) {
-  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor'>('audits')
+  const [tab, setTab] = useState<'audits' | 'gbp' | 'competitor' | 'leads' | 'greats'>('audits')
   const [viewingComp, setViewingComp] = useState<SavedCompetitorReport | null>(null)
   const [viewingGbp, setViewingGbp] = useState<GbpAudit | null>(null)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
@@ -1713,12 +1728,14 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page · ${gbpAudits.length} GBP · ${compReports.length} competitor · ${leadSearches.length} leads · ${greatsSearches.length} greats`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
           <Btn onClick={() => setTab('gbp')} primary={tab === 'gbp'}>GBP Audits ({gbpAudits.length})</Btn>
           <Btn onClick={() => setTab('competitor')} primary={tab === 'competitor'}>Competitor Analysis ({compReports.length})</Btn>
+          <Btn onClick={() => setTab('leads')} primary={tab === 'leads'}>Lead Machine ({leadSearches.length})</Btn>
+          <Btn onClick={() => setTab('greats')} primary={tab === 'greats'}>The Greats ({greatsSearches.length})</Btn>
         </div>
 
         {tab === 'audits' && (
@@ -1972,7 +1989,7 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
         {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
 
         {greats.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="flex items-center justify-between">
               <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
                 {selected.length > 0
