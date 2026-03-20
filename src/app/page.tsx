@@ -15,8 +15,7 @@ import {
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 function normaliseUrl(v: string): string {
-  if (!v) return v
-  const t = v.trim()
+  if (!v) return v; const t = v.trim()
   if (t.startsWith('http://') || t.startsWith('https://')) return t
   return 'https://' + t
 }
@@ -720,17 +719,17 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <divclassName="grid grid-cols-6 gap-3 mb-5">
-          {([
+          {[
             ['Projects', projects.length, 'var(--accent2)', 'projects'],
             ['Pages Audited', audits.length, 'var(--t1)', 'audit'],
             ['GBP Audits', gbpAudits.length, 'var(--accent)', 'reports'],
             ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
-          ]).map(([l, v, col, target]) => (
-            <div key={l} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          ].map(([l, v, col, target]) => (
+            <div key={String(l)} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
+              <div className="text-3xl font-semibold leading-none" style={{ color: String(col) }}>{String(v)}</div>
             </div>
           ))}
         </div>
@@ -794,7 +793,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? `Edit — ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" onBlur={e => { const v = normaliseUrl(e.target.value); e.target.value = v }} /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(normaliseUrl(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
@@ -1839,68 +1838,6 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
       </div>
     </>
   )
-
-        {tab === 'leads' && (
-          <>
-            {leadSearches.length === 0
-              ? <Card><Empty icon="⊙" title="No lead searches yet" sub="Run Lead Machine to find prospects." /></Card>
-              : leadSearches.map((s) => (
-                <Card key={s.id}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {(s.prospects || []).length} prospects</div>
-                    </div>
-                    <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setLeadSearches(getLeadSearches()) }}>Delete</Btn>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(s.prospects || []).map((p, i) => (
-                      <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
-                          <div className="text-[18px] font-bold" style={{ color: 'var(--red)' }}>{p.overallScore}</div>
-                        </div>
-                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{p.website}</div>
-                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{p.pitchHook || ''}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ))
-            }
-          </>
-        )}
-
-        {tab === 'greats' && (
-          <>
-            {greatsSearches.length === 0
-              ? <Card><Empty icon="⊙" title="No Greats searches yet" sub="Run The Greats to find top performers." /></Card>
-              : greatsSearches.map((s) => (
-                <Card key={s.id}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{new Date(s.searchedAt).toLocaleDateString('en-AU')} · {(s.greats || []).length} businesses</div>
-                    </div>
-                    <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setGreatsSearches(getGreatsSearches()) }}>Delete</Btn>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(s.greats || []).map((g, i) => (
-                      <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
-                          <div className="text-[18px] font-bold" style={{ color: 'var(--green)' }}>{g.overallScore}</div>
-                        </div>
-                        <div className="text-[11px] mb-1" style={{ color: 'var(--t3)' }}>{g.website}</div>
-                        <div className="text-[11px] italic" style={{ color: 'var(--accent)' }}>{g.whyTheyRank || ''}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ))
-            }
-          </>
-        )}
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
