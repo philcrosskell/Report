@@ -1854,7 +1854,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                     <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setLeadSearches(getLeadSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {(s.prospects || []).map((p: LeadSearch['prospects'][0], i: number) => (
+                    {(s.prospects || []).map((p: any, i: number) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
@@ -1885,7 +1885,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                     <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setGreatsSearches(getGreatsSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {(s.greats || []).map((g: Great, i: number) => (
+                    {(s.greats || []).map((g: any, i: number) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
