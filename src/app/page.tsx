@@ -714,19 +714,31 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-6 gap-3 mb-5">
-          {([
-            {l:'Projects', v:projects.length, col:'var(--accent2)', t:'projects'},
-            {l:'Pages Audited', v:audits.length, col:'var(--t1)', t:'audit'},
-            {l:'GBP Audits', v:gbpAudits.length, col:'var(--accent)', t:'reports'},
-            {l:'Competitor Analysis', v:compReports.length, col:'var(--green)', t:'competitor'},
-            {l:'Lead Searches', v:leadSearches.length, col:'var(--amber)', t:'lead'},
-            {l:'The Greats', v:greatsSearches.length, col:'var(--accent)', t:'greats'},
-          ]).map(({l, v, col, t}) => (
-            <div key={l} onClick={() => setView(t)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-              <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
-            </div>
-          ))}
+          <div onClick={() => setView('projects')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Projects</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent2)' }}>{projects.length}</div>
+          </div>
+          <div onClick={() => setView('audit')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Pages Audited</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--t1)' }}>{audits.length}</div>
+          </div>
+          <div onClick={() => setView('reports')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>GBP Audits</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{gbpAudits.length}</div>
+          </div>
+          <div onClick={() => setView('competitor')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Competitor Analysis</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--green)' }}>{compReports.length}</div>
+          </div>
+          <div onClick={() => setView('lead')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Lead Searches</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--amber)' }}>{leadSearches.length}</div>
+          </div>
+          <div onClick={() => setView('greats')} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>The Greats</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{greatsSearches.length}</div>
+          </div>
+        </div>
         </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
