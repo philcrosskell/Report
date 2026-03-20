@@ -730,7 +730,7 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
           ].map(([l, v, col, target]) => (
-            <div key={String(l)} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div key={String(l)} onClick={() => { const dest = target as unknown as View; setView(dest) }} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: String(col) }}>{String(v)}</div>
             </div>
