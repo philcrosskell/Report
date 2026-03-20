@@ -727,8 +727,8 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
             ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
-          ] as [string, number, string, string][]).map(([l, v, col, target]) => (
-            <div key={l} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          ]).map(([l, v, col, target]: [string, number, string, string]) => (
+            <div key={l} onClick={() => setView(target as unknown as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
             </div>
