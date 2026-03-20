@@ -727,8 +727,8 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
             ['Competitor Analysis', compReports.length, 'var(--green)', 'competitor'],
             ['Lead Searches', leadSearches.length, 'var(--amber)', 'lead'],
             ['The Greats', greatsSearches.length, 'var(--accent)', 'greats'],
-          ]).map(([l, v, col, target]: [string, number, string, string]) => (
-            <div key={l} onClick={() => setView(target as unknown as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+          ]).map(([l, v, col, target]) => (
+            <div key={l} onClick={() => setView(target as View)} className="rounded-xl p-4 border cursor-pointer transition-opacity hover:opacity-80" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
               <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-3xl font-semibold leading-none" style={{ color: col }}>{v}</div>
             </div>
@@ -1844,7 +1844,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
           <>
             {leadSearches.length === 0
               ? <Card><Empty icon="⊙" title="No lead searches yet" sub="Run Lead Machine to find prospects." /></Card>
-              : leadSearches.map((s: LeadSearch) => (
+              : leadSearches.map((s) => (
                 <Card key={s.id}>
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -1854,7 +1854,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                     <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setLeadSearches(getLeadSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {(s.prospects || []).map((p: any, i: number) => (
+                    {(s.prospects || []).map((p, i) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
@@ -1875,7 +1875,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
           <>
             {greatsSearches.length === 0
               ? <Card><Empty icon="⊙" title="No Greats searches yet" sub="Run The Greats to find top performers." /></Card>
-              : greatsSearches.map((s: GreatsSearch) => (
+              : greatsSearches.map((s) => (
                 <Card key={s.id}>
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -1885,7 +1885,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
                     <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setGreatsSearches(getGreatsSearches()) }}>Delete</Btn>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {(s.greats || []).map((g: any, i: number) => (
+                    {(s.greats || []).map((g, i) => (
                       <div key={i} className="rounded-lg p-3 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
