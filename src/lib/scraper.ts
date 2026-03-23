@@ -43,6 +43,9 @@ export interface ScrapedPage {
   phoneNumbers: string[]
   emailAddresses: string[]
   isSinglePageSite: boolean
+  questionHeadings: number
+  listCount: number
+  tableCount: number
   error?: string
 }
 
@@ -59,6 +62,9 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     hasFavicon: false, hasCanonical: false, robots: '', charset: '', serverHeader: '',
     hasHreflang: false, navLinksCount: 0, ctaButtonCount: 0, phoneNumbers: [], emailAddresses: [],
     isSinglePageSite: false,
+  questionHeadings: 0,
+  listCount: 0,
+  tableCount: 0,
   }
 
   try {
@@ -225,6 +231,12 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     // Email addresses
     const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) ?? []
     blank.emailAddresses = [...new Set(emailMatches)].slice(0, 3)
+
+    // AEO signals
+    const allHeadings = [...blank.h1, ...blank.h2, ...blank.h3]
+    blank.questionHeadings = allHeadings.filter(h => /^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(h.trim())).length
+    blank.listCount = (html.match(/<[uo]l[\s>]/gi) ?? []).length
+    blank.tableCount = (html.match(/<table[\s>]/gi) ?? []).length
 
     return blank
   } catch (err) {
