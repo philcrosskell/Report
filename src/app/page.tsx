@@ -881,7 +881,7 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
   }
 }, [])
 
-const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+const TABS = [{ id: 'gap', label: '⚡ Gap Analysis' }, { id: 'aeo', label: '🤖 AEO' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
   return (
     <>
@@ -997,6 +997,12 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
               <div className="text-[22px] font-bold" style={{ color: sc(v) }}>{v}</div>
             </div>
           ))}
+          {r.aeoScore && (
+            <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--accent)' }}>
+              <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent)' }}>AEO Score</div>
+              <div className="text-[22px] font-bold" style={{ color: sc(r.aeoScore.total) }}>{r.aeoScore.total}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/40</span></div>
+            </div>
+          )}
           <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
             <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Grade</div>
             <div className="text-[22px] font-bold" style={{ color: gcol(r.scores.grade) }}>{r.scores.grade}</div>
@@ -1018,7 +1024,48 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         ))}
       </div>
 
-      {tab === 'gap' && <GapTab r={r} />}
+      {tab === 'aeo' && (
+          <div className="flex flex-col gap-4">
+            {r.aeoScore ? (
+              <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>Answer Engine Optimisation</div>
+                    <div className="text-[12px] mt-1" style={{ color: 'var(--t3)' }}>How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews</div>
+                  </div>
+                  <div className="text-center ml-4">
+                    <div className="text-[32px] font-extrabold" style={{ color: sc(r.aeoScore.total) }}>{r.aeoScore.total}<span className="text-[14px] font-normal" style={{ color: 'var(--t3)' }}>/40</span></div>
+                    <div className="text-[13px] font-bold" style={{ color: sc(r.aeoScore.total) }}>Grade {r.aeoScore.grade}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(Object.entries(r.aeoScore.breakdown) as [string, number][]).map(([key, pts]) => {
+                    const labels: Record<string, string> = { schemaPresent:'Schema Markup', schemaRelevance:'Schema Relevance', questionHeadings:'Question Headings', structuredLists:'Lists & Tables', faqContent:'FAQ Content', metaAsAnswer:'Meta as Answer', entitySignals:'Entity Signals', contentDepth:'Content Depth', openGraph:'Open Graph', httpsCanonical:'HTTPS + Canonical' }
+                    const maxPts: Record<string, number> = { schemaPresent:8, schemaRelevance:6, questionHeadings:6, structuredLists:4, faqContent:4, metaAsAnswer:3, entitySignals:3, contentDepth:3, openGraph:2, httpsCanonical:1 }
+                    const max = maxPts[key] || 1
+                    const pct = Math.round((pts / max) * 100)
+                    return (
+                      <div key={key} className="rounded-lg p-2.5 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="text-[11px] font-medium" style={{ color: 'var(--t2)' }}>{labels[key] || key}</div>
+                          <div className="text-[11px] font-bold" style={{ color: sc(pct) }}>{pts}/{max}</div>
+                        </div>
+                        <div className="h-1.5 rounded-full" style={{ background: 'var(--bg2)' }}>
+                          <div className="h-1.5 rounded-full" style={{ width: pct + '%', background: sc(pct) }}></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                <div className="text-[13px]" style={{ color: 'var(--t3)' }}>AEO score not available — re-run the audit to generate AEO data.</div>
+              </div>
+            )}
+          </div>
+        )}
+        {tab === 'gap' && <GapTab r={r} />}
       {tab === 'seo' && <SeoTab r={r} />}
       {tab === 'lp' && <LpTab r={r} />}
       {tab === 'fixes' && <FixesTab r={r} />}
