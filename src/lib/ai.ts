@@ -46,6 +46,24 @@ function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<
     b.imageAlt = Math.round(pct * 5)
   }
 
+  // Title / H1 keyword alignment (5pts)
+  // Check if meaningful words from title appear in H1 and vice versa
+  if (s.title && s.h1.length > 0) {
+    const stopWords = new Set(['the','a','an','and','or','of','to','in','for','on','with','is','are','was','were','it','its','this','that','be','at','by','from'])
+    const titleWords = s.title.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w))
+    const h1Words = s.h1[0].toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w))
+    const shared = titleWords.filter(w => h1Words.some(hw => hw.includes(w) || w.includes(hw)))
+    const pct = titleWords.length > 0 ? shared.length / titleWords.length : 0
+    if (pct >= 0.5) b.titleH1Alignment = 5
+    else if (pct >= 0.25) b.titleH1Alignment = 3
+    else if (shared.length > 0) b.titleH1Alignment = 1
+    else b.titleH1Alignment = 0
+  } else if (s.title && s.h1.length === 0) {
+    b.titleH1Alignment = 0  // no H1 to compare
+  } else {
+    b.titleH1Alignment = 0
+  }
+
   // Schema markup (4pts)
   b.schema = s.hasSchema ? 4 : 0
 
@@ -229,8 +247,10 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   // Step 4: Blend scores — technical (60pts) + Claude qualitative (40pts)
   // Claude's seo score is rescaled from 0-100 to 0-40 (qualitative portion only)
   if (scraped && !scraped.error) {
+    const techMax = 65  // max possible from technical checks (was 60, +5 for title/H1 alignment)
+    const techNormalised = Math.round((techScore / techMax) * 60)
     const claudeQualitative = Math.round((part1.scores.seo / 100) * 40)
-    const blendedSeo = Math.min(100, techScore + claudeQualitative)
+    const blendedSeo = Math.min(100, techNormalised + claudeQualitative)
     console.log(`Blended SEO: ${techScore} (technical) + ${claudeQualitative} (qualitative) = ${blendedSeo}`)
     part1.scores.seo = blendedSeo
     // Recalculate overall as average of blended seo + lp
