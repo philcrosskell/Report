@@ -4,6 +4,64 @@ import { AuditRequest, AuditReport } from './types'
 import { buildPromptPart1, buildPromptPart2 } from './prompt'
 import { scrapePage, ScrapedPage } from './scraper'
 
+// ─── Deterministic Technical SEO Scoring (60 points) ─────────────────────────
+// These checks are pass/fail based on real scraped data — no AI variance
+function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
+  const b: Record<string, number> = {}
+
+  // Title (10pts)
+  if (s.title) {
+    const len = s.title.length
+    b.title = len >= 30 && len <= 65 ? 10 : len > 0 ? 6 : 0
+  } else { b.title = 0 }
+
+  // Meta description (8pts)
+  if (s.metaDescription) {
+    const len = s.metaDescription.length
+    b.metaDescription = len >= 80 && len <= 165 ? 8 : len > 0 ? 4 : 0
+  } else { b.metaDescription = 0 }
+
+  // H1 — exactly one is ideal (8pts)
+  if (s.h1.length === 1) b.h1 = 8
+  else if (s.h1.length > 1) b.h1 = 4  // multiple H1s — SEO issue
+  else b.h1 = 0  // no H1
+
+  // Word count (8pts)
+  if (s.wordCount >= 800) b.wordCount = 8
+  else if (s.wordCount >= 400) b.wordCount = 5
+  else if (s.wordCount >= 200) b.wordCount = 2
+  else b.wordCount = 0
+
+  // HTTPS (6pts)
+  b.https = s.hasHttps ? 6 : 0
+
+  // Mobile viewport (5pts)
+  b.viewport = s.hasViewport ? 5 : 0
+
+  // Image alt text (5pts) — proportional based on % with alt
+  if (s.images === 0) {
+    b.imageAlt = 3  // no images — neutral, slight deduction
+  } else {
+    const pct = s.imagesWithAlt / s.images
+    b.imageAlt = Math.round(pct * 5)
+  }
+
+  // Schema markup (4pts)
+  b.schema = s.hasSchema ? 4 : 0
+
+  // Canonical tag (3pts)
+  b.canonical = s.hasCanonical ? 3 : 0
+
+  // Response time (3pts)
+  if (s.responseTimeMs < 400) b.responseTime = 3
+  else if (s.responseTimeMs < 1000) b.responseTime = 2
+  else if (s.responseTimeMs < 2000) b.responseTime = 1
+  else b.responseTime = 0
+
+  const score = Object.values(b).reduce((a, v) => a + v, 0)
+  return { score, breakdown: b }
+}
+
 async function callAnthropic(prompt: string): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const msg = await client.messages.create({
@@ -42,59 +100,42 @@ async function callAI(prompt: string): Promise<string> {
 }
 
 function cleanRaw(raw: string): string {
-  // 1. Strip markdown fences
   let s = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '')
     .trim()
-
-  // 2. Find the first { — discard any preamble before it
   const start = s.indexOf('{')
   if (start > 0) s = s.slice(start)
-
-  // 3. Walk character by character: fix control chars inside strings,
-  //    fix trailing commas, but do NOT touch key names (too risky)
   let out = ''
   let inStr = false
   let esc = false
   let prev = ''
-
   for (let i = 0; i < s.length; i++) {
     const ch = s[i]
     const code = s.charCodeAt(i)
-
     if (esc) { esc = false; out += ch; prev = ch; continue }
     if (ch === '\\' && inStr) { esc = true; out += ch; prev = ch; continue }
     if (ch === '"') { inStr = !inStr; out += ch; prev = ch; continue }
-
     if (inStr) {
-      // Replace illegal control characters inside strings
       if (code < 0x20) {
         if (code === 0x09) { out += '\\t'; prev = 't'; continue }
         out += ' '; prev = ' '; continue
       }
       out += ch; prev = ch; continue
     }
-
-    // Outside strings — fix trailing comma before } or ]
     if ((ch === '}' || ch === ']') && prev.trim() === ',') {
-      // Remove the trailing comma from out
       out = out.trimEnd()
       if (out.endsWith(',')) out = out.slice(0, -1)
     }
-
     out += ch; prev = ch
   }
-
   return out
 }
 
 function extractJSON(s: string): string {
   const start = s.indexOf('{')
   if (start === -1) throw new Error('No JSON object found in response')
-
-  // Find matching closing brace by tracking depth
   let depth = 0, end = -1, inStr = false, esc = false
   for (let i = start; i < s.length; i++) {
     const ch = s[i]
@@ -105,10 +146,7 @@ function extractJSON(s: string): string {
     if (ch === '{') depth++
     else if (ch === '}') { depth--; if (depth === 0) { end = i; break } }
   }
-
   if (end !== -1) return s.slice(start, end + 1)
-
-  // Truncated — repair
   return repairJSON(s.slice(start))
 }
 
@@ -132,16 +170,12 @@ function repairJSON(partial: string): string {
 }
 
 function parseJSON<T>(raw: string): T {
-  // Log first 200 chars to help debug future issues
   console.log('AI response start:', raw.slice(0, 200).replace(/\n/g, '↵'))
-
   const cleaned = cleanRaw(raw)
   const extracted = extractJSON(cleaned)
-
   try {
     return JSON.parse(extracted) as T
   } catch (e) {
-    // Last resort: try the raw extracted without our cleaning (in case we broke it)
     const rawExtracted = extractJSON(raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim())
     try {
       return JSON.parse(rawExtracted) as T
@@ -165,7 +199,17 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
     scraped = undefined
   }
 
-  // Step 2: Part 1 — overview + SEO + LP
+  // Step 2: Run deterministic technical checks
+  let techScore = 0
+  let techBreakdown: Record<string, number> = {}
+  if (scraped && !scraped.error) {
+    const tech = runTechnicalChecks(scraped)
+    techScore = tech.score
+    techBreakdown = tech.breakdown
+    console.log(`Technical score: ${techScore}/60`, techBreakdown)
+  }
+
+  // Step 3: Part 1 — Claude analyses content quality only (qualitative, 40 pts max)
   const raw1 = await callAI(buildPromptPart1(req, scraped))
   type Part1 = Pick<AuditReport, 'overview' | 'scores' | 'seoCategories' | 'lpScoring' | 'projectedScoreAfterFixes'>
   let part1: Part1
@@ -174,18 +218,29 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   } catch (e) {
     throw new Error(`Part 1 JSON parse failed: ${e instanceof Error ? e.message : String(e)}`)
   }
-
-  // Unwrap if nested under a wrapper key
   const p1 = part1 as Record<string, unknown>
   if (!part1.scores && p1.report) part1 = p1.report as Part1
   if (!part1.scores && p1.data) part1 = p1.data as Part1
-
   if (typeof part1.scores?.seo !== 'number') {
     console.error('Part 1 keys:', Object.keys(part1))
     throw new Error(`Part 1 missing scores — got keys: ${Object.keys(part1).join(', ')}`)
   }
 
-  // Inject real scraped values
+  // Step 4: Blend scores — technical (60pts) + Claude qualitative (40pts)
+  // Claude's seo score is rescaled from 0-100 to 0-40 (qualitative portion only)
+  if (scraped && !scraped.error) {
+    const claudeQualitative = Math.round((part1.scores.seo / 100) * 40)
+    const blendedSeo = Math.min(100, techScore + claudeQualitative)
+    console.log(`Blended SEO: ${techScore} (technical) + ${claudeQualitative} (qualitative) = ${blendedSeo}`)
+    part1.scores.seo = blendedSeo
+    // Recalculate overall as average of blended seo + lp
+    part1.scores.overall = Math.round((blendedSeo + part1.scores.lp) / 2)
+    // Recalculate grade
+    const overall = part1.scores.overall
+    part1.scores.grade = overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : overall >= 40 ? 'D' : 'F'
+  }
+
+  // Step 5: Inject real scraped values into overview
   if (scraped && !scraped.error) {
     part1.overview.wordCount = scraped.wordCount
     part1.overview.internalLinks = scraped.internalLinks
@@ -199,7 +254,7 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
 
   const summary = `SEO: ${part1.scores.seo}, LP: ${part1.scores.lp}, Overall: ${part1.scores.overall}, Grade: ${part1.scores.grade}. Page: ${part1.overview.pageType}. ${part1.overview.summary}`
 
-  // Step 3: Part 2 — gap analysis + fixes + competitor + recommendations
+  // Step 6: Part 2 — gap analysis + fixes + competitor + recommendations
   const raw2 = await callAI(buildPromptPart2(req, summary, scraped))
   type Part2 = Pick<AuditReport, 'gapAnalysis' | 'competitorAnalysis' | 'priorityFixes' | 'strengthsWeaknesses' | 'recommendations'>
   let part2: Part2
@@ -208,11 +263,9 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   } catch (e) {
     throw new Error(`Part 2 JSON parse failed: ${e instanceof Error ? e.message : String(e)}`)
   }
-
   const p2 = part2 as Record<string, unknown>
   if (!part2.gapAnalysis && p2.report) part2 = p2.report as Part2
   if (!part2.gapAnalysis && p2.data) part2 = p2.data as Part2
-
   if (!part2.gapAnalysis || !part2.priorityFixes) {
     console.error('Part 2 keys:', Object.keys(part2))
     throw new Error(`Part 2 missing required sections — got: ${Object.keys(part2).join(', ')}`)
