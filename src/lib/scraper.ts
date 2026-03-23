@@ -46,6 +46,8 @@ export interface ScrapedPage {
   questionHeadings: number
   listCount: number
   tableCount: number
+  faqAnswerPairs: number
+  faqSchemaQAPairs: number
   error?: string
 }
 
@@ -65,6 +67,8 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
   questionHeadings: 0,
   listCount: 0,
   tableCount: 0,
+  faqAnswerPairs: 0,
+  faqSchemaQAPairs: 0,
   }
 
   try {
@@ -237,6 +241,23 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     blank.questionHeadings = allHeadings.filter(h => /^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(h.trim())).length
     blank.listCount = (html.match(/<[uo]l[\s>]/gi) ?? []).length
     blank.tableCount = (html.match(/<table[\s>]/gi) ?? []).length
+
+    // FAQ answer pairs: question heading followed by a paragraph with 40+ words
+    // Strip tags to get heading text, then check next sibling paragraph
+    const headingParaRegex = /<h[23][^>]*>([^<]+)<\/h[23]>\s*(?:<[^>]+>\s*)*<p[^>]*>([^<]{150,})<\/p>/gi
+    let faqPairMatch
+    let faqPairCount = 0
+    while ((faqPairMatch = headingParaRegex.exec(html)) !== null) {
+      const headingText = faqPairMatch[1].trim()
+      if (/^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(headingText)) {
+        faqPairCount++
+      }
+    }
+    blank.faqAnswerPairs = faqPairCount
+
+    // FAQ schema Q&A pairs: count @type:Question entries inside FAQPage JSON-LD
+    const faqSchemaCount = (html.match(/"@type"\s*:\s*"Question"/gi) ?? []).length
+    blank.faqSchemaQAPairs = faqSchemaCount
 
     return blank
   } catch (err) {
