@@ -5,67 +5,105 @@ import { buildPromptPart1, buildPromptPart2 } from './prompt'
 import { scrapePage, ScrapedPage } from './scraper'
 
 // âââ Deterministic AEO Scoring (out of 40 points) âââââââââââââââââââââââââââ
-function runAeoChecks(s: ScrapedPage, pageType?: string): { total: number; grade: string; breakdown: Record<string, number | null> } {
-  const b: Record<string, number> = {}
+function runAeoChecks(s: ScrapedPage, pageType?: string): import('./types').AeoScore {
+  const isNaPage = pageType === 'contact' || pageType === 'about'
 
-  // Schema present (8pts) â foundation of AEO
-  b.schemaPresent = s.hasSchema ? 8 : 0
+  // ── FAQ Score (out of 10) ─────────────────────────────────────────────────
+  // null for contact/about pages where FAQs are not expected
+  let faqScore: number | null = null
+  let faqMax: number | null = null
+  let faqSchemaPairs: number | null = null
+  let faqAnswerPairs: number | null = null
+  let questionHeadings: number | null = null
 
-  // Schema relevance (6pts) â right type for the page
+  if (!isNaPage) {
+    // faqSchemaPairs: Q+A pairs in FAQPage JSON-LD (4pts)
+    // 1-3 pairs = 2pts, 4-6 = 3pts, 7+ = 4pts
+    const sp = s.faqSchemaQAPairs ?? 0
+    faqSchemaPairs = sp >= 7 ? 4 : sp >= 4 ? 3 : sp >= 1 ? 2 : 0
+
+    // faqAnswerPairs: question headings with 40+ word answer paragraph (3pts)
+    // 1-3 = 1pt, 4-6 = 2pts, 7+ = 3pts
+    const ap = s.faqAnswerPairs ?? 0
+    faqAnswerPairs = ap >= 7 ? 3 : ap >= 4 ? 2 : ap >= 1 ? 1 : 0
+
+    // questionHeadings: question-phrased headings count (3pts)
+    // 1-3 = 1pt, 4-6 = 2pts, 7+ = 3pts
+    const qh = s.questionHeadings ?? 0
+    questionHeadings = qh >= 7 ? 3 : qh >= 4 ? 2 : qh >= 1 ? 1 : 0
+
+    faqScore = faqSchemaPairs + faqAnswerPairs + questionHeadings
+    faqMax = 10
+  }
+
+  // ── AEO Readiness (out of 30) ─────────────────────────────────────────────
+  // Schema present (8pts)
+  const schemaPresent = s.hasSchema ? 8 : 0
+
+  // Schema relevance (6pts)
+  let schemaRelevance = 0
   if (s.hasSchema) {
     const aeoSchemas = ['FAQPage','HowTo','Article','BlogPosting','LocalBusiness','Product','Service','Organization','WebPage','QAPage']
     const hasRelevant = s.schemaTypes.some(t => aeoSchemas.includes(t))
     const hasFaq = s.schemaTypes.includes('FAQPage') || s.schemaTypes.includes('QAPage')
-    b.schemaRelevance = hasFaq ? 6 : hasRelevant ? 4 : 2
-  } else { b.schemaRelevance = 0 }
+    schemaRelevance = hasFaq ? 6 : hasRelevant ? 4 : 2
+  }
 
-  // Question-phrased headings (6pts) â AI tools love Q&A structure
-  const isNaPage = pageType === 'contact' || pageType === 'about'
-  if (isNaPage) {
-    b.questionHeadings = null
-  } else if (s.questionHeadings >= 3) b.questionHeadings = 6
-  else if (s.questionHeadings === 2) b.questionHeadings = 4
-  else if (s.questionHeadings === 1) b.questionHeadings = 2
-  else b.questionHeadings = 0
+  // Structured lists and tables (4pts)
+  const structuredLists = Math.min(s.listCount + s.tableCount, 4)
 
-  // Structured lists and tables (4pts) â extractable by AI
-  const structureScore = Math.min(s.listCount + s.tableCount, 4)
-  b.structuredLists = structureScore
-
-  // FAQ content detected (4pts) â look for FAQ in schema types OR question headings
-  const hasFaqSchema = s.schemaTypes.some(t => t.toLowerCase().includes('faq') || t.toLowerCase().includes('qa'))
-  b.faqContent = isNaPage ? null : hasFaqSchema ? 4 : s.questionHeadings >= 2 ? 2 : 0
-
-  // Meta description as a direct answer (3pts) â concise, informative
+  // Meta description as a direct answer (3pts)
+  let metaAsAnswer = 0
   if (s.metaDescription) {
     const len = s.metaDescription.length
-    // Good meta = 80-160 chars, reads as a complete sentence/answer
-    b.metaAsAnswer = len >= 80 && len <= 160 ? 3 : len > 0 ? 1 : 0
-  } else { b.metaAsAnswer = 0 }
+    metaAsAnswer = len >= 80 && len <= 160 ? 3 : len > 0 ? 1 : 0
+  }
 
-  // Entity signals (3pts) â business name/contact info present
-  const hasEntities = s.phoneNumbers.length > 0 || s.emailAddresses.length > 0
-  b.entitySignals = hasEntities ? 3 : 0
+  // Entity signals (3pts)
+  const entitySignals = (s.phoneNumbers.length > 0 || s.emailAddresses.length > 0) ? 3 : 0
 
-  // Content depth (3pts) â enough content to be citable
-  if (s.wordCount >= 800) b.contentDepth = 3
-  else if (s.wordCount >= 400) b.contentDepth = 2
-  else if (s.wordCount >= 200) b.contentDepth = 1
-  else b.contentDepth = 0
+  // Content depth (3pts)
+  const contentDepth = s.wordCount >= 800 ? 3 : s.wordCount >= 400 ? 2 : s.wordCount >= 200 ? 1 : 0
 
-  // Open Graph / social metadata (2pts) â authority signal
-  b.openGraph = s.hasOpenGraph ? 2 : 0
+  // Open Graph (2pts)
+  const openGraph = s.hasOpenGraph ? 2 : 0
 
-  // HTTPS + canonical (1pt) â trust signals
-  b.httpsCanonical = (s.hasHttps && s.hasCanonical) ? 1 : 0
+  // HTTPS + canonical (1pt)
+  const httpsCanonical = (s.hasHttps && s.hasCanonical) ? 1 : 0
 
-  const total = (Object.values(b) as (number | null)[]).reduce((a, v) => a + (v ?? 0), 0)
-  const grade = total >= 34 ? 'A' : total >= 26 ? 'B' : total >= 18 ? 'C' : total >= 10 ? 'D' : 'F'
-  return { total, grade, breakdown: b }
+  const aeoReadiness = schemaPresent + schemaRelevance + structuredLists + metaAsAnswer + entitySignals + contentDepth + openGraph + httpsCanonical
+
+  // ── Combined total + grade ────────────────────────────────────────────────
+  const total = (faqScore ?? 0) + aeoReadiness
+  const maxPossible = (faqMax ?? 0) + 30
+  const grade = maxPossible === 0 ? 'F'
+    : total >= maxPossible * 0.85 ? 'A'
+    : total >= maxPossible * 0.65 ? 'B'
+    : total >= maxPossible * 0.45 ? 'C'
+    : total >= maxPossible * 0.25 ? 'D' : 'F'
+
+  return {
+    total,
+    grade,
+    faqScore,
+    faqMax,
+    aeoReadiness,
+    breakdown: {
+      faqSchemaPairs,
+      faqAnswerPairs,
+      questionHeadings,
+      schemaPresent,
+      schemaRelevance,
+      structuredLists,
+      metaAsAnswer,
+      entitySignals,
+      contentDepth,
+      openGraph,
+      httpsCanonical,
+    }
+  }
 }
 
-// âââ Deterministic Technical SEO Scoring (60 points) âââââââââââââââââââââââââ
-// These checks are pass/fail based on real scraped data â no AI variance
 function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
   const b: Record<string, number> = {}
 
@@ -308,9 +346,8 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
 
   // Step 3b: Run AEO checks — after Part 1 so we have pageType
   if (scraped && !scraped.error) {
-    const aeo = runAeoChecks(scraped, part1.overview.pageType)
-    aeoScore = { total: aeo.total, grade: aeo.grade, breakdown: aeo.breakdown as import('./types').AeoScore['breakdown'] }
-    console.log('AEO score:', aeo.total + '/40', aeo.grade, '| pageType:', part1.overview.pageType)
+    aeoScore = runAeoChecks(scraped, part1.overview.pageType)
+    console.log('AEO score:', aeoScore.total, 'FAQ:', aeoScore.faqScore, 'Readiness:', aeoScore.aeoReadiness, '| pageType:', part1.overview.pageType)
   }
 
     // Step 4: Blend scores â technical (60pts) + Claude qualitative (40pts)
