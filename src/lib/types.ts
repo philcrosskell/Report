@@ -11,6 +11,22 @@ export interface Project {
   created: string
 }
 
+export interface AeoScore {
+  total: number
+  grade: string
+  breakdown: {
+    schemaPresent: number
+    schemaRelevance: number
+    questionHeadings: number
+    structuredLists: number
+    faqContent: number
+    metaAsAnswer: number
+    entitySignals: number
+    contentDepth: number
+    openGraph: number
+    httpsCanonical: number
+  }
+}
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
 export interface AuditScores {
@@ -143,6 +159,7 @@ export interface AuditReport {
     summary: string
   }
   scores: AuditScores
+  aeoScore?: AeoScore
   seoCategories: SeoCategories
   lpScoring: LpScoring
   projectedScoreAfterFixes: ProjectedScores
