@@ -17,9 +17,9 @@ export interface AeoScore {
   breakdown: {
     schemaPresent: number
     schemaRelevance: number
-    questionHeadings: number
+    questionHeadings: number | null
     structuredLists: number
-    faqContent: number
+    faqContent: number | null
     metaAsAnswer: number
     entitySignals: number
     contentDepth: number
@@ -217,7 +217,7 @@ export interface AuditResponse {
   error?: string
 }
 
-// ─── Competitor Intelligence Report ───────────────────────────────────────────
+// âââ Competitor Intelligence Report âââââââââââââââââââââââââââââââââââââââââââ
 export interface CompetitorProfile {
   name: string
   url: string
