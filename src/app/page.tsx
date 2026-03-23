@@ -712,13 +712,23 @@ function Dashboard({ projects, audits, onNew, onAudit, onView }: { projects: Pro
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
-          {[['Projects', projects.length, 'var(--accent2)'], ['Pages Audited', audits.length, 'var(--t1)'], ['Avg SEO', avg(seoA) ?? '—', 'var(--green)'], ['Avg LP Score', avg(lpA) ?? '—', 'var(--amber)']].map(([l, v, c]) => (
-            <div key={String(l)} className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-              <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>{l}</div>
-              <div className="text-3xl font-semibold leading-none" style={{ color: String(c) }}>{String(v)}</div>
-            </div>
-          ))}
-        </div>
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Projects</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent2)' }}>{projects.length}</div>
+          </div>
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Pages Audited</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--t1)' }}>{audits.length}</div>
+          </div>
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>GBP Audits</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--accent)' }}>{gbpAudits.length}</div>
+          </div>
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Competitor Analysis</div>
+            <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--green)' }}>{compReports.length}</div>
+          </div>
+                </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
           {!recent.length ? <Empty icon="⊙" title="No audits yet" sub="Run your first page audit to get started." /> : (
