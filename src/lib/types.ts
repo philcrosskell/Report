@@ -14,12 +14,18 @@ export interface Project {
 export interface AeoScore {
   total: number
   grade: string
+  faqScore: number | null       // out of 10 — null if N/A page type
+  faqMax: number | null         // applicable max (10 or null)
+  aeoReadiness: number          // out of 30
   breakdown: {
+    // FAQ sub-score (10pts total)
+    faqSchemaPairs: number | null
+    faqAnswerPairs: number | null
+    questionHeadings: number | null
+    // AEO Readiness sub-score (30pts total)
     schemaPresent: number
     schemaRelevance: number
-    questionHeadings: number | null
     structuredLists: number
-    faqContent: number | null
     metaAsAnswer: number
     entitySignals: number
     contentDepth: number
