@@ -4,14 +4,14 @@ import { AuditRequest, AuditReport } from './types'
 import { buildPromptPart1, buildPromptPart2 } from './prompt'
 import { scrapePage, ScrapedPage } from './scraper'
 
-// ─── Deterministic AEO Scoring (out of 40 points) ───────────────────────────
-function runAeoChecks(s: ScrapedPage): { total: number; grade: string; breakdown: Record<string, number> } {
+// âââ Deterministic AEO Scoring (out of 40 points) âââââââââââââââââââââââââââ
+function runAeoChecks(s: ScrapedPage, pageType?: string): { total: number; grade: string; breakdown: Record<string, number | null> } {
   const b: Record<string, number> = {}
 
-  // Schema present (8pts) — foundation of AEO
+  // Schema present (8pts) â foundation of AEO
   b.schemaPresent = s.hasSchema ? 8 : 0
 
-  // Schema relevance (6pts) — right type for the page
+  // Schema relevance (6pts) â right type for the page
   if (s.hasSchema) {
     const aeoSchemas = ['FAQPage','HowTo','Article','BlogPosting','LocalBusiness','Product','Service','Organization','WebPage','QAPage']
     const hasRelevant = s.schemaTypes.some(t => aeoSchemas.includes(t))
@@ -19,50 +19,53 @@ function runAeoChecks(s: ScrapedPage): { total: number; grade: string; breakdown
     b.schemaRelevance = hasFaq ? 6 : hasRelevant ? 4 : 2
   } else { b.schemaRelevance = 0 }
 
-  // Question-phrased headings (6pts) — AI tools love Q&A structure
-  if (s.questionHeadings >= 3) b.questionHeadings = 6
+  // Question-phrased headings (6pts) â AI tools love Q&A structure
+  const isNaPage = pageType === 'contact' || pageType === 'about'
+  if (isNaPage) {
+    b.questionHeadings = null
+  } else if (s.questionHeadings >= 3) b.questionHeadings = 6
   else if (s.questionHeadings === 2) b.questionHeadings = 4
   else if (s.questionHeadings === 1) b.questionHeadings = 2
   else b.questionHeadings = 0
 
-  // Structured lists and tables (4pts) — extractable by AI
+  // Structured lists and tables (4pts) â extractable by AI
   const structureScore = Math.min(s.listCount + s.tableCount, 4)
   b.structuredLists = structureScore
 
-  // FAQ content detected (4pts) — look for FAQ in schema types OR question headings
+  // FAQ content detected (4pts) â look for FAQ in schema types OR question headings
   const hasFaqSchema = s.schemaTypes.some(t => t.toLowerCase().includes('faq') || t.toLowerCase().includes('qa'))
-  b.faqContent = hasFaqSchema ? 4 : s.questionHeadings >= 2 ? 2 : 0
+  b.faqContent = isNaPage ? null : hasFaqSchema ? 4 : s.questionHeadings >= 2 ? 2 : 0
 
-  // Meta description as a direct answer (3pts) — concise, informative
+  // Meta description as a direct answer (3pts) â concise, informative
   if (s.metaDescription) {
     const len = s.metaDescription.length
     // Good meta = 80-160 chars, reads as a complete sentence/answer
     b.metaAsAnswer = len >= 80 && len <= 160 ? 3 : len > 0 ? 1 : 0
   } else { b.metaAsAnswer = 0 }
 
-  // Entity signals (3pts) — business name/contact info present
+  // Entity signals (3pts) â business name/contact info present
   const hasEntities = s.phoneNumbers.length > 0 || s.emailAddresses.length > 0
   b.entitySignals = hasEntities ? 3 : 0
 
-  // Content depth (3pts) — enough content to be citable
+  // Content depth (3pts) â enough content to be citable
   if (s.wordCount >= 800) b.contentDepth = 3
   else if (s.wordCount >= 400) b.contentDepth = 2
   else if (s.wordCount >= 200) b.contentDepth = 1
   else b.contentDepth = 0
 
-  // Open Graph / social metadata (2pts) — authority signal
+  // Open Graph / social metadata (2pts) â authority signal
   b.openGraph = s.hasOpenGraph ? 2 : 0
 
-  // HTTPS + canonical (1pt) — trust signals
+  // HTTPS + canonical (1pt) â trust signals
   b.httpsCanonical = (s.hasHttps && s.hasCanonical) ? 1 : 0
 
-  const total = Object.values(b).reduce((a, v) => a + v, 0)
+  const total = (Object.values(b) as (number | null)[]).reduce((a, v) => a + (v ?? 0), 0)
   const grade = total >= 34 ? 'A' : total >= 26 ? 'B' : total >= 18 ? 'C' : total >= 10 ? 'D' : 'F'
   return { total, grade, breakdown: b }
 }
 
-// ─── Deterministic Technical SEO Scoring (60 points) ─────────────────────────
-// These checks are pass/fail based on real scraped data — no AI variance
+// âââ Deterministic Technical SEO Scoring (60 points) âââââââââââââââââââââââââ
+// These checks are pass/fail based on real scraped data â no AI variance
 function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
   const b: Record<string, number> = {}
 
@@ -78,9 +81,9 @@ function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<
     b.metaDescription = len >= 80 && len <= 165 ? 8 : len > 0 ? 4 : 0
   } else { b.metaDescription = 0 }
 
-  // H1 — exactly one is ideal (8pts)
+  // H1 â exactly one is ideal (8pts)
   if (s.h1.length === 1) b.h1 = 8
-  else if (s.h1.length > 1) b.h1 = 4  // multiple H1s — SEO issue
+  else if (s.h1.length > 1) b.h1 = 4  // multiple H1s â SEO issue
   else b.h1 = 0  // no H1
 
   // Word count (8pts)
@@ -95,9 +98,9 @@ function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<
   // Mobile viewport (5pts)
   b.viewport = s.hasViewport ? 5 : 0
 
-  // Image alt text (5pts) — proportional based on % with alt
+  // Image alt text (5pts) â proportional based on % with alt
   if (s.images === 0) {
-    b.imageAlt = 3  // no images — neutral, slight deduction
+    b.imageAlt = 3  // no images â neutral, slight deduction
   } else {
     const pct = s.imagesWithAlt / s.images
     b.imageAlt = Math.round(pct * 5)
@@ -245,7 +248,7 @@ function repairJSON(partial: string): string {
 }
 
 function parseJSON<T>(raw: string): T {
-  console.log('AI response start:', raw.slice(0, 200).replace(/\n/g, '↵'))
+  console.log('AI response start:', raw.slice(0, 200).replace(/\n/g, 'âµ'))
   const cleaned = cleanRaw(raw)
   const extracted = extractJSON(cleaned)
   try {
@@ -284,15 +287,9 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
     console.log(`Technical score: ${techScore}/60`, techBreakdown)
   }
 
-  // Step 2b: Run AEO checks
   let aeoScore: import('./types').AeoScore | undefined
-  if (scraped && !scraped.error) {
-    const aeo = runAeoChecks(scraped)
-    aeoScore = { total: aeo.total, grade: aeo.grade, breakdown: aeo.breakdown as import('./types').AeoScore['breakdown'] }
-    console.log('AEO score:', aeo.total + '/40', aeo.grade)
-  }
 
-  // Step 3: Part 1 — Claude analyses content quality only (qualitative, 40 pts max)
+    // Step 3: Part 1 â Claude analyses content quality only (qualitative, 40 pts max)
   const raw1 = await callAI(buildPromptPart1(req, scraped))
   type Part1 = Pick<AuditReport, 'overview' | 'scores' | 'seoCategories' | 'lpScoring' | 'projectedScoreAfterFixes'>
   let part1: Part1
@@ -306,10 +303,17 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   if (!part1.scores && p1.data) part1 = p1.data as Part1
   if (typeof part1.scores?.seo !== 'number') {
     console.error('Part 1 keys:', Object.keys(part1))
-    throw new Error(`Part 1 missing scores — got keys: ${Object.keys(part1).join(', ')}`)
+    throw new Error(`Part 1 missing scores â got keys: ${Object.keys(part1).join(', ')}`)
   }
 
-  // Step 4: Blend scores — technical (60pts) + Claude qualitative (40pts)
+  // Step 3b: Run AEO checks — after Part 1 so we have pageType
+  if (scraped && !scraped.error) {
+    const aeo = runAeoChecks(scraped, part1.overview.pageType)
+    aeoScore = { total: aeo.total, grade: aeo.grade, breakdown: aeo.breakdown as import('./types').AeoScore['breakdown'] }
+    console.log('AEO score:', aeo.total + '/40', aeo.grade, '| pageType:', part1.overview.pageType)
+  }
+
+    // Step 4: Blend scores â technical (60pts) + Claude qualitative (40pts)
   // Claude's seo score is rescaled from 0-100 to 0-40 (qualitative portion only)
   if (scraped && !scraped.error) {
     const techMax = 65  // max possible from technical checks (was 60, +5 for title/H1 alignment)
@@ -339,7 +343,7 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
 
   const summary = `SEO: ${part1.scores.seo}, LP: ${part1.scores.lp}, Overall: ${part1.scores.overall}, Grade: ${part1.scores.grade}. Page: ${part1.overview.pageType}. ${part1.overview.summary}`
 
-  // Step 6: Part 2 — gap analysis + fixes + competitor + recommendations
+  // Step 6: Part 2 â gap analysis + fixes + competitor + recommendations
   const raw2 = await callAI(buildPromptPart2(req, summary, scraped))
   type Part2 = Pick<AuditReport, 'gapAnalysis' | 'competitorAnalysis' | 'priorityFixes' | 'strengthsWeaknesses' | 'recommendations'>
   let part2: Part2
@@ -353,7 +357,7 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   if (!part2.gapAnalysis && p2.data) part2 = p2.data as Part2
   if (!part2.gapAnalysis || !part2.priorityFixes) {
     console.error('Part 2 keys:', Object.keys(part2))
-    throw new Error(`Part 2 missing required sections — got: ${Object.keys(part2).join(', ')}`)
+    throw new Error(`Part 2 missing required sections â got: ${Object.keys(part2).join(', ')}`)
   }
 
   return {
