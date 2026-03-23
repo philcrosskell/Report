@@ -881,7 +881,7 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
   }
 }, [])
 
-const TABS = [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' },{ id: 'aeo', label: 'ð¤ AEO' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+const TABS = [{ id: 'gap', label: 'Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' },{ id: 'aeo', label: 'AEO' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
 
   return (
     <>
