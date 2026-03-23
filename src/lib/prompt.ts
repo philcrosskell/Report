@@ -85,8 +85,8 @@ Return ONLY valid complete JSON for Part 2. Start your response with { and end w
 {
   "gapAnalysis": {
     "executiveSummary": string,
-    "criticalIssues": [{ "issue": string, "impact": string, "fix": string, "effort": "Easy"|"Medium"|"Hard" }],
-    "quickWins": [{ "win": string, "action": string, "timeEstimate": string }],
+    "criticalIssues": [{ "issue": string, "impact": string, "fix": string, "effort": "Easy"|"Medium"|"Hard", "timeEstimate": string }], // timeEstimate assumes an experienced developer who knows the codebase — Easy = 5–15 mins, Medium = 15–45 mins, Hard = 1–3 hours.
+    "quickWins": [{ "win": string, "action": string, "timeEstimate": string }], // timeEstimate assumes an experienced developer who knows the codebase — e.g. "5 mins", "15 mins", "30 mins". Never exceed 1 hour for a quick win.
     "positioningGap": string,
     "topRecommendation": string,
     "beforeScore": number,
