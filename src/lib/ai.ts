@@ -4,6 +4,63 @@ import { AuditRequest, AuditReport } from './types'
 import { buildPromptPart1, buildPromptPart2 } from './prompt'
 import { scrapePage, ScrapedPage } from './scraper'
 
+// ─── Deterministic AEO Scoring (out of 40 points) ───────────────────────────
+function runAeoChecks(s: ScrapedPage): { total: number; grade: string; breakdown: Record<string, number> } {
+  const b: Record<string, number> = {}
+
+  // Schema present (8pts) — foundation of AEO
+  b.schemaPresent = s.hasSchema ? 8 : 0
+
+  // Schema relevance (6pts) — right type for the page
+  if (s.hasSchema) {
+    const aeoSchemas = ['FAQPage','HowTo','Article','BlogPosting','LocalBusiness','Product','Service','Organization','WebPage','QAPage']
+    const hasRelevant = s.schemaTypes.some(t => aeoSchemas.includes(t))
+    const hasFaq = s.schemaTypes.includes('FAQPage') || s.schemaTypes.includes('QAPage')
+    b.schemaRelevance = hasFaq ? 6 : hasRelevant ? 4 : 2
+  } else { b.schemaRelevance = 0 }
+
+  // Question-phrased headings (6pts) — AI tools love Q&A structure
+  if (s.questionHeadings >= 3) b.questionHeadings = 6
+  else if (s.questionHeadings === 2) b.questionHeadings = 4
+  else if (s.questionHeadings === 1) b.questionHeadings = 2
+  else b.questionHeadings = 0
+
+  // Structured lists and tables (4pts) — extractable by AI
+  const structureScore = Math.min(s.listCount + s.tableCount, 4)
+  b.structuredLists = structureScore
+
+  // FAQ content detected (4pts) — look for FAQ in schema types OR question headings
+  const hasFaqSchema = s.schemaTypes.some(t => t.toLowerCase().includes('faq') || t.toLowerCase().includes('qa'))
+  b.faqContent = hasFaqSchema ? 4 : s.questionHeadings >= 2 ? 2 : 0
+
+  // Meta description as a direct answer (3pts) — concise, informative
+  if (s.metaDescription) {
+    const len = s.metaDescription.length
+    // Good meta = 80-160 chars, reads as a complete sentence/answer
+    b.metaAsAnswer = len >= 80 && len <= 160 ? 3 : len > 0 ? 1 : 0
+  } else { b.metaAsAnswer = 0 }
+
+  // Entity signals (3pts) — business name/contact info present
+  const hasEntities = s.phoneNumbers.length > 0 || s.emailAddresses.length > 0
+  b.entitySignals = hasEntities ? 3 : 0
+
+  // Content depth (3pts) — enough content to be citable
+  if (s.wordCount >= 800) b.contentDepth = 3
+  else if (s.wordCount >= 400) b.contentDepth = 2
+  else if (s.wordCount >= 200) b.contentDepth = 1
+  else b.contentDepth = 0
+
+  // Open Graph / social metadata (2pts) — authority signal
+  b.openGraph = s.hasOpenGraph ? 2 : 0
+
+  // HTTPS + canonical (1pt) — trust signals
+  b.httpsCanonical = (s.hasHttps && s.hasCanonical) ? 1 : 0
+
+  const total = Object.values(b).reduce((a, v) => a + v, 0)
+  const grade = total >= 34 ? 'A' : total >= 26 ? 'B' : total >= 18 ? 'C' : total >= 10 ? 'D' : 'F'
+  return { total, grade, breakdown: b }
+}
+
 // ─── Deterministic Technical SEO Scoring (60 points) ─────────────────────────
 // These checks are pass/fail based on real scraped data — no AI variance
 function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
@@ -227,6 +284,14 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
     console.log(`Technical score: ${techScore}/60`, techBreakdown)
   }
 
+  // Step 2b: Run AEO checks
+  let aeoScore: import('./types').AeoScore | undefined
+  if (scraped && !scraped.error) {
+    const aeo = runAeoChecks(scraped)
+    aeoScore = { total: aeo.total, grade: aeo.grade, breakdown: aeo.breakdown as import('./types').AeoScore['breakdown'] }
+    console.log('AEO score:', aeo.total + '/40', aeo.grade)
+  }
+
   // Step 3: Part 1 — Claude analyses content quality only (qualitative, 40 pts max)
   const raw1 = await callAI(buildPromptPart1(req, scraped))
   type Part1 = Pick<AuditReport, 'overview' | 'scores' | 'seoCategories' | 'lpScoring' | 'projectedScoreAfterFixes'>
@@ -294,6 +359,7 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   return {
     overview: part1.overview,
     scores: part1.scores,
+    aeoScore,
     seoCategories: part1.seoCategories,
     lpScoring: part1.lpScoring,
     projectedScoreAfterFixes: part1.projectedScoreAfterFixes,
