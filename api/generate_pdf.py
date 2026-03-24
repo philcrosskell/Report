@@ -545,7 +545,93 @@ def generate_pdf(audit):
             y = check_item(cv, y, dot_col, check.get('label',''), tg_text, tg_bg, tg_fg, check.get('detail',''))
         y += 6
 
-    # ─────────────── PRIORITY FIXES ──────────────────────────────────────────
+    # ─────────────── AEO SECTION ──────────────────────────────────────────────
+    aeo = r.get('aeoScore')
+    if aeo:
+        new_page()
+        pg_aeo = 0  # page numbering — continuation handled below
+        sec_header(cv, AMBER, ORANGE, 'SECTION', 'Answer Engine Optimisation', '', audit_lbl)
+        y = 6 + 72 + 20
+
+        faq_score  = aeo.get('faqScore')
+        faq_max    = aeo.get('faqMax')
+        aeo_rd     = aeo.get('aeoReadiness', 0)
+        aeo_total  = aeo.get('total', 0)
+        aeo_grade  = aeo.get('grade', '-')
+        is_na_page = faq_score is None
+        bd         = aeo.get('breakdown', {})
+
+        txt(cv, L, y, 'How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews', sz=9.5, col=MUTED)
+        y += 18
+
+        # ── Score summary boxes ──────────────────────────────────────────────
+        box_w = (CW - 28) / 3
+        box_h = 52
+        boxes = [
+            ('FAQ SCORE', (f'{faq_score}/10' if not is_na_page else 'N/A'), (scol(int(faq_score/10*100)) if not is_na_page else MUTED)),
+            ('AEO READINESS', f'{aeo_rd}/30', scol(int(aeo_rd/30*100))),
+            ('GRADE', aeo_grade, scol(aeo_total/((faq_max or 0)+30)*100) if (faq_max or 0)+30 > 0 else MUTED),
+        ]
+        for i, (lbl, val, col) in enumerate(boxes):
+            bx = L + i*(box_w+14)
+            rect(cv, bx, y, box_w, 5, fill=AMBER)
+            rect(cv, bx, y+5, box_w, box_h, fill=LIGHT_BG, stroke=BORDER)
+            txt(cv, bx+box_w/2, y+5+12, lbl, sz=7, col=MUTED, align='center')
+            txt(cv, bx+box_w/2, y+5+28, val, bold=True, sz=16, col=col, align='center')
+        y += box_h + 18
+
+        # ── FAQ Score sub-section ────────────────────────────────────────────
+        y = sub_head(cv, y, 'FAQ Score' + (' — N/A for this page type' if is_na_page else f' — {faq_score}/10'), AMBER)
+
+        if is_na_page:
+            txt(cv, L, y, 'FAQ checks are not applicable to contact and about pages.', sz=9.5, col=MUTED)
+            y += 16
+        else:
+            faq_checks = [
+                ('FAQ Schema Q&A Pairs', bd.get('faqSchemaPairs', 0), 4),
+                ('Q&A with Answer Content', bd.get('faqAnswerPairs', 0), 3),
+                ('Question Headings', bd.get('questionHeadings', 0), 3),
+            ]
+            for label, pts, max_pts in faq_checks:
+                pts = pts or 0
+                pct = int(pts / max_pts * 100) if max_pts else 0
+                txt(cv, L, y, label, sz=9.5, col=BODY)
+                bx = L+155; bw = CW-165-38; bh = 10
+                rect(cv, bx, y-2, bw, bh, fill=BORDER, r=5)
+                rect(cv, bx, y-2, bw*pct/100, bh, fill=scol(pct), r=5)
+                txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=10, col=scol(pct), align='right')
+                y += 20
+        y += 8
+
+        # ── AEO Readiness sub-section ────────────────────────────────────────
+        y = sub_head(cv, y, f'AEO Readiness — {aeo_rd}/30', scol(int(aeo_rd/30*100)))
+
+        readiness_checks = [
+            ('Schema Markup',    bd.get('schemaPresent', 0),   8),
+            ('Schema Relevance', bd.get('schemaRelevance', 0), 6),
+            ('Lists & Tables',   bd.get('structuredLists', 0), 4),
+            ('Meta as Answer',   bd.get('metaAsAnswer', 0),    3),
+            ('Entity Signals',   bd.get('entitySignals', 0),   3),
+            ('Content Depth',    bd.get('contentDepth', 0),    3),
+            ('Open Graph',       bd.get('openGraph', 0),       2),
+            ('HTTPS + Canonical',bd.get('httpsCanonical', 0),  1),
+        ]
+        for label, pts, max_pts in readiness_checks:
+            pts = pts or 0
+            pct = int(pts / max_pts * 100) if max_pts else 0
+            if y + 24 > H - 80:
+                new_page()
+                cont_header(cv, AMBER, ORANGE, 'Answer Engine Optimisation', '', audit_lbl)
+                y = 4 + 36 + 20
+            txt(cv, L, y, label, sz=9.5, col=BODY)
+            bx = L+155; bw = CW-165-38; bh = 10
+            rect(cv, bx, y-2, bw, bh, fill=BORDER, r=5)
+            rect(cv, bx, y-2, bw*pct/100, bh, fill=scol(pct), r=5)
+            txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=10, col=scol(pct), align='right')
+            y += 20
+        y += 8
+
+        # ─────────────── PRIORITY FIXES ──────────────────────────────────────────
     new_page()
     sec_header(cv, AMBER, AMBER_L, 'SECTION', 'Priority Fixes', pg_of(6), audit_lbl)
     y = 6 + 72 + 20
