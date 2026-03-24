@@ -998,8 +998,8 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
             </div>
           ))}
           {r.aeoScore && (
-            <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--accent)' }}>
-              <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent)' }}>AEO Score</div>
+            <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+              <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>AEO Score</div>
               <div className="text-[22px] font-bold" style={{ color: sc(Math.round((r.aeoScore.total / ((r.aeoScore.faqMax ?? 0) + 30)) * 100)) }}>{r.aeoScore.total}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/{(r.aeoScore.faqMax ?? 0) + 30}</span></div>
             </div>
           )}
