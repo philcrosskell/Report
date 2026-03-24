@@ -180,7 +180,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
-const STEPS = ['Fetching page signals', 'Analysing SEO â 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
+const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
 const NAV_ICONS: Record<string, string> = {
   dashboard: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
   projects: 'M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z',
@@ -232,7 +232,7 @@ export default function Home() {
       <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-            <Btn onClick={() => setViewingAudit(null)}>â Back to Reports</Btn>
+            <Btn onClick={() => setViewingAudit(null)}>Back to Reports</Btn>
             <div className="flex-1">
               <div className="text-base font-semibold">{viewingAudit.label || viewingAudit.url}</div>
               <div className="text-[12px] font-mono" style={{ color: 'var(--accent2)' }}>{viewingAudit.url}</div>
@@ -374,8 +374,8 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
               {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} Â· {s.postcode}{s.suburb ? ' Â· ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects Â· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
                   <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>â</Btn>
@@ -656,7 +656,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   if (result) {
     return (
       <>
-        <TopBar title="GBP Audit" sub={result.businessName + ' Â· ' + result.suburb}>
+        <TopBar title="GBP Audit" sub={result.businessName + ' · ' + result.suburb}>
           <Btn sm onClick={() => setResult(null)}>â New audit</Btn>
         </TopBar>
         <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
@@ -686,7 +686,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                 <div key={a.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} Â· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
@@ -708,7 +708,7 @@ function Dashboard({ projects, audits, gbpAudits, compReports, onNew, onAudit, o
   return (
     <>
       <TopBar title="Dashboard" sub="Overview of all projects and audits">
-        <div className="flex gap-2"><Btn onClick={onAudit}>â³ Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
+        <div className="flex gap-2"><Btn onClick={onAudit}>Quick Audit</Btn><Btn primary onClick={onNew}>+ New Project</Btn></div>
       </TopBar>
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-4 gap-3 mb-5">
@@ -901,7 +901,7 @@ const TABS = [{ id: 'gap', label: 'Gap Analysis' }, { id: 'seo', label: 'SEO Ana
             <div>
               <Lbl>Assign to Project (optional)</Lbl>
               <select value={projectId} onChange={e => { setProjectId(e.target.value); setAssignedTo('unassigned') }}>
-                <option value="">â Save as standalone audit â</option>
+                <option value="">Save as standalone audit</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -916,7 +916,7 @@ const TABS = [{ id: 'gap', label: 'Gap Analysis' }, { id: 'seo', label: 'SEO Ana
               </div>
             )}
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'â³ Analysing...' : 'â³ Analyse Page'}</Btn>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Analysing...' : 'Analyse Page'}</Btn>
         </Card>
 
         {loading && (
@@ -953,7 +953,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
   defaultTab?: string
   onTabChange?: (t: string) => void
 }) {
-  const TABS = tabs ?? [{ id: 'gap', label: 'â¡ Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
+  const TABS = tabs ?? [{ id: 'gap', label: 'Gap Analysis' }, { id: 'seo', label: 'SEO Analysis' }, { id: 'lp', label: 'LP Scoring' }, { id: 'fixes', label: 'Priority Fixes' }, { id: 'comp', label: 'Positioning' }, { id: 'sw', label: 'Strengths & Gaps' }, { id: 'recs', label: 'Recommendations' }]
   const [tab, setTab] = useState(defaultTab ?? 'gap')
   const changeTab = (t: string) => { setTab(t); onTabChange?.(t) }
 
@@ -1149,7 +1149,7 @@ function ExportAuditBtn({ auditId }: { auditId: string }) {
     const { exportPDF } = await import('@/lib/pdfExport')
     exportPDF(audit)
   }
-  return <Btn sm onClick={go}>â Export PDF</Btn>
+  return <Btn sm onClick={go}>Export PDF</Btn>
 }
 
 // âââ Gap Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -1542,7 +1542,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
                 <div className="text-[13px] font-semibold">{result.businessName} â Competitor Analysis Report</div>
-                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} Â· {result.profiles.length} businesses analysed</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
                 <>
@@ -1553,7 +1553,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
                 </>
               ) : (
                 <>
-                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>â Saved to Reports</div>
+                  <div className="text-[13px]" style={{ color: 'var(--green)' }}>Saved to Reports</div>
                   <Btn onClick={exportPDF}>â PDF</Btn>
                   <Btn onClick={exportHTML}>â HTML</Btn>
                 </>
@@ -1578,7 +1578,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report Â· {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report · {r.date}</div>
           </div>
         </div>
       )}
@@ -1807,10 +1807,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     return (
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-          <Btn onClick={() => setViewingGbp(null)}>â Back to Reports</Btn>
+          <Btn onClick={() => setViewingGbp(null)}>Back to Reports</Btn>
           <div className="flex-1">
             <div className="text-base font-semibold">{viewingGbp.businessName} â GBP Audit</div>
-            <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingGbp.suburb} Â· {new Date(viewingGbp.auditedAt).toLocaleDateString('en-AU')}</div>
+            <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingGbp.suburb} · {new Date(viewingGbp.auditedAt).toLocaleDateString('en-AU')}</div>
           </div>
           <Btn sm onClick={() => exportGbpPdf(viewingGbp.id)}>â PDF</Btn>
           <Btn sm onClick={() => exportGbpHtml(viewingGbp.id)}>â HTML</Btn>
@@ -1824,10 +1824,10 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     return (
       <>
         <div className="px-6 py-4 border-b flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-          <Btn onClick={() => setViewingComp(null)}>â Back to Reports</Btn>
+          <Btn onClick={() => setViewingComp(null)}>Back to Reports</Btn>
           {storedLogo && <img src={storedLogo} alt="Logo" className="h-7 rounded object-contain" style={{ maxWidth: 90, background: 'var(--bg3)', padding: 3 }} />}
           <div className="flex-1"><div className="text-base font-semibold">{viewingComp.businessName} â Competitor Analysis</div><div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingComp.date}</div></div>
-          <Btn sm onClick={() => exportComp(viewingComp.id)}>â Export PDF</Btn>
+          <Btn sm onClick={() => exportComp(viewingComp.id)}>Export PDF</Btn>
         </div>
         <div className="flex-1 overflow-y-auto p-6"><CompIntelReport r={viewingComp.report} brandLogo={storedLogo} /></div>
       </>
@@ -1836,7 +1836,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits Â· ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
