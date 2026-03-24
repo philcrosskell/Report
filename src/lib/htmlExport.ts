@@ -208,9 +208,18 @@ export function exportHTML(audit: Audit): void {
       ${renderSeoCategory('Server & Technical', r.seoCategories.serverTechnical)}
       ${renderSeoCategory('External Factors', r.seoCategories.externalFactors)}
     </div>
-    ${allSeoChecks.length ? `
-    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:14px">TECHNICAL CHECKS</div>
-    ${renderChecks(allSeoChecks)}` : ''}
+    ${r.seoCategories ? `
+    ${[
+      ['META INFORMATION', r.seoCategories.metaInformation],
+      ['PAGE QUALITY', r.seoCategories.pageQuality],
+      ['PAGE STRUCTURE', r.seoCategories.pageStructure],
+      ['LINK STRUCTURE', r.seoCategories.linkStructure],
+      ['SERVER & TECHNICAL', r.seoCategories.serverTechnical],
+      ['EXTERNAL FACTORS', r.seoCategories.externalFactors],
+    ].map(([label, cat]) => (cat as SeoCategory)?.checks?.length ? `
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:24px;margin-bottom:14px">${label}</div>
+    ${renderChecks((cat as SeoCategory).checks)}` : '').join('')}
+    ` : ''}
   `) : ''}
 
   ${aeo ? card('#F59E0B,#EF4444', 'SECTION', 'Answer Engine Optimisation', `
