@@ -1000,7 +1000,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
           {r.aeoScore && (
             <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--accent)' }}>
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent)' }}>AEO Score</div>
-              {(() => { const aeoMaxPts: Record<string,number> = {schemaPresent:8,schemaRelevance:6,questionHeadings:6,structuredLists:4,faqContent:4,metaAsAnswer:3,entitySignals:3,contentDepth:3,openGraph:2,httpsCanonical:1}; const aeoMax = Object.entries(r.aeoScore.breakdown).reduce((a,[k,v]) => a + (v !== null ? (aeoMaxPts[k] ?? 0) : 0), 0); const aeoPct = Math.round((r.aeoScore.total / aeoMax) * 100); return <div className="text-[22px] font-bold" style={{ color: sc(aeoPct) }}>{r.aeoScore.total}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/{aeoMax}</span></div>; })()}
+              <div className="text-[22px] font-bold" style={{ color: sc(Math.round((r.aeoScore.total / ((r.aeoScore.faqMax ?? 0) + 30)) * 100)) }}>{r.aeoScore.total}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/{(r.aeoScore.faqMax ?? 0) + 30}</span></div>
             </div>
           )}
           <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
@@ -1026,41 +1026,107 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
 
       {tab === 'aeo' && (
           <div className="flex flex-col gap-4">
-            {r.aeoScore ? (
-              <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <div className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>Answer Engine Optimisation</div>
-                    <div className="text-[12px] mt-1" style={{ color: 'var(--t3)' }}>How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews</div>
-                  </div>
-                  <div className="text-center ml-4">
-                    {(() => { const aeoMaxPts2: Record<string,number> = {schemaPresent:8,schemaRelevance:6,questionHeadings:6,structuredLists:4,faqContent:4,metaAsAnswer:3,entitySignals:3,contentDepth:3,openGraph:2,httpsCanonical:1}; const aeoMax2 = Object.entries(r.aeoScore.breakdown).reduce((a,[k,v]) => a + (v !== null ? (aeoMaxPts2[k] ?? 0) : 0), 0); const aeoPct2 = Math.round((r.aeoScore.total / aeoMax2) * 100); return <><div className="text-[32px] font-extrabold" style={{ color: sc(aeoPct2) }}>{r.aeoScore.total}<span className="text-[14px] font-normal" style={{ color: 'var(--t3)' }}>/{aeoMax2}</span></div><div className="text-[13px] font-bold" style={{ color: sc(aeoPct2) }}>Grade {r.aeoScore.grade}</div></>; })()}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {(Object.entries(r.aeoScore.breakdown) as [string, number | null][]).map(([key, pts]) => {
-                    const labels: Record<string, string> = { schemaPresent:'Schema Markup', schemaRelevance:'Schema Relevance', questionHeadings:'Question Headings', structuredLists:'Lists & Tables', faqContent:'FAQ Content', metaAsAnswer:'Meta as Answer', entitySignals:'Entity Signals', contentDepth:'Content Depth', openGraph:'Open Graph', httpsCanonical:'HTTPS + Canonical' }
-                    const maxPts: Record<string, number> = { schemaPresent:8, schemaRelevance:6, questionHeadings:6, structuredLists:4, faqContent:4, metaAsAnswer:3, entitySignals:3, contentDepth:3, openGraph:2, httpsCanonical:1 }
-                    const isNA = pts === null
-                    const max = maxPts[key] || 1
-                    const pct = isNA ? 0 : Math.round(((pts as number) / max) * 100)
-                    return (
-                      <div key={key} className="rounded-lg p-2.5 border" style={{ background: 'var(--bg3)', borderColor: isNA ? 'var(--border)' : 'var(--border)', opacity: isNA ? 0.5 : 1 }}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="text-[11px] font-medium" style={{ color: 'var(--t2)' }}>{labels[key] || key}</div>
-                          <div className="text-[11px] font-bold" style={{ color: isNA ? 'var(--t3)' : sc(pct) }}>{isNA ? 'N/A' : `${pts}/${max}`}</div>
+            {r.aeoScore ? (() => {
+              const faqLabels: Record<string, string> = { faqSchemaPairs: 'FAQ Schema Q&A Pairs', faqAnswerPairs: 'Q&A with Answer Content', questionHeadings: 'Question Headings' }
+              const faqMax: Record<string, number> = { faqSchemaPairs: 4, faqAnswerPairs: 3, questionHeadings: 3 }
+              const readinessLabels: Record<string, string> = { schemaPresent: 'Schema Markup', schemaRelevance: 'Schema Relevance', structuredLists: 'Lists & Tables', metaAsAnswer: 'Meta as Answer', entitySignals: 'Entity Signals', contentDepth: 'Content Depth', openGraph: 'Open Graph', httpsCanonical: 'HTTPS + Canonical' }
+              const readinessMax: Record<string, number> = { schemaPresent: 8, schemaRelevance: 6, structuredLists: 4, metaAsAnswer: 3, entitySignals: 3, contentDepth: 3, openGraph: 2, httpsCanonical: 1 }
+              const faqKeys = ['faqSchemaPairs', 'faqAnswerPairs', 'questionHeadings']
+              const readinessKeys = ['schemaPresent', 'schemaRelevance', 'structuredLists', 'metaAsAnswer', 'entitySignals', 'contentDepth', 'openGraph', 'httpsCanonical']
+              const bd = r.aeoScore.breakdown as Record<string, number | null>
+              const isNaPage = r.aeoScore.faqScore === null
+              return (
+                <>
+                  {/* ── Header card with combined score ── */}
+                  <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-[15px] font-semibold" style={{ color: 'var(--t1)' }}>Answer Engine Optimisation</div>
+                        <div className="text-[12px] mt-1" style={{ color: 'var(--t3)' }}>How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews</div>
+                      </div>
+                      <div className="flex gap-3 ml-4">
+                        {/* FAQ Score box */}
+                        <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: isNaPage ? 'var(--border)' : 'var(--accent)' }}>
+                          <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: isNaPage ? 'var(--t3)' : 'var(--accent)' }}>FAQ Score</div>
+                          {isNaPage
+                            ? <div className="text-[22px] font-bold" style={{ color: 'var(--t3)' }}>N/A</div>
+                            : <div className="text-[22px] font-bold" style={{ color: sc(Math.round(((r.aeoScore.faqScore ?? 0) / 10) * 100)) }}>{r.aeoScore.faqScore}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/10</span></div>
+                          }
                         </div>
-                        <div className="h-1.5 rounded-full" style={{ background: 'var(--bg2)' }}>
-                          <div className="h-1.5 rounded-full" style={{ width: (isNA ? 0 : pct) + '%', background: isNA ? 'var(--t3)' : sc(pct) }}></div>
+                        {/* AEO Readiness box */}
+                        <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                          <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>AEO Readiness</div>
+                          <div className="text-[22px] font-bold" style={{ color: sc(Math.round((r.aeoScore.aeoReadiness / 30) * 100)) }}>{r.aeoScore.aeoReadiness}<span className="text-[12px] font-normal" style={{ color: 'var(--t3)' }}>/30</span></div>
+                        </div>
+                        {/* Grade box */}
+                        <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                          <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Grade</div>
+                          <div className="text-[22px] font-bold" style={{ color: gcol(r.aeoScore.grade) }}>{r.aeoScore.grade}</div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : (
+                    </div>
+                  </div>
+
+                  {/* ── FAQ Score panel ── */}
+                  <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>FAQ Score</div>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Real questions + answers — signals Google rich results and AI citation readiness</div>
+                      </div>
+                      {isNaPage && <div className="text-[11px] px-2 py-1 rounded" style={{ background: 'var(--bg3)', color: 'var(--t3)' }}>N/A for this page type</div>}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {faqKeys.map(key => {
+                        const pts = bd[key]
+                        const max = faqMax[key] || 1
+                        const isNA = pts === null
+                        const pct = isNA ? 0 : Math.round(((pts as number) / max) * 100)
+                        return (
+                          <div key={key} className="rounded-lg p-2.5 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)', opacity: isNA ? 0.45 : 1 }}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="text-[11px] font-medium" style={{ color: 'var(--t2)' }}>{faqLabels[key]}</div>
+                              <div className="text-[11px] font-bold" style={{ color: isNA ? 'var(--t3)' : sc(pct) }}>{isNA ? 'N/A' : `${pts}/${max}`}</div>
+                            </div>
+                            <div className="h-1.5 rounded-full" style={{ background: 'var(--bg2)' }}>
+                              <div className="h-1.5 rounded-full transition-all" style={{ width: (isNA ? 0 : pct) + '%', background: isNA ? 'var(--t3)' : sc(pct) }}></div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ── AEO Readiness panel ── */}
+                  <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+                    <div className="mb-3">
+                      <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>AEO Readiness</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Structural and technical signals that help AI tools understand, trust and cite your content</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {readinessKeys.map(key => {
+                        const pts = bd[key] as number
+                        const max = readinessMax[key] || 1
+                        const pct = Math.round((pts / max) * 100)
+                        return (
+                          <div key={key} className="rounded-lg p-2.5 border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="text-[11px] font-medium" style={{ color: 'var(--t2)' }}>{readinessLabels[key]}</div>
+                              <div className="text-[11px] font-bold" style={{ color: sc(pct) }}>{pts}/{max}</div>
+                            </div>
+                            <div className="h-1.5 rounded-full" style={{ background: 'var(--bg2)' }}>
+                              <div className="h-1.5 rounded-full transition-all" style={{ width: pct + '%', background: sc(pct) }}></div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )
+            })() : (
               <div className="rounded-xl p-4 border" style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}>
-                <div className="text-[13px]" style={{ color: 'var(--t3)' }}>AEO score not available â re-run the audit to generate AEO data.</div>
+                <div className="text-[13px]" style={{ color: 'var(--t3)' }}>AEO score not available — re-run the audit to generate AEO data.</div>
               </div>
             )}
           </div>
