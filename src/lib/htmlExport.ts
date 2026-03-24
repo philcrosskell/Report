@@ -47,7 +47,7 @@ export function exportHTML(audit: Audit): void {
     </div>`
 
   const renderChecks = (checks: SeoCheck[] = []): string => checks.map(c => `
-    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #ECEEF7">
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:16px 0;border-bottom:1px solid #ECEEF7">
       <span style="width:8px;height:8px;border-radius:50%;background:${statusDot(c.status)};flex-shrink:0;margin-top:5px;display:inline-block"></span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:#0E1120;margin-bottom:2px">${c.label}</div>
@@ -57,15 +57,15 @@ export function exportHTML(audit: Audit): void {
     </div>`).join('')
 
   const renderLpSubScores = (subs: LpSubScore[] = []): string => subs.map(s => `
-    <div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:13px;color:#0E1120">${s.label}</span>
+    <div style="margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #ECEEF7">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:600;color:#0E1120">${s.label}</span>
         <span style="font-size:13px;font-weight:700;color:${scoreColor(s.score)}">${s.score}<span style="color:#8B90AA;font-weight:400"> / ${s.max}</span></span>
       </div>
-      <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden">
+      <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden;margin-bottom:8px">
         <div style="height:100%;width:${s.score}%;background:${scoreColor(s.score)};border-radius:3px"></div>
       </div>
-      ${s.note ? `<p style="font-size:11px;color:#8B90AA;margin-top:4px">${s.note}</p>` : ''}
+      ${s.note ? `<p style="font-size:12px;color:#8B90AA;margin:0;line-height:1.5">${s.note}</p>` : ''}
     </div>`).join('')
 
   const renderSeoCategory = (label: string, cat: SeoCategory): string => `
@@ -290,7 +290,7 @@ export function exportHTML(audit: Audit): void {
         <div style="height:5px;background:#ECEEF7;border-radius:3px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${scoreColor(pct)};border-radius:3px"></div>
         </div>
-        ${c.assessment ? `<p style="font-size:12px;color:#8B90AA;margin-top:4px">${c.assessment}</p>` : ''}
+        ${c.assessment ? `<p style="font-size:12px;color:#8B90AA;margin-top:6px;margin-bottom:16px;line-height:1.5">${c.assessment}</p>` : ''}
         ${c.subScores?.length ? renderLpSubScores(c.subScores) : ''}
       </div>`
     }).join('')}
