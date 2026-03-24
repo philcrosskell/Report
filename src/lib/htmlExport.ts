@@ -6,10 +6,17 @@ export function exportHTML(audit: Audit): void {
   const date = new Date(audit.date).toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })
   const slug = audit.url.replace(/https?:\/\//,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')
 
-  const seoScore = audit.scores.seo ?? 0
-  const lpScore  = audit.scores.lp ?? 0
-  const overall  = audit.scores.overall ?? Math.round((seoScore + lpScore) / 2)
-  const grade    = audit.scores.grade ?? '—'
+  const seoScore  = audit.scores.seo ?? 0
+  const lpScore   = audit.scores.lp ?? 0
+  const overall   = audit.scores.overall ?? Math.round((seoScore + lpScore) / 2)
+  const grade     = audit.scores.grade ?? '—'
+  const aeo       = r.aeoScore
+  const faqScore  = aeo?.faqScore ?? null
+  const faqMax    = aeo?.faqMax ?? null
+  const aeoRd     = aeo?.aeoReadiness ?? null
+  const isNaPage  = faqScore === null
+  const aeoTotal  = aeo?.total ?? null
+  const aeoGrade  = aeo?.grade ?? null
 
   const scoreColor = (s: number) => s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444'
   const gradeColor = (g: string) => {
@@ -141,7 +148,7 @@ export function exportHTML(audit: Audit): void {
       <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
 
       <!-- SCORE CARDS -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
         <div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
           <div style="font-size:28px;font-weight:700;color:${scoreColor(overall)}">${overall}</div>
           <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">OVERALL</div>
@@ -158,6 +165,10 @@ export function exportHTML(audit: Audit): void {
           <div style="font-size:28px;font-weight:700;color:${scoreColor(lpScore)}">${lpScore}</div>
           <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">LP</div>
         </div>
+        ${aeo ? `<div style="text-align:center;padding:16px;background:#F7F8FD;border-radius:10px;border:1px solid #ECEEF7">
+          <div style="font-size:22px;font-weight:700;color:${scoreColor(Math.round((aeoTotal ?? 0) / ((faqMax ?? 0) + 30) * 100))}">${aeoTotal}<span style="font-size:12px;font-weight:400;color:#8B90AA">/${(faqMax ?? 0) + 30}</span></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-top:4px">AEO</div>
+        </div>` : ''}
       </div>
 
       ${r.overview?.summary ? `
@@ -200,6 +211,59 @@ export function exportHTML(audit: Audit): void {
     ${allSeoChecks.length ? `
     <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:14px">TECHNICAL CHECKS</div>
     ${renderChecks(allSeoChecks)}` : ''}
+  `) : ''}
+
+  ${aeo ? card('#F59E0B,#EF4444', 'SECTION', 'Answer Engine Optimisation', `
+    <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+      <div style="background:#F7F8FD;border-radius:10px;padding:16px;border:1px solid #ECEEF7">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:12px">FAQ SCORE</div>
+        ${isNaPage ? '<div style="font-size:13px;color:#8B90AA;font-style:italic">N/A for this page type — FAQ checks not applicable to contact and about pages</div>' : `
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:#374151">FAQ Schema Q&A Pairs</span>
+            <span style="font-size:12px;font-weight:700;color:${scoreColor(Math.round(((aeo?.breakdown?.faqSchemaPairs ?? 0)/4)*100))}">${aeo?.breakdown?.faqSchemaPairs ?? 0}/4</span>
+          </div>
+          <div style="height:6px;background:#E5E7EB;border-radius:3px"><div style="height:6px;border-radius:3px;background:${scoreColor(Math.round(((aeo?.breakdown?.faqSchemaPairs ?? 0)/4)*100))};width:${Math.round(((aeo?.breakdown?.faqSchemaPairs ?? 0)/4)*100)}%"></div></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:#374151">Q&A with Answer Content</span>
+            <span style="font-size:12px;font-weight:700;color:${scoreColor(Math.round(((aeo?.breakdown?.faqAnswerPairs ?? 0)/3)*100))}">${aeo?.breakdown?.faqAnswerPairs ?? 0}/3</span>
+          </div>
+          <div style="height:6px;background:#E5E7EB;border-radius:3px"><div style="height:6px;border-radius:3px;background:${scoreColor(Math.round(((aeo?.breakdown?.faqAnswerPairs ?? 0)/3)*100))};width:${Math.round(((aeo?.breakdown?.faqAnswerPairs ?? 0)/3)*100)}%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:#374151">Question Headings</span>
+            <span style="font-size:12px;font-weight:700;color:${scoreColor(Math.round(((aeo?.breakdown?.questionHeadings ?? 0)/3)*100))}">${aeo?.breakdown?.questionHeadings ?? 0}/3</span>
+          </div>
+          <div style="height:6px;background:#E5E7EB;border-radius:3px"><div style="height:6px;border-radius:3px;background:${scoreColor(Math.round(((aeo?.breakdown?.questionHeadings ?? 0)/3)*100))};width:${Math.round(((aeo?.breakdown?.questionHeadings ?? 0)/3)*100)}%"></div></div>
+        </div>
+        `}
+      </div>
+      <div style="background:#F7F8FD;border-radius:10px;padding:16px;border:1px solid #ECEEF7">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:12px">AEO READINESS <span style="color:#374151">${aeoRd ?? 0}/30</span></div>
+        ${[
+          ['Schema Markup', aeo?.breakdown?.schemaPresent ?? 0, 8],
+          ['Schema Relevance', aeo?.breakdown?.schemaRelevance ?? 0, 6],
+          ['Lists & Tables', aeo?.breakdown?.structuredLists ?? 0, 4],
+          ['Meta as Answer', aeo?.breakdown?.metaAsAnswer ?? 0, 3],
+          ['Entity Signals', aeo?.breakdown?.entitySignals ?? 0, 3],
+          ['Content Depth', aeo?.breakdown?.contentDepth ?? 0, 3],
+          ['Open Graph', aeo?.breakdown?.openGraph ?? 0, 2],
+          ['HTTPS + Canonical', aeo?.breakdown?.httpsCanonical ?? 0, 1],
+        ].map(([label, pts, max]) => `
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:11px;color:#374151">${label}</span>
+              <span style="font-size:11px;font-weight:700;color:${scoreColor(Math.round((Number(pts)/Number(max))*100))}">${pts}/${max}</span>
+            </div>
+            <div style="height:5px;background:#E5E7EB;border-radius:3px"><div style="height:5px;border-radius:3px;background:${scoreColor(Math.round((Number(pts)/Number(max))*100))};width:${Math.round((Number(pts)/Number(max))*100)}%"></div></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
   `) : ''}
 
   ${r.lpScoring ? card('#10B981,#6366F1', 'SECTION', 'Landing Page Analysis', `
