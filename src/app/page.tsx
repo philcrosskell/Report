@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
 import {
+import { exportHTML } from '@/lib/htmlExport'
   getProjects, addProject, updateProject, deleteProject,
   getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
   getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
@@ -1782,9 +1783,9 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
     const audit = getAuditById(id); if (!audit) return
     const { exportPDF } = await import('@/lib/pdfExport'); exportPDF(audit)
   }
-  const exportAuditHTML = async (id: string) => {
+  const exportAuditHTML = (id: string) => {
     const audit = getAuditById(id); if (!audit) return
-    const { exportHTML } = await import('@/lib/htmlExport'); exportHTML(audit)
+    exportHTML(audit)
   }
   const exportComp = async (id: string) => {
     const rep = compReports.find(r => r.id === id); if (!rep) return
