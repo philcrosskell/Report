@@ -237,6 +237,8 @@ export interface CompetitorProfile {
   outcomePromised: string
   howTheyProve: string
   actionTrigger: string
+  seoScore?: number
+  seoBreakdown?: Record<string, number>
 }
 
 export interface ClaimsMatrixRow {
