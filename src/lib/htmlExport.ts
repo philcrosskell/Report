@@ -362,5 +362,8 @@ export function exportHTML(audit: Audit): void {
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
   a.download = `audit-${slug}-${new Date(audit.date).toISOString().split('T')[0]}.html`
+  a.style.display = 'none'
+  document.body.appendChild(a)
   a.click()
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href) }, 100)
 }
