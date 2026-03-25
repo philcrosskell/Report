@@ -408,7 +408,52 @@ def generate_pdf(audit):
 
     summary = overview.get('summary', '')
     if summary:
-        wrap(cv, L, y, summary, sz=10.5, col=BODY, maxw=CW, lh=16)
+        # ── Structured summary renderer ────────────────────────────────────
+        # Split on "However, it suffers from" or "However, it suffers:" pattern
+        import re as _re
+        bullet_trigger = _re.search(
+            r'(However[,]? it suffers[^:]*:|However[,]? it has[^:]*:|However[,]? there are[^:]*:)',
+            summary, _re.IGNORECASE
+        )
+        if bullet_trigger:
+            # Split into intro and bullet section
+            intro_text = summary[:bullet_trigger.start()].strip()
+            trigger_text = bullet_trigger.group(0)
+            bullet_section = summary[bullet_trigger.end():].strip()
+            # Render intro sentences as paragraphs (split on '. ')
+            intro_sentences = [s.strip() for s in _re.split(r'(?<=\.) ', intro_text) if s.strip()]
+            y_s = y
+            cv.saveState(); cv.setFont('Helvetica', 10.5); cv.setFillColor(BODY)
+            for sent in intro_sentences:
+                lines = simpleSplit(sent, 'Helvetica', 10.5, CW)
+                for ln in lines:
+                    cv.drawString(L, ry(y_s), ln); y_s += 16
+                y_s += 4  # gap between sentences
+            # Render "However, it suffers from:" trigger line
+            cv.setFont('Helvetica', 10.5)
+            cv.drawString(L, ry(y_s), trigger_text); y_s += 20
+            cv.restoreState()
+            # Split bullet items on comma+space patterns or explicit bullets
+            # Items are separated by ", " before lowercase letters
+            raw_items = _re.split(r',\s+(?=[a-z])', bullet_section)
+            # Clean trailing punctuation from last item
+            raw_items = [item.strip().rstrip(',').rstrip('.') for item in raw_items if item.strip()]
+            BULLET_INDENT = L + 16
+            BULLET_W = CW - 24
+            cv.saveState(); cv.setFont('Helvetica', 10.5); cv.setFillColor(BODY)
+            for item in raw_items:
+                bullet_text = f'\u2022  {item}'
+                b_lines = simpleSplit(bullet_text, 'Helvetica', 10.5, BULLET_W)
+                for i, ln in enumerate(b_lines):
+                    x_pos = BULLET_INDENT if i == 0 else BULLET_INDENT + 12
+                    cv.drawString(x_pos, ry(y_s), ln); y_s += 16
+                y_s += 3  # small gap between bullets
+            cv.restoreState()
+            y = y_s + 8
+        else:
+            # Fallback: plain wrap
+            wrap(cv, L, y, summary, sz=10.5, col=BODY, maxw=CW, lh=16)
+            y += len(simpleSplit(summary, 'Helvetica', 10.5, CW)) * 16 + 8
 
     # ─────────────── GAP ANALYSIS ────────────────────────────────────────────
     new_page()
