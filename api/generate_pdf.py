@@ -223,13 +223,17 @@ def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail):
 
 def qw_item(cv, y, title, tg_text, tg_bg, tg_fg, detail):
     body_w = int(CW * 0.70)
+    t_lines  = simpleSplit(title,  'Helvetica-Bold', 10.5, body_w - 32)
     det_lines = simpleSplit(detail, 'Helvetica', 9.5, body_w - 32)
-    total_h = len(det_lines)*13 + 46
+    total_h = len(t_lines)*14 + len(det_lines)*13 + 36
     rect(cv, L, y, CW, total_h, fill=LIGHT_BG2, r=8)
-    txt(cv, L+16, y+18, title, bold=True, sz=10.5, col=DARK_TEXT)
     tag_w = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
     tag(cv, R - tag_w - 16, y+13, tg_text, tg_bg, tg_fg)
-    cy = y + 33
+    cy = y + 18
+    cv.saveState(); cv.setFont('Helvetica-Bold', 10.5); cv.setFillColor(DARK_TEXT)
+    for ln in t_lines:
+        cv.drawString(L+16, ry(cy), ln); cy += 14
+    cv.restoreState(); cy += 4
     for ln in det_lines:
         txt(cv, L+16, cy, ln, sz=9.5, col=MUTED); cy += 13
     return y + total_h + 10
