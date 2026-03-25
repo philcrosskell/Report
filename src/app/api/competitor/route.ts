@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { scrapePage } from '@/lib/scraper'
+import { runTechnicalChecks } from '@/lib/ai'
 
 function safeParseJSON<T>(raw: string): T {
   const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
@@ -57,9 +59,34 @@ export async function POST(req: NextRequest) {
     const part1 = safeParseJSON<Record<string, unknown>>(r1)
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
 
+    // Scrape and score all URLs in parallel
+    const allUrls = [
+      { name: businessName, url: businessUrl },
+      ...competitors.filter(c => c.name && c.url)
+    ]
+    const seoScores: Record<string, { score: number; breakdown: Record<string, number> }> = {}
+    await Promise.allSettled(
+      allUrls.map(async ({ name, url }) => {
+        try {
+          const scraped = await scrapePage(url)
+          if (!scraped.error) {
+            const tech = runTechnicalChecks(scraped)
+            seoScores[name] = { score: tech.score, breakdown: tech.breakdown }
+          }
+        } catch { /* skip failed scrapes */ }
+      })
+    )
+
+    // Attach SEO scores to profiles
+    const profiles = (part1.profiles as Record<string, unknown>[] ?? []).map(p => {
+      const pName = p.name as string
+      const match = Object.entries(seoScores).find(([n]) => pName?.toLowerCase().includes(n.toLowerCase()) || n.toLowerCase().includes(pName?.toLowerCase()))
+      return match ? { ...p, seoScore: match[1].score, seoBreakdown: match[1].breakdown } : p
+    })
+
     return NextResponse.json({ success: true, report: {
       businessName, businessUrl, market: market ?? '', date: new Date().toISOString(),
-      brandLogo: brandLogo ?? '', ...part1, ...part2
+      brandLogo: brandLogo ?? '', ...part1, profiles, seoScores, ...part2
     }})
   } catch (err) {
     console.error('Competitor analysis error:', err)
