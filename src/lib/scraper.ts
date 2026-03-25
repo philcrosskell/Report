@@ -48,6 +48,9 @@ export interface ScrapedPage {
   tableCount: number
   faqAnswerPairs: number
   faqSchemaQAPairs: number
+  hasTestimonials: boolean
+  testimonialCount: number
+  hasStarRatings: boolean
   error?: string
 }
 
@@ -69,6 +72,9 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
   tableCount: 0,
   faqAnswerPairs: 0,
   faqSchemaQAPairs: 0,
+  hasTestimonials: false,
+  testimonialCount: 0,
+  hasStarRatings: false,
   }
 
   try {
@@ -258,6 +264,27 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     // FAQ schema Q&A pairs: count @type:Question entries inside FAQPage JSON-LD
     const faqSchemaCount = (html.match(/"@type"\s*:\s*"Question"/gi) ?? []).length
     blank.faqSchemaQAPairs = faqSchemaCount
+
+    // Testimonial & review detection
+    // Matches Elementor, WPBakery, custom testimonial sections, Google review widgets
+    const testimonialPatterns = [
+      /class=["'][^"']*(?:testimonial|review-card|review-item|star-rating|customer-review|client-review|rating-widget)[^"']*["']/gi,
+      /(?:elfsight|trustpilot|google.*review|review.*widget)/gi,
+      /<(?:div|section|article)[^>]*class=["'][^"']*(?:testimonial|review)[^"']*["'][^>]*>/gi,
+    ]
+    let testimonialMatches = 0
+    for (const pat of testimonialPatterns) {
+      const m = html.match(pat) ?? []
+      testimonialMatches += m.length
+    }
+    // Also count structured review items (schema.org Review or individual testimonial blocks)
+    const schemaReviews = (html.match(/"@type"s*:s*"Review"/gi) ?? []).length
+    const elementorTestimonials = (html.match(/elementor-testimonial(?!__)/gi) ?? []).length
+    blank.testimonialCount = Math.max(schemaReviews, Math.floor(elementorTestimonials / 2), Math.floor(testimonialMatches / 3))
+    blank.hasTestimonials = blank.testimonialCount > 0 || testimonialMatches > 0
+
+    // Star rating detection
+    blank.hasStarRatings = /(?:class=["'][^"']*(?:star-rating|stars|fa-star|rating)[^"']*["']|"ratingValue"|itemprop=["']ratingValue["'])/i.test(html)
 
     return blank
   } catch (err) {
