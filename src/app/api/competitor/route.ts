@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     // Pre-scrape all pages to get real metadata for the AI context
     const metaMap: Record<string, { title: string; description: string }> = {}
     await Promise.allSettled(
-      [{ name: businessName, url: businessUrl }, ...competitors.filter(c => c.name && c.url)].map(async ({ name, url }) => {
+      [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))].map(async ({ name, url }) => {
         try {
           const s = await scrapePage(url)
           if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '' }
@@ -73,9 +73,11 @@ export async function POST(req: NextRequest) {
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
 
     // Scrape and score all URLs in parallel
+    // Normalise all URLs to have https:// prefix
+    const ensureHttps = (u: string) => u.startsWith('http') ? u : `https://${u}`
     const allUrls = [
-      { name: businessName, url: businessUrl },
-      ...competitors.filter(c => c.name && c.url)
+      { name: businessName, url: ensureHttps(businessUrl) },
+      ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))
     ]
     const seoScores: Record<string, { score: number; breakdown: Record<string, number> }> = {}
     await Promise.allSettled(
