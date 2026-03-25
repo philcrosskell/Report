@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
 import {
-import { exportHTML } from '@/lib/htmlExport'
   getProjects, addProject, updateProject, deleteProject,
   getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
   getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
@@ -13,6 +12,7 @@ import { exportHTML } from '@/lib/htmlExport'
   getGreatsSearches, saveGreatsSearch, deleteGreatsSearch, GreatsSearch, Great,
   getBrandLogo, saveBrandLogo, clearBrandLogo,
 } from '@/lib/storage'
+import { exportHTML } from '@/lib/htmlExport'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
