@@ -143,7 +143,7 @@ def callout_box(cv, y, border_col, label_col, label, text, bg=None):
     return y + total_h + 16
 
 def issue_card(cv, y, accent, title, impact, fix_text, eff_text, eff_bg, eff_fg):
-    t_lines  = simpleSplit(title,    'Helvetica-Bold', 11.5, CW-90)
+    t_lines  = simpleSplit(title,    'Helvetica-Bold', 11.5, int(CW*0.70))
     im_lines = simpleSplit(impact,   'Helvetica',      10,   CW-36)
     fx_lines = simpleSplit(fix_text, 'Helvetica',      10,   CW-36)
     lh = 14
