@@ -389,7 +389,6 @@ def generate_pdf(audit):
     # Stats strip
     overview = r['overview']
     stats = [
-        ('PAGE TYPE',      overview.get('pageType', '')),
         ('WORD COUNT',     str(overview.get('wordCount', ''))),
         ('RESPONSE TIME',  overview.get('responseTime', '')),
         ('INT. LINKS',     str(overview.get('internalLinks', ''))),
