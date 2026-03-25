@@ -165,7 +165,7 @@ def issue_card(cv, y, accent, title, impact, fix_text, eff_text, eff_bg, eff_fg)
         txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     return y + total_h + 14
 
-def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg, uplift, time_str):
+def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg, uplift):
     AW = 52
     t_lines = simpleSplit(title,    'Helvetica-Bold', 12.5, CW-AW-28)
     p_lines = simpleSplit(prob,     'Helvetica',      10,   CW-AW-28)
@@ -192,12 +192,9 @@ def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg
         txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     cy += 12
     tag_w = tag(cv, ix, cy, eff_text, eff_bg, eff_fg)
-    # Constrain uplift text so it doesn't overflow card boundary
-    time_w = cv.stringWidth(time_str, 'Helvetica', 8) + 16
-    uplift_max_w = R - ix - tag_w - 10 - time_w - 8
+    uplift_max_w = R - ix - tag_w - 16
     uplift_line = simpleSplit(uplift, 'Helvetica-Bold', 8.5, uplift_max_w)[0] if uplift else ''
     txt(cv, ix+tag_w+10, cy+10, uplift_line, bold=True, sz=8.5, col=INDIGO)
-    txt(cv, R-8,         cy+10, time_str,   sz=8,      col=MUTED, align='right')
     return y + total_h + 16
 
 def cat_bar(cv, y, label, pct, fill_col, pct_col):
@@ -656,7 +653,7 @@ def generate_pdf(audit):
         y = fix_card(cv, y, eff_accent2, fix.get('rank', 1),
                      fix.get('title',''), fix.get('problem',''), fix.get('fix',''),
                      f'{diff} Fix', eff_bg2, eff_fg2,
-                     fix.get('uplift',''), fix.get('timeline',''))
+                     fix.get('uplift',''))
 
     # ─────────────── POSITIONING & COMPETITOR ANALYSIS ───────────────────────
     new_page()
