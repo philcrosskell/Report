@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       competitors: { name: string; url: string }[]; brandLogo?: string
     }
 
+    const ensureHttps = (u: string) => u.startsWith('http') ? u : `https://${u}`
     const compList = competitors.filter(c => c.name && c.url).map(c => `- ${c.name} (${c.url})`).join('\n')
 
     // Pre-scrape all pages to get real metadata for the AI context
@@ -73,8 +74,6 @@ export async function POST(req: NextRequest) {
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
 
     // Scrape and score all URLs in parallel
-    // Normalise all URLs to have https:// prefix
-    const ensureHttps = (u: string) => u.startsWith('http') ? u : `https://${u}`
     const allUrls = [
       { name: businessName, url: ensureHttps(businessUrl) },
       ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))
