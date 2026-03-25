@@ -1643,18 +1643,47 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                 <table className="w-full text-[12px]" style={{ minWidth: 500 }}>
                   <THead cols={['Check', ...r.profiles.filter(p => p.seoBreakdown).map(p => p.name)]} />
                   <tbody>
-                    {Object.keys(r.profiles.find(p => p.seoBreakdown)?.seoBreakdown ?? {}).map(key => (
-                      <tr key={key} className="hover:bg-[var(--bg3)]">
-                        <TD>{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</TD>
-                        {r.profiles.filter(p => p.seoBreakdown).map(p => (
-                          <TD key={p.name}>
-                            <span style={{ color: sc(Math.round(((p.seoBreakdown?.[key] ?? 0) / Math.max(...Object.values(p.seoBreakdown ?? {}), 1)) * 100)) }}>
-                              {p.seoBreakdown?.[key] ?? '—'}
-                            </span>
-                          </TD>
-                        ))}
-                      </tr>
-                    ))}
+                    {(() => {
+                      const SEO_CHECK_MAX: Record<string, number> = {
+            title: 10, metaDescription: 8, h1: 8, wordCount: 5,
+            https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5,
+            schema: 4, canonical: 3, responseTime: 3
+          }
+                      const totalMax = Object.values(SEO_CHECK_MAX).reduce((a,b) => a+b, 0)
+                      const rows = Object.keys(r.profiles.find(p => p.seoBreakdown)?.seoBreakdown ?? {})
+                      return <>
+                        {rows.map(key => {
+                          const max = SEO_CHECK_MAX[key] ?? 10
+                          return (
+                            <tr key={key} className="hover:bg-[var(--bg3)]">
+                              <TD>{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</TD>
+                              {r.profiles.filter(p => p.seoBreakdown).map(p => {
+                                const val = p.seoBreakdown?.[key] ?? 0
+                                const pct = Math.round((val / max) * 100)
+                                return (
+                                  <TD key={p.name}>
+                                    <span className="font-medium" style={{ color: sc(pct) }}>
+                                      {val}<span style={{ color: 'var(--t3)', fontWeight: 400 }}>/{max}</span>
+                                    </span>
+                                  </TD>
+                                )
+                              })}
+                            </tr>
+                          )
+                        })}
+                        <tr style={{ borderTop: '2px solid var(--border)' }}>
+                          <td className="text-[12px] font-bold" style={{ padding: '10px 12px', color: 'var(--t1)' }}>Total</td>
+                          {r.profiles.filter(p => p.seoBreakdown).map(p => {
+                            const tot = Object.values(p.seoBreakdown ?? {}).reduce((a,b) => a+(b as number),0)
+                            return (
+                              <td key={p.name} className="font-bold text-[12px]" style={{ padding: '10px 12px', color: sc(Math.round((tot/62)*100)) }}>
+                                {tot}<span style={{ color: 'var(--t3)', fontWeight: 400 }}>/62</span>
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      </>
+                    })()}
                   </tbody>
                 </table>
               </div>
