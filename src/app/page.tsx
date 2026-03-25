@@ -1600,7 +1600,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         <CTitle>Who We Looked At</CTitle>
         <div style={{ overflowX: 'auto' }}>
           <table className="w-full text-[13px]" style={{ minWidth: 600 }}>
-            <THead cols={['Business', 'Tier', 'Their Positioning', 'What They Do Well']} />
+            <THead cols={['Business', 'Tier', 'SEO Score', 'Their Positioning', 'What They Do Well']} />
             <tbody>{r.profiles.map(p => (
               <tr key={p.url} className="hover:bg-[var(--bg3)] transition-colors">
                 <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
@@ -1608,6 +1608,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <div className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                 </td>
                 <TD><Tag color={p.tier === 'Client' ? 'purple' : p.tier === 'Premium' ? 'green' : p.tier === 'Mid' ? 'amber' : 'grey'}>{p.tier}</Tag></TD>
+                <TD>{p.seoScore != null ? <div className="flex items-center gap-2"><span className="font-bold text-[13px]" style={{ color: sc(p.seoScore) }}>{p.seoScore}</span><Bar pct={p.seoScore} /></div> : <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
                 <TD>{p.positioning}</TD>
                 <TD>{p.whatTheyDoWell}</TD>
               </tr>
@@ -1615,6 +1616,52 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           </table>
         </div>
       </Card>
+
+      {r.profiles.some(p => p.seoScore != null) && (
+        <Card>
+          <CTitle>SEO Score Comparison</CTitle>
+          <div className="text-[12px] mb-4" style={{ color: 'var(--t3)' }}>Deterministic technical SEO scores — same checks applied to every URL (title, meta, H1, content, HTTPS, schema, speed and more)</div>
+          <div className="flex flex-col gap-3">
+            {[...r.profiles].filter(p => p.seoScore != null).sort((a, b) => (b.seoScore ?? 0) - (a.seoScore ?? 0)).map(p => (
+              <div key={p.url} className="flex items-center gap-3">
+                <div className="text-[12px] font-medium" style={{ minWidth: 140, color: p.tier === 'Client' ? 'var(--accent2)' : 'var(--t1)' }}>
+                  {p.name}{p.tier === 'Client' && <span className="ml-1.5 text-[10px]" style={{ color: 'var(--accent)' }}>YOU</span>}
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--bg4)' }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${p.seoScore}%`, background: sc(p.seoScore ?? 0) }} />
+                  </div>
+                  <span className="text-[13px] font-bold w-8 text-right" style={{ color: sc(p.seoScore ?? 0) }}>{p.seoScore}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {r.profiles.some(p => p.seoBreakdown) && (
+            <div className="mt-5">
+              <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--t3)' }}>Breakdown by Check</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="w-full text-[12px]" style={{ minWidth: 500 }}>
+                  <THead cols={['Check', ...r.profiles.filter(p => p.seoBreakdown).map(p => p.name)]} />
+                  <tbody>
+                    {Object.keys(r.profiles.find(p => p.seoBreakdown)?.seoBreakdown ?? {}).map(key => (
+                      <tr key={key} className="hover:bg-[var(--bg3)]">
+                        <TD>{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</TD>
+                        {r.profiles.filter(p => p.seoBreakdown).map(p => (
+                          <TD key={p.name}>
+                            <span style={{ color: sc(Math.round(((p.seoBreakdown?.[key] ?? 0) / Math.max(...Object.values(p.seoBreakdown ?? {}), 1)) * 100)) }}>
+                              {p.seoBreakdown?.[key] ?? '—'}
+                            </span>
+                          </TD>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Hook analysis */}
       <Card>
