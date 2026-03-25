@@ -30,7 +30,20 @@ export async function POST(req: NextRequest) {
     }
 
     const compList = competitors.filter(c => c.name && c.url).map(c => `- ${c.name} (${c.url})`).join('\n')
-    const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}`
+
+    // Pre-scrape all pages to get real metadata for the AI context
+    const metaMap: Record<string, { title: string; description: string }> = {}
+    await Promise.allSettled(
+      [{ name: businessName, url: businessUrl }, ...competitors.filter(c => c.name && c.url)].map(async ({ name, url }) => {
+        try {
+          const s = await scrapePage(url)
+          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '' }
+        } catch { /* ignore */ }
+      })
+    )
+
+    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" — ${m.description}`).join('\n')
+    const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these — do NOT guess):\n${metaLines}`
     const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words.`
 
     // Call 1: Profiles + Claims + Headlines
@@ -71,17 +84,32 @@ export async function POST(req: NextRequest) {
           const scraped = await scrapePage(url)
           if (!scraped.error) {
             const tech = runTechnicalChecks(scraped)
-            seoScores[name] = { score: tech.score, breakdown: tech.breakdown }
+            // Store by normalised URL so we can match reliably
+            const normUrl = url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+            seoScores[normUrl] = { score: tech.score, breakdown: tech.breakdown }
           }
         } catch { /* skip failed scrapes */ }
       })
     )
 
-    // Attach SEO scores to profiles
+    // Attach SEO scores to profiles — match by URL (reliable) then name (fallback)
     const profiles = (part1.profiles as Record<string, unknown>[] ?? []).map(p => {
-      const pName = p.name as string
-      const match = Object.entries(seoScores).find(([n]) => pName?.toLowerCase().includes(n.toLowerCase()) || n.toLowerCase().includes(pName?.toLowerCase()))
-      return match ? { ...p, seoScore: match[1].score, seoBreakdown: match[1].breakdown } : p
+      const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+      const pName = (p.name as string ?? '').toLowerCase()
+      // Try URL match first
+      const urlMatch = seoScores[pUrl]
+      if (urlMatch) return { ...p, seoScore: urlMatch.score, seoBreakdown: urlMatch.breakdown }
+      // Fallback: partial name match against the allUrls list
+      const nameMatch = allUrls.find(u => {
+        const uName = u.name.toLowerCase()
+        return uName.includes(pName) || pName.includes(uName)
+      })
+      if (nameMatch) {
+        const normFallback = nameMatch.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+        const fallbackScore = seoScores[normFallback]
+        if (fallbackScore) return { ...p, seoScore: fallbackScore.score, seoBreakdown: fallbackScore.breakdown }
+      }
+      return p
     })
 
     return NextResponse.json({ success: true, report: {
