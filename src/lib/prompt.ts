@@ -23,6 +23,7 @@ Internal links: ${scraped.internalLinks} | External: ${scraped.externalLinks} | 
 Images: ${scraped.images} | Missing alt: ${scraped.imagesMissingAlt}
 Forms: ${scraped.hasForms ? `YES — ${scraped.formCount} form(s), ~${scraped.formFields} fields` : 'NO FORMS ON THIS PAGE'}
 CTAs: ${scraped.ctaButtonCount} | Phone: ${scraped.phoneNumbers[0] ?? 'none'} | Email: ${scraped.emailAddresses[0] ?? 'none'}
+Testimonials/Reviews: ${scraped.hasTestimonials ? `YES — ${scraped.testimonialCount} detected` : 'NONE DETECTED'} | Star ratings: ${scraped.hasStarRatings ? 'YES' : 'NO'}
 HTTPS: ${scraped.hasHttps ? 'yes' : 'NO'} | Response: ${scraped.responseTimeMs}ms | Size: ${Math.round(scraped.htmlSizeBytes/1024)}kB
 Canonical: ${scraped.canonicalUrl || 'missing'} | Lang: ${scraped.language || 'not set'} | Viewport: ${scraped.hasViewport ? 'yes' : 'MISSING'}
 Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'}
