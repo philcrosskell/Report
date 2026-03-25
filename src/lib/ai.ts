@@ -104,7 +104,7 @@ function runAeoChecks(s: ScrapedPage, pageType?: string): import('./types').AeoS
   }
 }
 
-function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
+export function runTechnicalChecks(s: ScrapedPage): { score: number; breakdown: Record<string, number> } {
   const b: Record<string, number> = {}
 
   // Title (10pts)
