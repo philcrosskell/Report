@@ -18,6 +18,7 @@ function uid() { return Math.random().toString(36).slice(2) + Date.now().toStrin
 
 //  helpers 
 function sc(n: number) { return n >= 70 ? 'var(--green)' : n >= 40 ? 'var(--amber)' : 'var(--red)' }
+function scSeo(n: number) { return n >= 56 ? 'var(--green)' : n >= 45 ? 'var(--amber)' : 'var(--red)' }
 function stag(n: number | null | undefined) { if (!n) return 'purple'; if (n >= 70) return 'green'; if (n >= 40) return 'amber'; return 'red' }
 function gcol(g: string) { return g === 'A' || g === 'B' ? 'var(--green)' : g === 'C' || g === 'D' ? 'var(--amber)' : 'var(--red)' }
 
@@ -1608,7 +1609,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <div className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                 </td>
                 <TD><Tag color={p.tier === 'Client' ? 'purple' : p.tier === 'Premium' ? 'green' : p.tier === 'Mid' ? 'amber' : 'grey'}>{p.tier}</Tag></TD>
-                <TD>{p.seoScore != null ? <div className="flex items-center gap-2"><span className="font-bold text-[13px]" style={{ color: sc(p.seoScore) }}>{p.seoScore}</span><Bar pct={p.seoScore} /></div> : <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
+                <TD>{p.seoScore != null ? <div className="flex items-center gap-2"><span className="font-bold text-[13px]" style={{ color: scSeo(p.seoScore ?? 0) }}>{p.seoScore}</span><Bar pct={Math.round(((p.seoScore ?? 0)/62)*100)} /></div> : <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
                 <TD>{p.positioning}</TD>
                 <TD>{p.whatTheyDoWell}</TD>
               </tr>
@@ -1629,9 +1630,9 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                 </div>
                 <div className="flex-1 flex items-center gap-2">
                   <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--bg4)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${p.seoScore}%`, background: sc(p.seoScore ?? 0) }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(((p.seoScore ?? 0)/62)*100)}%`, background: scSeo(p.seoScore ?? 0) }} />
                   </div>
-                  <span className="text-[13px] font-bold w-8 text-right" style={{ color: sc(p.seoScore ?? 0) }}>{p.seoScore}</span>
+                  <span className="text-[13px] font-bold w-8 text-right" style={{ color: scSeo(p.seoScore ?? 0) }}>{p.seoScore}</span>
                 </div>
               </div>
             ))}
@@ -1676,7 +1677,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                           {r.profiles.filter(p => p.seoBreakdown).map(p => {
                             const tot = Object.values(p.seoBreakdown ?? {}).reduce((a,b) => a+(b as number),0)
                             return (
-                              <td key={p.name} className="font-bold text-[12px]" style={{ padding: '10px 12px', color: sc(Math.round((tot/62)*100)) }}>
+                              <td key={p.name} className="font-bold text-[12px]" style={{ padding: '10px 12px', color: scSeo(tot) }}>
                                 {tot}<span style={{ color: 'var(--t3)', fontWeight: 400 }}>/62</span>
                               </td>
                             )
