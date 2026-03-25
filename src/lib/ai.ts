@@ -59,8 +59,8 @@ function runAeoChecks(s: ScrapedPage, pageType?: string): import('./types').AeoS
     metaAsAnswer = len >= 80 && len <= 160 ? 3 : len > 0 ? 1 : 0
   }
 
-  // Entity signals (3pts)
-  const entitySignals = (s.phoneNumbers.length > 0 || s.emailAddresses.length > 0) ? 3 : 0
+  // Entity signals (3pts) — phone, email, testimonials, star ratings
+  const entitySignals = (s.phoneNumbers.length > 0 || s.emailAddresses.length > 0 || s.hasTestimonials || s.hasStarRatings) ? 3 : 0
 
   // Content depth (3pts)
   const contentDepth = s.wordCount >= 800 ? 3 : s.wordCount >= 400 ? 2 : s.wordCount >= 200 ? 1 : 0
