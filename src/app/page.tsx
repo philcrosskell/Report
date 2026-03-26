@@ -106,11 +106,11 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
     }
   }
 
-  // Detect bullet list pattern: "ÃÂ¢ÃÂÃÂ¢ thing ÃÂ¢ÃÂÃÂ¢ thing" or "- thing - thing"
-  const bulletPattern = /(?:^|[\n])\s*[ÃÂ¢ÃÂÃÂ¢\--]\s/g
+  // Detect bullet list pattern: "• thing • thing" or "- thing - thing"
+  const bulletPattern = /(?:^|[\n])\s*[•\--]\s/g
   const bulletMatches = [...text.matchAll(bulletPattern)]
   if (bulletMatches.length >= 2) {
-    const items = text.split(/\n?\s*[ÃÂ¢ÃÂÃÂ¢\--]\s+/).map(s => s.trim()).filter(Boolean)
+    const items = text.split(/\n?\s*[•\--]\s+/).map(s => s.trim()).filter(Boolean)
     if (items.length >= 2) {
       return (
         <ul className={`flex flex-col gap-1.5 ${className}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -1609,7 +1609,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <div className="font-mono text-[10px]" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                 </td>
                 <TD><Tag color={p.tier === 'Client' ? 'purple' : p.tier === 'Premium' ? 'green' : p.tier === 'Mid' ? 'amber' : 'grey'}>{p.tier}</Tag></TD>
-                <TD>{p.seoScore != null ? <div className="flex items-center gap-2"><span className="font-bold text-[13px]" style={{ color: scSeo(p.seoScore ?? 0) }}>{p.seoScore}</span><Bar pct={Math.round(((p.seoScore ?? 0)/62)*100)} /></div> : <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
+                <TD>{p.seoScore != null ? <div className="flex items-center gap-2"><span className="font-bold text-[13px]" style={{ color: scSeo(p.seoScore ?? 0) }}>{p.seoScore}</span><Bar pct={Math.round(((p.seoScore ?? 0)/65)*100)} /></div> : <span style={{ color: 'var(--t3)' }}>—</span>}</TD>
                 <TD>{p.positioning}</TD>
                 <TD>{p.whatTheyDoWell}</TD>
               </tr>
@@ -1630,7 +1630,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                 </div>
                 <div className="flex-1 flex items-center gap-2">
                   <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--bg4)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(((p.seoScore ?? 0)/62)*100)}%`, background: scSeo(p.seoScore ?? 0) }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(((p.seoScore ?? 0)/65)*100)}%`, background: scSeo(p.seoScore ?? 0) }} />
                   </div>
                   <span className="text-[13px] font-bold w-8 text-right" style={{ color: scSeo(p.seoScore ?? 0) }}>{p.seoScore}</span>
                 </div>
@@ -1646,7 +1646,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                   <tbody>
                     {(() => {
                       const SEO_CHECK_MAX: Record<string, number> = {
-            title: 10, metaDescription: 8, h1: 8, wordCount: 5,
+            title: 10, metaDescription: 8, h1: 8, wordCount: 8,
             https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5,
             schema: 4, canonical: 3, responseTime: 3
           }
@@ -1678,7 +1678,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                             const tot = Object.values(p.seoBreakdown ?? {}).reduce((a,b) => a+(b as number),0)
                             return (
                               <td key={p.name} className="font-bold text-[12px]" style={{ padding: '10px 12px', color: scSeo(tot) }}>
-                                {tot}<span style={{ color: 'var(--t3)', fontWeight: 400 }}>/62</span>
+                                {tot}<span style={{ color: 'var(--t3)', fontWeight: 400 }}>/65</span>
                               </td>
                             )
                           })}
@@ -1744,7 +1744,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         <Card>
           <CTitle>Table Stakes  —  Everyone Claims This</CTitle>
           <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects  —  not differentiating.</div>
-          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>ÃÂ¢ÃÂÃÂ¢ {t}</div>)}
+          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>• {t}</div>)}
         </Card>
         <Card>
           <CTitle>White Space  —  Worth Claiming</CTitle>
