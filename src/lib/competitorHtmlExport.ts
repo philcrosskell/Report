@@ -1,6 +1,6 @@
 import type { CompetitorIntelligenceReport } from './types'
 
-export function exportCompetitorHTML(report: import('./types').CompetitorIntelligenceReport): void {
+export function exportCompetitorHTML(report: CompetitorIntelligenceReport): void {
   const date = new Date(report.date).toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })
   const slug = report.businessName.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')
 
