@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" — ${m.description}`).join('\n')
-    const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these — do NOT guess):\n${metaLines}`
+    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" â ${m.description}`).join('\n')
+    const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these â do NOT guess):\n${metaLines}`
     const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words.`
 
     // Call 1: Profiles + Claims + Headlines
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    // Attach SEO scores to profiles — match by URL (reliable) then name (fallback)
+    // Attach SEO scores to profiles â match by URL (reliable) then name (fallback)
     const profiles = (part1.profiles as Record<string, unknown>[] ?? []).map(p => {
       const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
       const pName = (p.name as string ?? '').toLowerCase()
