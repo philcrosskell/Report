@@ -246,7 +246,7 @@ def generate_competitor_pdf(report):
 
     # Table: Name | Tier | SEO Score | Positioning | What they do well
     tier_cols = [DARK, HexColor('#1E3A8A'), HexColor('#065F46'), HexColor('#4C1D95'), HexColor('#7F1D1D')]
-    cols = [140, 60, 70, CW-340, CW-200-(CW-340)-60-70]
+    cols = [140, 45, 70, CW-340, CW-200-(CW-340)-45-70]
     # Make last col fill remaining
     used = sum(cols[:-1]); cols[-1] = CW - used
     y = tbl_header(cv, y, cols, ['COMPETITOR','TIER','SEO SCORE','POSITIONING','WHAT THEY DO WELL'])
