@@ -44,7 +44,7 @@ export function exportCompetitorHTML(report: CompetitorIntelligenceReport): void
               <td style="padding:12px 14px"><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:${tierColor}22;color:${tierColor}">${p.tier}</span></td>
               <td style="padding:12px 14px">
                 ${p.seoScore != null ? `<div style="font-size:13px;font-weight:700;color:${scoreColor(p.seoScore)};margin-bottom:4px">${p.seoScore}/62</div>
-                <div style="height:4px;background:#ECEEF7;border-radius:2px;width:80px"><div style="height:4px;border-radius:2px;background:${scoreColor(p.seoScore)};width:${barPct}%"></div></div>` : '<span style="color:#8B90AA">â</span>'}
+                <div style="height:4px;background:#ECEEF7;border-radius:2px;width:80px"><div style="height:4px;border-radius:2px;background:${scoreColor(p.seoScore)};width:${barPct}%"></div></div>` : '<span style="color:#8B90AA">—</span>'}
               </td>
               <td style="padding:12px 14px;font-size:12px;color:#4A5280">${p.positioning}</td>
               <td style="padding:12px 14px;font-size:12px;color:#4A5280">${p.whatTheyDoWell}</td>
@@ -146,7 +146,7 @@ export function exportCompetitorHTML(report: CompetitorIntelligenceReport): void
             <tr style="border-bottom:1px solid #ECEEF7">
               <td style="padding:8px 12px;color:#4A5280;font-weight:600">${row.claimType}</td>
               ${report.claimsMatrix.claimTypes.map(c => {
-                const v = row.values?.[c] ?? 'â'
+                const v = row.values?.[c] ?? '—'
                 const col = v === 'Yes' ? '#10B981' : v === 'No' ? '#EF4444' : v === 'Partial' ? '#F59E0B' : '#8B90AA'
                 return `<td style="text-align:center;padding:8px 12px;font-weight:700;color:${col}">${v}</td>`
               }).join('')}
@@ -219,7 +219,7 @@ export function exportCompetitorHTML(report: CompetitorIntelligenceReport): void
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Competitor Report â ${report.businessName}</title>
+<title>Competitor Report — ${report.businessName}</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;background:#0E1120;color:#0E1120}
