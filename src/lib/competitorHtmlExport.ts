@@ -54,15 +54,17 @@ export function exportCompetitorHTML(report: CompetitorIntelligenceReport): void
       </div>
     </div>`).join('')
 
-  // CLAIMS MATRIX
-  const claimsBody = (report.claimsMatrix?.rows?.length ?? 0) === 0 ? '' : `
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+  // CLAIMS MATRIX — columns = competitor names, rows = claim types
+  const claimsBody = (report.claimsMatrix?.rows?.length ?? 0) === 0 ? '' : (() => {
+    const competitorCols = Object.keys(report.claimsMatrix.rows[0]?.values ?? {})
+    return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead><tr style="background:#F7F8FD">
         <th style="text-align:left;padding:8px 12px;color:#8B90AA;font-size:10px;font-weight:700;letter-spacing:.08em;border-bottom:1px solid #ECEEF7">CLAIM TYPE</th>
-        ${(report.claimsMatrix.claimTypes ?? []).map(c => `<th style="text-align:center;padding:8px 12px;color:#8B90AA;font-size:10px;font-weight:700;letter-spacing:.08em;border-bottom:1px solid #ECEEF7">${c}</th>`).join('')}
+        ${competitorCols.map(c => `<th style="text-align:center;padding:8px 12px;color:#8B90AA;font-size:10px;font-weight:700;letter-spacing:.08em;border-bottom:1px solid #ECEEF7">${c}</th>`).join('')}
       </tr></thead>
-      <tbody>${report.claimsMatrix.rows.map((row, i) => `<tr style="border-bottom:1px solid #ECEEF7${i % 2 === 1 ? ';background:#F9FAFB' : ''}"><td style="padding:8px 12px;color:#4A5280;font-weight:600">${row.claimType}</td>${(report.claimsMatrix.claimTypes ?? []).map(c => { const v = row.values?.[c] ?? '&#8212;'; const col = v === 'Yes' ? '#10B981' : v === 'No' ? '#EF4444' : v === 'Partial' ? '#F59E0B' : '#8B90AA'; return `<td style="text-align:center;padding:8px 12px;font-weight:700;color:${col}">${v}</td>` }).join('')}</tr>`).join('')}</tbody>
+      <tbody>${report.claimsMatrix.rows.map((row, i) => `<tr style="border-bottom:1px solid #ECEEF7${i % 2 === 1 ? ';background:#F9FAFB' : ''}"><td style="padding:8px 12px;color:#4A5280;font-weight:600">${row.claimType}</td>${competitorCols.map(c => { const v = row.values?.[c] ?? '&#8212;'; const col = v === 'Yes' ? '#10B981' : v === 'No' ? '#EF4444' : v === 'Partial' ? '#F59E0B' : '#8B90AA'; return `<td style="text-align:center;padding:8px 12px;font-weight:700;color:${col}">${v}</td>` }).join('')}</tr>`).join('')}</tbody>
     </table></div>`
+  })()
 
   // STRATEGY
   const stratParts = []
