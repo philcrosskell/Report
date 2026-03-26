@@ -252,19 +252,25 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     blank.listCount = (html.match(/<[uo]l[\s>]/gi) ?? []).length
     blank.tableCount = (html.match(/<table[\s>]/gi) ?? []).length
 
-    // FAQ answer pairs: question heading followed by answer content (p or div), 40+ words
-    // Pattern 1: h2/h3 followed by p or div with 150+ chars
-    const headingContentRegex = /<h[23][^>]*>([^<]+)<\/h[23]>[\s\S]{0,400}?<(?:p|div)[^>]*>([^<]{150,})<\/(?:p|div)>/gi
-    // Pattern 2: accordion — question heading inside container div, answer in next sibling div
-    const accordionRegex = /<div[^>]*>[^<]*<h[23][^>]*>([^<]{10,}\?[^<]*)<\/h[23]>[\s\S]{0,300}?<\/div>\s*<div[^>]*>([\s\S]{150,?}?)<\/div>/gi
+    // FAQ answer pairs: question heading with substantial answer content (40+ words)
+    // Helper: strip HTML tags and get text length
+    const stripTags = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    // Pattern 1: h2/h3 followed by a p or div block — strip inner tags to check length
+    const headingBlockRegex = /<h[23][^>]*>([^<]+)<\/h[23]>([\s\S]{0,500}?)<\/(?:p|div)>/gi
+    // Pattern 2: accordion — container div with h3 inside, next sibling div is answer
+    const accordionItemRegex = /<div[^>]*class="[^"]*faqs__item-header[^"]*"[^>]*>([\s\S]{0,300}?)<\/div>\s*<div[^>]*class="[^"]*faqs__item-body[^"]*"[^>]*>([\s\S]{0,1000}?)<\/div>/gi
+    // Pattern 3: generic — any div containing h2/h3 question, followed by sibling div with 40+ word answer
+    const genericAccordionRegex = /<div[^>]*>[\s\S]{0,100}?<h[23][^>]*>([^<]{10,}\?[^<]*)<\/h[23]>[\s\S]{0,200}?<\/div>\s*<div[^>]*>([\s\S]{0,800}?)<\/div>/gi
     let faqPairCount = 0
     const seenQ = new Set<string>()
-    for (const regex of [headingContentRegex, accordionRegex]) {
+    const isQuestion = (q: string) => /^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(q.trim())
+    const hasEnoughText = (block: string) => stripTags(block).length >= 100
+    for (const regex of [accordionItemRegex, genericAccordionRegex]) {
       let m
       regex.lastIndex = 0
       while ((m = regex.exec(html)) !== null) {
-        const q = m[1].trim()
-        if (/^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(q) && !seenQ.has(q)) {
+        const q = stripTags(m[1])
+        if (isQuestion(q) && hasEnoughText(m[2]) && !seenQ.has(q)) {
           seenQ.add(q)
           faqPairCount++
         }
