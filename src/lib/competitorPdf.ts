@@ -1,10 +1,10 @@
-import type { SavedCompetitorReport } from './types'
+import type { CompetitorIntelligenceReport } from './types'
 
-export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise<void> {
+export async function exportCompetitorPDF(report: CompetitorIntelligenceReport): Promise<void> {
   const res = await fetch('/api/generate_competitor_pdf', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(saved),
+    body: JSON.stringify(report),
   })
 
   if (!res.ok) {
@@ -16,7 +16,7 @@ export async function exportCompetitorPDF(saved: SavedCompetitorReport): Promise
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
-  a.download = `competitor-intelligence-${saved.businessName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.pdf`
+  a.download = `competitor-intelligence-${report.businessName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.pdf`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
