@@ -142,7 +142,7 @@ export function exportHTML(audit: Audit): void {
     <div style="padding:32px 32px 36px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8B5CF6;margin-bottom:10px">PAGE AUDIT REPORT</div>
       <div style="font-size:36px;font-weight:700;color:#0E1120;line-height:1.1;margin-bottom:8px">${r.overview?.title || url}</div>
-      <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${r.overview?.pageType || 'Web Page'} ÃÂ· ${r.overview?.wordCount || 0} words ÃÂ· ${r.overview?.responseTime || ''}</div>
+      <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${r.overview?.pageType || 'Web Page'} Ã· ${r.overview?.wordCount || 0} words Ã· ${r.overview?.responseTime || ''}</div>
       <a href="${url}" style="font-size:11px;color:#B0B5CC;text-decoration:none">${url}</a>
 
       <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
@@ -413,7 +413,7 @@ export function exportCompetitorHTML(report: import('./types').CompetitorIntelli
               <td style="padding:12px 14px"><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:${tierColor}22;color:${tierColor}">${p.tier}</span></td>
               <td style="padding:12px 14px">
                 ${p.seoScore != null ? `<div style="font-size:13px;font-weight:700;color:${scoreColor(p.seoScore)};margin-bottom:4px">${p.seoScore}/62</div>
-                <div style="height:4px;background:#ECEEF7;border-radius:2px;width:80px"><div style="height:4px;border-radius:2px;background:${scoreColor(p.seoScore)};width:${barPct}%"></div></div>` : '<span style="color:#8B90AA">â</span>'}
+                <div style="height:4px;background:#ECEEF7;border-radius:2px;width:80px"><div style="height:4px;border-radius:2px;background:${scoreColor(p.seoScore)};width:${barPct}%"></div></div>` : '<span style="color:#8B90AA">—</span>'}
               </td>
               <td style="padding:12px 14px;font-size:12px;color:#4A5280">${p.positioning}</td>
               <td style="padding:12px 14px;font-size:12px;color:#4A5280">${p.whatTheyDoWell}</td>
@@ -425,7 +425,7 @@ export function exportCompetitorHTML(report: import('./types').CompetitorIntelli
 
   // SEO COMPARISON card
   const seoProfiles = report.profiles.filter(p => p.seoScore != null).sort((a,b) => (b.seoScore??0)-(a.seoScore??0))
-  const seoCompCard = seoProfiles.length ? card('#6366F1,#3B82F6', 'SECTION', 'SEO Comparison', `
+  const seoCompCard = seoProfiles.length ? card('#6366F1,#3B82F6', 'SECTION', 'SEO Score Comparison', `
     <div style="font-size:12px;color:#8B90AA;margin-bottom:20px">Technical SEO scores out of 62</div>
     ${seoProfiles.map(p => `
       <div style="margin-bottom:16px">
@@ -515,7 +515,7 @@ export function exportCompetitorHTML(report: import('./types').CompetitorIntelli
             <tr style="border-bottom:1px solid #ECEEF7">
               <td style="padding:8px 12px;color:#4A5280;font-weight:600">${row.claimType}</td>
               ${report.claimsMatrix.claimTypes.map(c => {
-                const v = row.values?.[c] ?? 'â'
+                const v = row.values?.[c] ?? '—'
                 const col = v === 'Yes' ? '#10B981' : v === 'No' ? '#EF4444' : v === 'Partial' ? '#F59E0B' : '#8B90AA'
                 return `<td style="text-align:center;padding:8px 12px;font-weight:700;color:${col}">${v}</td>`
               }).join('')}
@@ -530,7 +530,7 @@ export function exportCompetitorHTML(report: import('./types').CompetitorIntelli
     ${report.tableStakes?.length ? `
       <div style="margin-bottom:24px">
         <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#8B90AA;margin-bottom:10px">TABLE STAKES</div>
-        ${report.tableStakes.map(s => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6366F1;font-weight:700">Â·</span><span style="font-size:12px;color:#4A5280">${s}</span></div>`).join('')}
+        ${report.tableStakes.map(s => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6366F1;font-weight:700">·</span><span style="font-size:12px;color:#4A5280">${s}</span></div>`).join('')}
       </div>` : ''}
     ${report.whiteSpace?.length ? `
       <div style="margin-bottom:24px">
@@ -588,7 +588,7 @@ export function exportCompetitorHTML(report: import('./types').CompetitorIntelli
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Competitor Report â ${report.businessName}</title>
+<title>Competitor Report — ${report.businessName}</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;background:#0E1120;color:#0E1120}
@@ -617,7 +617,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Ari
   <div style="padding:32px 32px 36px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8B5CF6;margin-bottom:10px">COMPETITOR ANALYSIS REPORT</div>
     <div style="font-size:36px;font-weight:700;color:#0E1120;line-height:1.1;margin-bottom:8px">${report.businessName}</div>
-    <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${report.market ? report.market + ' Â· ' : ''}${report.profiles.length} competitors analysed</div>
+    <div style="font-size:13px;color:#8B90AA;margin-bottom:4px">${report.market ? report.market + ' · ' : ''}${report.profiles.length} competitors analysed</div>
     <a href="${report.businessUrl}" style="font-size:11px;color:#B0B5CC;text-decoration:none">${report.businessUrl}</a>
     ${report.summary ? `
     <div style="height:1px;background:linear-gradient(90deg,#ECEEF7,transparent);margin:20px 0"></div>
