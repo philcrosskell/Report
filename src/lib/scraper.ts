@@ -252,30 +252,42 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     blank.listCount = (html.match(/<[uo]l[\s>]/gi) ?? []).length
     blank.tableCount = (html.match(/<table[\s>]/gi) ?? []).length
 
-    // FAQ answer pairs: question heading with substantial answer content (40+ words)
-    // Helper: strip HTML tags and get text length
-    const stripTags = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    // Pattern 1: h2/h3 followed by a p or div block — strip inner tags to check length
-    const headingBlockRegex = /<h[23][^>]*>([^<]+)<\/h[23]>([\s\S]{0,500}?)<\/(?:p|div)>/gi
-    // Pattern 2: accordion — container div with h3 inside, next sibling div is answer
-    const accordionItemRegex = /<div[^>]*class="[^"]*faqs__item-header[^"]*"[^>]*>([\s\S]{0,300}?)<\/div>\s*<div[^>]*class="[^"]*faqs__item-body[^"]*"[^>]*>([\s\S]{0,1000}?)<\/div>/gi
-    // Pattern 3: generic — any div containing h2/h3 question, followed by sibling div with 40+ word answer
-    const genericAccordionRegex = /<div[^>]*>[\s\S]{0,100}?<h[23][^>]*>([^<]{10,}\?[^<]*)<\/h[23]>[\s\S]{0,200}?<\/div>\s*<div[^>]*>([\s\S]{0,800}?)<\/div>/gi
+    // FAQ answer pairs: question heading with answer content (40+ words)
+    const stripTags = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
+    const isQuestion = (q: string) => /^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(q.trim())
     let faqPairCount = 0
     const seenQ = new Set<string>()
-    const isQuestion = (q: string) => /^(who|what|when|where|how|why|is|are|can|does|do|will|should|which)\b/i.test(q.trim())
-    const hasEnoughText = (block: string) => stripTags(block).length >= 100
-    for (const regex of [accordionItemRegex, genericAccordionRegex]) {
-      let m
-      regex.lastIndex = 0
-      while ((m = regex.exec(html)) !== null) {
-        const q = stripTags(m[1])
-        if (isQuestion(q) && hasEnoughText(m[2]) && !seenQ.has(q)) {
+
+    // Strategy 1: FAQ accordion items — match faqs__item wrapper containing h2/h3 + answer body
+    // Handles any number of chars between header and body (toggle buttons, SVGs etc.)
+    const faqItemRegex = /<div[^>]*class="[^"]*faqs__item[^"]*"[^>]*>([\s\S]+?)<\/div>\s*<\/div>/gi
+    let faqItem
+    while ((faqItem = faqItemRegex.exec(html)) !== null) {
+      const itemHtml = faqItem[0]
+      const qMatch = itemHtml.match(/<h[23][^>]*>([^<]+)<\/h[23]>/i)
+      const bodyMatch = itemHtml.match(/<div[^>]*class="[^"]*(?:faqs__item-body|item-body|answer|accordion-body|accordion-content)[^"]*"[^>]*>([\s\S]+?)<\/div>/i)
+      if (qMatch && bodyMatch) {
+        const q = qMatch[1].trim()
+        const aText = stripTags(bodyMatch[1])
+        if (isQuestion(q) && aText.length >= 80 && !seenQ.has(q)) {
           seenQ.add(q)
           faqPairCount++
         }
       }
     }
+
+    // Strategy 2: Standard h2/h3 followed by p tag with enough text (non-accordion pages)
+    const headingParaRegex = /<h[23][^>]*>([^<]+)<\/h[23]>[\s\S]{0,500}?<p[^>]*>([\s\S]{0,2000}?)<\/p>/gi
+    let hp
+    while ((hp = headingParaRegex.exec(html)) !== null) {
+      const q = hp[1].trim()
+      const aText = stripTags(hp[2])
+      if (isQuestion(q) && aText.length >= 80 && !seenQ.has(q)) {
+        seenQ.add(q)
+        faqPairCount++
+      }
+    }
+
     blank.faqAnswerPairs = faqPairCount
 
     // FAQ schema Q&A pairs: count @type:Question entries inside FAQPage JSON-LD
