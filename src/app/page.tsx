@@ -427,7 +427,6 @@ function SeoCheckSection() {
       </div>
     </>
   );
-}
   return (
     <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
