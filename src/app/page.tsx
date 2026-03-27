@@ -1,5 +1,6 @@
 'use client'
 
+import { getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult } from '@/lib/storage'
 import { useState, useEffect, useCallback } from 'react'
 import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
 import {
@@ -179,7 +180,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 //  app 
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats' | 'seocheck'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -225,6 +226,7 @@ export default function Home() {
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
     { id: 'greats', label: 'The Greats', section: 'Tools' },
+    { id: 'seocheck', label: 'SEO Check', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
   ] as const
 
@@ -302,6 +304,7 @@ export default function Home() {
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
         {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
         {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
+        {view === 'seocheck' && <SeoCheckSection />}
         {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
     </div>
@@ -2113,7 +2116,220 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
     toAdd.forEach(g => { if (!newComps.find(c => c.url === g.website)) newComps.push({ name: g.businessName, url: g.website }) })
     updateProject({ ...proj, competitors: newComps }); onRefresh(); setAdded(true); setSelected([])
     setTimeout(() => setAdded(false), 3000)
+  
+
+  function SeoCheckSection() {
+    const [url, setUrl] = React.useState('')
+    const [loading, setLoading] = React.useState(false)
+    const [error, setError] = React.useState('')
+    const [result, setResult] = React.useState<SeoCheckResult | null>(null)
+    const [history, setHistory] = React.useState<SeoCheckResult[]>(() => getSeoChecks())
+    const [expandedId, setExpandedId] = React.useState<string | null>(null)
+
+    const SEO_MAX: Record<string, number> = {
+      title: 10, metaDescription: 8, h1: 8, wordCount: 8,
+      https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5,
+      schema: 4, canonical: 3, responseTime: 3
+    }
+    const SEO_LABELS: Record<string, string> = {
+      title: 'Title Tag', metaDescription: 'Meta Description', h1: 'H1 Tag',
+      wordCount: 'Word Count', https: 'HTTPS', viewport: 'Mobile Viewport',
+      imageAlt: 'Image Alt Text', titleH1Alignment: 'Title / H1 Alignment',
+      schema: 'Schema Markup', canonical: 'Canonical Tag', responseTime: 'Response Time'
+    }
+    const SEO_HINTS: Record<string, (r: SeoCheckResult) => string> = {
+      title: r => r.meta.titleLength ? `${r.meta.titleLength} chars — ideal 30–65` : 'No title found',
+      metaDescription: r => r.meta.metaDescriptionLength ? `${r.meta.metaDescriptionLength} chars — ideal 80–165` : 'No meta description',
+      h1: r => `${r.meta.h1Count} H1 found — ideal: exactly 1`,
+      wordCount: r => `${r.meta.wordCount} words — 800+ for full marks`,
+      https: r => r.meta.hasHttps ? 'HTTPS enabled' : 'No HTTPS — critical issue',
+      viewport: r => r.meta.hasViewport ? 'Viewport meta tag present' : 'Missing viewport meta tag',
+      imageAlt: r => `${r.meta.imagesWithAlt}/${r.meta.images} images have alt text`,
+      titleH1Alignment: r => 'Keyword overlap between title and H1',
+      schema: r => r.meta.hasSchema ? `Schema: ${(r.meta.schemaTypes || []).slice(0,3).join(', ')}` : 'No schema markup found',
+      canonical: r => r.meta.hasCanonical ? 'Canonical tag present' : 'No canonical tag',
+      responseTime: r => `${r.meta.responseTimeMs}ms — under 800ms for full marks`,
+    }
+
+    const scCol = (score: number, max: number) => {
+      const pct = score / max
+      return pct === 1 ? '#10B981' : pct >= 0.5 ? '#F59E0B' : '#EF4444'
+    }
+    const totalCol = (s: number) => s >= 56 ? '#10B981' : s >= 45 ? '#F59E0B' : '#EF4444'
+
+    const run = async () => {
+      if (!url.trim()) return
+      setLoading(true); setError(''); setResult(null)
+      try {
+        const res = await fetch('/api/seo-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url.trim() })
+        })
+        const data = await res.json()
+        if (!data.success) { setError(data.error || 'Failed'); return }
+        const check: SeoCheckResult = {
+          id: uid(), url: data.url, date: new Date().toISOString(),
+          score: data.score, breakdown: data.breakdown, meta: data.meta
+        }
+        setResult(check)
+        addSeoCheck(check)
+        setHistory(getSeoChecks())
+        setExpandedId(check.id)
+      } catch { setError('Network error') }
+      finally { setLoading(false) }
+    }
+
+    const del = (id: string) => {
+      deleteSeoCheck(id)
+      setHistory(getSeoChecks())
+      if (expandedId === id) setExpandedId(null)
+      if (result?.id === id) setResult(null)
+    }
+
+    const BreakdownTable = ({ r }: { r: SeoCheckResult }) => (
+      <div style={{ marginTop: 16 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>CHECK</th>
+              <th style={{ textAlign: 'center', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>SCORE</th>
+              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>DETAIL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(SEO_MAX).map(([key, max], i) => {
+              const val = r.breakdown[key] ?? 0
+              const col = scCol(val, max)
+              const hint = SEO_HINTS[key]?.(r) ?? ''
+              return (
+                <tr key={key} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 1 ? 'var(--surface)' : 'transparent' }}>
+                  <td style={{ padding: '8px 10px', color: 'var(--t2)', fontWeight: 500 }}>{SEO_LABELS[key]}</td>
+                  <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 700, color: col }}>{val}</span>
+                    <span style={{ color: 'var(--t3)', fontWeight: 400 }}>/{max}</span>
+                  </td>
+                  <td style={{ padding: '8px 10px', color: 'var(--t3)', fontSize: 12 }}>{hint}</td>
+                </tr>
+              )
+            })}
+            <tr style={{ borderTop: '2px solid var(--border)', background: 'var(--surface)' }}>
+              <td style={{ padding: '10px', fontWeight: 700, color: 'var(--t1)' }}>Total</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>
+                <span style={{ fontWeight: 700, color: totalCol(r.score) }}>{r.score}</span>
+                <span style={{ color: 'var(--t3)' }}>/65</span>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+
+    return (
+      <>
+        <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
+        <div style={{ padding: '28px 32px', maxWidth: 860 }}>
+
+          {/* URL Input */}
+          <Card style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <input
+                className="w-full"
+                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--t1)', fontSize: 14, outline: 'none' }}
+                placeholder="https://example.com/page"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && run()}
+                disabled={loading}
+              />
+              <Btn onClick={run} disabled={loading} style={{ whiteSpace: 'nowrap', minWidth: 120 }}>
+                {loading ? 'Checking…' : 'Run Check'}
+              </Btn>
+            </div>
+            {error && <div style={{ marginTop: 10, color: '#EF4444', fontSize: 13 }}>{error}</div>}
+          </Card>
+
+          {/* Latest Result */}
+          {result && (
+            <Card style={{ marginBottom: 24, borderColor: 'var(--accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 4 }}>{result.url}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 48, fontWeight: 700, color: totalCol(result.score), lineHeight: 1 }}>{result.score}</span>
+                    <span style={{ fontSize: 18, color: 'var(--t3)' }}>/65</span>
+                  </div>
+                </div>
+                <div style={{ width: 80, height: 80 }}>
+                  <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.9" fill="none"
+                      stroke={totalCol(result.score)} strokeWidth="3"
+                      strokeDasharray={`${(result.score / 65) * 100} 100`}
+                      strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+              {/* Score bars */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 16 }}>
+                {Object.entries(SEO_MAX).map(([key, max]) => {
+                  const val = result.breakdown[key] ?? 0
+                  const col = scCol(val, max)
+                  return (
+                    <div key={key}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, color: 'var(--t3)' }}>{SEO_LABELS[key]}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: col }}>{val}/{max}</span>
+                      </div>
+                      <div style={{ height: 4, background: 'var(--border)', borderRadius: 2 }}>
+                        <div style={{ height: 4, borderRadius: 2, background: col, width: `${(val/max)*100}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <BreakdownTable r={result} />
+            </Card>
+          )}
+
+          {/* History */}
+          {history.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', color: 'var(--t3)', marginBottom: 12 }}>HISTORY</div>
+              {history.map(h => (
+                <div key={h.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer' }}
+                    onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}
+                  >
+                    <span style={{ fontSize: 20, fontWeight: 700, color: totalCol(h.score), minWidth: 42 }}>{h.score}</span>
+                    <span style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 400, minWidth: 30 }}>/65</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
+                      <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>{new Date(h.date).toLocaleString('en-AU')}</div>
+                    </div>
+                    {/* Score bar */}
+                    <div style={{ width: 80, height: 6, background: 'var(--border)', borderRadius: 3, flexShrink: 0 }}>
+                      <div style={{ height: 6, borderRadius: 3, background: totalCol(h.score), width: `${(h.score/65)*100}%` }} />
+                    </div>
+                    <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
+                    <span style={{ color: 'var(--t3)', fontSize: 12 }}>{expandedId === h.id ? '▲' : '▼'}</span>
+                  </div>
+                  {expandedId === h.id && (
+                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
+                      <BreakdownTable r={h} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    )
   }
+}
 
   const scCol = (n: number) => n >= 75 ? 'var(--green)' : n >= 50 ? 'var(--accent)' : 'var(--red)'
   const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
