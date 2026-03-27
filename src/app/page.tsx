@@ -2119,12 +2119,12 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
   
 
   function SeoCheckSection() {
-    const [url, setUrl] = React.useState('')
-    const [loading, setLoading] = React.useState(false)
-    const [error, setError] = React.useState('')
-    const [result, setResult] = React.useState<SeoCheckResult | null>(null)
-    const [history, setHistory] = React.useState<SeoCheckResult[]>(() => getSeoChecks())
-    const [expandedId, setExpandedId] = React.useState<string | null>(null)
+    const [url, setUrl] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [result, setResult] = useState<SeoCheckResult | null>(null)
+    const [history, setHistory] = useState<SeoCheckResult[]>(() => getSeoChecks())
+    const [expandedId, setExpandedId] = useState<string | null>(null)
 
     const SEO_MAX: Record<string, number> = {
       title: 10, metaDescription: 8, h1: 8, wordCount: 8,
