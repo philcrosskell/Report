@@ -8,6 +8,7 @@ const KEYS = {
   leadSearches: 'auditiq_lead_searches',
   gbpAudits: 'auditiq_gbp_audits',
   greatsSearches: 'auditiq_greats_searches',
+  seoChecks: 'auditiq_seo_checks',
 }
 
 export const DEFAULT_WEIGHTS: LpWeights = {
@@ -136,3 +137,32 @@ export interface GreatsSearch {
 export function getGreatsSearches(): GreatsSearch[] { return load<GreatsSearch[]>(KEYS.greatsSearches, []) }
 export function saveGreatsSearch(s: GreatsSearch): void { store(KEYS.greatsSearches, [s, ...getGreatsSearches().slice(0, 49)]) }
 export function deleteGreatsSearch(id: string): void { store(KEYS.greatsSearches, getGreatsSearches().filter(s => s.id !== id)) }
+
+export interface SeoCheckResult {
+  id: string
+  url: string
+  date: string
+  score: number
+  breakdown: Record<string, number>
+  meta: {
+    title: string
+    titleLength: number
+    metaDescription: string
+    metaDescriptionLength: number
+    h1Count: number
+    wordCount: number
+    responseTimeMs: number
+    images: number
+    imagesWithAlt: number
+    hasViewport: boolean
+    hasHttps: boolean
+    hasCanonical: boolean
+    hasSchema: boolean
+    schemaTypes: string[]
+  }
+}
+
+export function getSeoChecks(): SeoCheckResult[] { return load<SeoCheckResult[]>(KEYS.seoChecks, []) }
+export function saveSeoChecks(checks: SeoCheckResult[]) { store(KEYS.seoChecks, checks) }
+export function addSeoCheck(c: SeoCheckResult) { saveSeoChecks([c, ...getSeoChecks()].slice(0, 100)) }
+export function deleteSeoCheck(id: string) { saveSeoChecks(getSeoChecks().filter(c => c.id !== id)) }
