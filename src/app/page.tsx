@@ -361,7 +361,7 @@ function SeoCheckSection() {
                   </div>
                 })}
               </div>
-              <Table r={result} />
+              {Table({ r: result })}
             </Card>
           )}
 
@@ -383,7 +383,7 @@ function SeoCheckSection() {
                     <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
                     <span style={{ color:'var(--t3)', fontSize:12 }}>{expandedId===h.id?'▲':'▼'}</span>
                   </div>
-                  {expandedId===h.id && <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}><Table r={h} /></div>}
+                  {expandedId===h.id && <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}>{Table({ r: h })}</div>}
                 </div>
               ))}
             </div>
