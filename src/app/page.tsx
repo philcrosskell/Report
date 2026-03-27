@@ -13,7 +13,6 @@ import {
   getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult,
 } from '@/lib/storage'
 import { exportHTML } from '@/lib/htmlExport'
-import SeoCheckSection from '@/components/SeoCheckSection'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
@@ -192,7 +191,6 @@ const NAV_ICONS: Record<string, string> = {
   reports: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
   greats: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
-  seocheck: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v6m-3-3h6',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -252,6 +250,207 @@ export default function Home() {
     )
   }
 
+
+function SeoCheckSection() {
+    const [url, setUrl] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [result, setResult] = useState(null)
+    const [history, setHistory] = useState(() => getSeoChecks())
+    const [expandedId, setExpandedId] = useState(null)
+
+    const SEO_MAX = { title: 10, metaDescription: 8, h1: 8, wordCount: 8, https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5, schema: 4, canonical: 3, responseTime: 3 }
+    const SEO_LABELS = { title: 'Title Tag', metaDescription: 'Meta Description', h1: 'H1 Tag', wordCount: 'Word Count', https: 'HTTPS', viewport: 'Mobile Viewport', imageAlt: 'Image Alt Text', titleH1Alignment: 'Title / H1 Alignment', schema: 'Schema Markup', canonical: 'Canonical Tag', responseTime: 'Response Time' }
+
+    const hint = (key, r) => {
+      const m = r.meta
+      if (key === 'title') return m.titleLength ? m.titleLength + ' chars — ideal 30-65' : 'No title'
+      if (key === 'metaDescription') return m.metaDescriptionLength ? m.metaDescriptionLength + ' chars — ideal 80-165' : 'No meta description'
+      if (key === 'h1') return m.h1Count + ' H1—ideal: exactly 1'
+      if (key === 'wordCount') return m.wordCount + ' words — 800+ for full marks'
+      if (key === 'https') return m.hasHttps ? 'HTTPS enabled' : 'No HTTPS — critical'
+      if (key === 'viewport') return m.hasViewport ? 'Viewport present' : 'Missing viewport'
+      if (key === 'imageAlt') return m.imagesWithAlt + '/' + m.images + ' images have alt'
+      if (key === 'titleH1Alignment') return 'Keyword overlap between title and H1'
+      if (key === 'schema') return m.hasSchema ? 'Schema: ' + (m.schemaTypes||[]).slice(0,3).join(', ') : 'No schema'
+      if (key === 'canonical') return m.hasCanonical ? 'Canonical present' : 'No canonical'
+      if (key === 'responseTime') return m.responseTimeMs + 'ms'
+      return ''
+    }
+    const sCol = (v, mx) => { const p = v/mx; return p===1?'#10B981':p>=0.5?'#F59E0B':'#EF4444' }
+    const tCol = (s) => s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'
+
+    const Table = ({ r }) => (
+      <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
+        <thead><tr style={{ borderBottom:'1px solid var(--border)' }}>
+          <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>CHECK</th>
+          <th style={{ textAlign:'center', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>SCORE</th>
+          <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>DETAIL</th>
+        </tr></thead>
+        <tbody>
+          {Object.entries(SEO_MAX).map(([key, max], i) => {
+            const val = r.breakdown[key] ?? 0
+            const col = sCol(val, max)
+            return <tr key={key} style={{ borderBottom:'1px solid var(--border)', background:i%2===1?'var(--surface)':'transparent' }}>
+              <td style={{ padding:'8px 10px', color:'var(--t2)', fontWeight:500 }}>{SEO_LABELS[key]}</td>
+              <td style={{ padding:'8px 10px', textAlign:'center' }}><span style={{ fontWeight:700, color:col }}>{val}</span><span style={{ color:'var(--t3)' }}>/{max}</span></td>
+              <td style={{ padding:'8px 10px', color:'var(--t3)', fontSize:12 }}>{hint(key, r)}</td>
+            </tr>
+          })}
+          <tr style={{ borderTop:'2px solid var(--border)', background:'var(--surface)' }}>
+            <td style={{ padding:'10px', fontWeight:700, color:'var(--t1)' }}>Total</td>
+            <td style={{ padding:'10px', textAlign:'center' }}><span style={{ fontWeight:700, color:tCol(r.score) }}>{r.score}</span><span style={{ color:'var(--t3)' }}>/65</span></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    )
+
+    const run = async () => {
+      if (!url.trim()) return
+      setLoading(true); setError(''); setResult(null)
+      try {
+        const res = await fetch('/api/seo-check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url:url.trim() }) })
+        const data = await res.json()
+        if (!data.success) { setError(data.error||'Failed'); return }
+        const check = { id:uid(), url:data.url, date:new Date().toISOString(), score:data.score, breakdown:data.breakdown, meta:data.meta }
+        setResult(check); addSeoCheck(check); setHistory(getSeoChecks()); setExpandedId(check.id)
+      } catch { setError('Network error') } finally { setLoading(false) }
+    }
+
+    const del = (id) => { deleteSeoCheck(id); setHistory(getSeoChecks()); if(expandedId===id)setExpandedId(null); if(result?.id===id)setResult(null) }
+
+    return (
+      <>
+        <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
+        <div style={{ padding:'28px 32px', maxWidth:860 }}>
+          <Card style={{ marginBottom:24 }}>
+            <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+              <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
+                placeholder="https://example.com/page" value={url}
+                onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key==='Enter'&&run()} disabled={loading} />
+              <Btn onClick={run} disabled={loading} style={{ whiteSpace:'nowrap', minWidth:120 }}>{loading?'Checking…':'Run Check'}</Btn>
+            </div>
+            {error && <div style={{ marginTop:10, color:'#EF4444', fontSize:13 }}>{error}</div>}
+          </Card>
+
+          {result && (
+            <Card style={{ marginBottom:24 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+                <div>
+                  <div style={{ fontSize:13, color:'var(--t3)', marginBottom:4 }}>{result.url}</div>
+                  <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                    <span style={{ fontSize:48, fontWeight:700, color:tCol(result.score), lineHeight:1 }}>{result.score}</span>
+                    <span style={{ fontSize:18, color:'var(--t3)' }}>/65</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px', marginBottom:8 }}>
+                {Object.entries(SEO_MAX).map(([key, max]) => {
+                  const val = result.breakdown[key]??0; const col = sCol(val,max)
+                  return <div key={key}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                      <span style={{ fontSize:11, color:'var(--t3)' }}>{SEO_LABELS[key]}</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:col }}>{val}/{max}</span>
+                    </div>
+                    <div style={{ height:4, background:'var(--border)', borderRadius:2 }}>
+                      <div style={{ height:4, borderRadius:2, background:col, width:`${(val/max)*100}%` }} />
+                    </div>
+                  </div>
+                })}
+              </div>
+              <Table r={result} />
+            </Card>
+          )}
+
+          {history.length > 0 && (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.1em', color:'var(--t3)', marginBottom:12 }}>HISTORY</div>
+              {history.map(h => (
+                <div key={h.id} style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, marginBottom:8, overflow:'hidden' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', cursor:'pointer' }} onClick={() => setExpandedId(expandedId===h.id?null:h.id)}>
+                    <span style={{ fontSize:20, fontWeight:700, color:tCol(h.score), minWidth:42 }}>{h.score}</span>
+                    <span style={{ fontSize:10, color:'var(--t3)', minWidth:24 }}>/65</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, color:'var(--t1)', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.url}</div>
+                      <div style={{ fontSize:11, color:'var(--t3)', marginTop:2 }}>{new Date(h.date).toLocaleString('en-AU')}</div>
+                    </div>
+                    <div style={{ width:80, height:6, background:'var(--border)', borderRadius:3, flexShrink:0 }}>
+                      <div style={{ height:6, borderRadius:3, background:tCol(h.score), width:`${(h.score/65)*100}%` }} />
+                    </div>
+                    <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
+                    <span style={{ color:'var(--t3)', fontSize:12 }}>{expandedId===h.id?'▲':'▼'}</span>
+                  </div>
+                  {expandedId===h.id && <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}><Table r={h} /></div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    )
+  }
+  return (
+    <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
+      <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
+        {/* Yellow top bar */}
+        <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
+        {/* Logo area  —  BEAL wordmark */}
+        <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
+          <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
+          </svg>
+          <div>
+            <div className="text-[13px] font-bold tracking-wide leading-tight" style={{ color: 'var(--t1)' }}>Audit Machine</div>
+            <div className="text-[10px] leading-tight" style={{ color: 'var(--t3)' }}>by BEAL Creative</div>
+          </div>
+        </div>
+        <nav className="p-2.5 flex-1 overflow-y-auto">
+          {(['Main', 'Tools', 'Config'] as const).map(section => (
+            <div key={section}>
+              <div className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-2" style={{ color: 'var(--t3)' }}>{section}</div>
+              {navItems.filter(n => n.section === section).map(item => (
+                <button key={item.id} onClick={() => setView(item.id as View)}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] mb-0.5 transition-all"
+                  style={{
+                    color: view === item.id ? '#0f0f11' : 'var(--t2)',
+                    background: view === item.id ? 'var(--accent)' : 'transparent',
+                    fontWeight: view === item.id ? 700 : 400,
+                  }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{item.id === 'lead' ? (<g><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></g>) : (<path d={NAV_ICONS[item.id]} />)}</svg>
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {'badge' in item && (item.badge as number) > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{
+                        background: view === item.id ? 'rgba(0,0,0,0.2)' : 'rgba(255,229,0,0.15)',
+                        color: view === item.id ? '#0f0f11' : 'var(--accent)',
+                      }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+      </aside>
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {view === 'dashboard' && <Dashboard projects={projects} audits={audits} gbpAudits={gbpAudits} compReports={compReports} onNew={() => setView('projects')} onAudit={() => setView('audit')} onView={setViewingAudit} />}
+        {view === 'projects' && <Projects projects={projects} audits={audits} onRefresh={refresh} onAudit={() => setView('audit')} />}
+        {view === 'audit' && <AuditPage projects={projects} weights={weights} onRefresh={refresh} />}
+        {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
+        {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
+        {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
+        {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
+        {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
+        {view === 'seocheck' && <SeoCheckSection />}
+          {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
+      </main>
+    </div>
+  )
+}
+
+//  Dashboard 
 
 function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
   const [industry, setIndustry] = useState('')
