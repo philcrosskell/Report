@@ -253,35 +253,50 @@ export default function Home() {
 
 
 function SeoCheckSection() {
-    const [url, setUrl] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-    const [result, setResult] = useState(null)
-    const [history, setHistory] = useState(() => getSeoChecks())
-    const [expandedId, setExpandedId] = useState(null)
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [history, setHistory] = useState(function() { return getSeoChecks(); });
+  const [expandedId, setExpandedId] = useState(null);
 
-    const SEO_MAX = { title: 10, metaDescription: 8, h1: 8, wordCount: 8, https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5, schema: 4, canonical: 3, responseTime: 3 }
-    const SEO_LABELS = { title: 'Title Tag', metaDescription: 'Meta Description', h1: 'H1 Tag', wordCount: 'Word Count', https: 'HTTPS', viewport: 'Mobile Viewport', imageAlt: 'Image Alt Text', titleH1Alignment: 'Title / H1 Alignment', schema: 'Schema Markup', canonical: 'Canonical Tag', responseTime: 'Response Time' }
+  const SEO_MAX = { title:10, metaDescription:8, h1:8, wordCount:8, https:6, viewport:5, imageAlt:5, titleH1Alignment:5, schema:4, canonical:3, responseTime:3 };
+  const SEO_LABELS = { title:'Title Tag', metaDescription:'Meta Description', h1:'H1 Tag', wordCount:'Word Count', https:'HTTPS', viewport:'Mobile Viewport', imageAlt:'Image Alt Text', titleH1Alignment:'Title / H1 Alignment', schema:'Schema Markup', canonical:'Canonical Tag', responseTime:'Response Time' };
+  const KEYS = ['title','metaDescription','h1','wordCount','https','viewport','imageAlt','titleH1Alignment','schema','canonical','responseTime'];
 
-    const hint = (key, r) => {
-      const m = r.meta
-      if (key === 'title') return m.titleLength ? m.titleLength + ' chars — ideal 30-65' : 'No title'
-      if (key === 'metaDescription') return m.metaDescriptionLength ? m.metaDescriptionLength + ' chars — ideal 80-165' : 'No meta description'
-      if (key === 'h1') return m.h1Count + ' H1—ideal: exactly 1'
-      if (key === 'wordCount') return m.wordCount + ' words — 800+ for full marks'
-      if (key === 'https') return m.hasHttps ? 'HTTPS enabled' : 'No HTTPS — critical'
-      if (key === 'viewport') return m.hasViewport ? 'Viewport present' : 'Missing viewport'
-      if (key === 'imageAlt') return m.imagesWithAlt + '/' + m.images + ' images have alt'
-      if (key === 'titleH1Alignment') return 'Keyword overlap between title and H1'
-      if (key === 'schema') return m.hasSchema ? 'Schema: ' + (m.schemaTypes||[]).slice(0,3).join(', ') : 'No schema'
-      if (key === 'canonical') return m.hasCanonical ? 'Canonical present' : 'No canonical'
-      if (key === 'responseTime') return m.responseTimeMs + 'ms'
-      return ''
-    }
-    const sCol = (v, mx) => { const p = v/mx; return p===1?'#10B981':p>=0.5?'#F59E0B':'#EF4444' }
-    const tCol = (s) => s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'
+  function sCol(v, mx) { var p = v/mx; return p===1?'#10B981':p>=0.5?'#F59E0B':'#EF4444'; }
+  function tCol(s) { return s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'; }
+  function getHint(key, m) {
+    if (key==='title') return (m.titleLength||0)+' chars — ideal 30-65';
+    if (key==='metaDescription') return (m.metaDescriptionLength||0)+' chars — ideal 80-165';
+    if (key==='h1') return m.h1Count+' H1 — ideal: exactly 1';
+    if (key==='wordCount') return m.wordCount+' words — 800+ for full marks';
+    if (key==='https') return m.hasHttps?'HTTPS enabled':'No HTTPS — critical';
+    if (key==='viewport') return m.hasViewport?'Viewport present':'Missing viewport';
+    if (key==='imageAlt') return m.imagesWithAlt+'/'+m.images+' images have alt';
+    if (key==='schema') return m.hasSchema?'Schema: '+(m.schemaTypes||[]).slice(0,3).join(', '):'No schema';
+    if (key==='canonical') return m.hasCanonical?'Canonical present':'No canonical';
+    if (key==='responseTime') return m.responseTimeMs+'ms';
+    return '';
+  }
 
-    const Table = ({ r }) => (
+  function renderBreakdown(check) {
+    var rows = KEYS.map(function(key, ridx) {
+      var max = SEO_MAX[key];
+      var val = (check.breakdown[key] || 0);
+      var col = sCol(val, max);
+      return (
+        <tr key={key} style={{ borderBottom:'1px solid var(--border)', background:ridx%2===1?'var(--surface)':'transparent' }}>
+          <td style={{ padding:'8px 10px', color:'var(--t2)', fontWeight:500 }}>{SEO_LABELS[key]}</td>
+          <td style={{ padding:'8px 10px', textAlign:'center' }}>
+            <span style={{ fontWeight:700, color:col }}>{val}</span>
+            <span style={{ color:'var(--t3)' }}>/{max}</span>
+          </td>
+          <td style={{ padding:'8px 10px', color:'var(--t3)', fontSize:12 }}>{getHint(key, check.meta)}</td>
+        </tr>
+      );
+    });
+    return (
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
         <thead><tr style={{ borderBottom:'1px solid var(--border)' }}>
           <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>CHECK</th>
@@ -289,87 +304,103 @@ function SeoCheckSection() {
           <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>DETAIL</th>
         </tr></thead>
         <tbody>
-          {Object.entries(SEO_MAX).map(([key, max], i) => {
-            const val = r.breakdown[key] ?? 0
-            const col = sCol(val, max)
-            return <tr key={key} style={{ borderBottom:'1px solid var(--border)', background:i%2===1?'var(--surface)':'transparent' }}>
-              <td style={{ padding:'8px 10px', color:'var(--t2)', fontWeight:500 }}>{SEO_LABELS[key]}</td>
-              <td style={{ padding:'8px 10px', textAlign:'center' }}><span style={{ fontWeight:700, color:col }}>{val}</span><span style={{ color:'var(--t3)' }}>/{max}</span></td>
-              <td style={{ padding:'8px 10px', color:'var(--t3)', fontSize:12 }}>{hint(key, r)}</td>
-            </tr>
-          })}
+          {rows}
           <tr style={{ borderTop:'2px solid var(--border)', background:'var(--surface)' }}>
             <td style={{ padding:'10px', fontWeight:700, color:'var(--t1)' }}>Total</td>
-            <td style={{ padding:'10px', textAlign:'center' }}><span style={{ fontWeight:700, color:tCol(r.score) }}>{r.score}</span><span style={{ color:'var(--t3)' }}>/65</span></td>
+            <td style={{ padding:'10px', textAlign:'center' }}>
+              <span style={{ fontWeight:700, color:tCol(check.score) }}>{check.score}</span>
+              <span style={{ color:'var(--t3)' }}>/65</span>
+            </td>
             <td></td>
           </tr>
         </tbody>
       </table>
-    )
+    );
+  }
 
-    const run = async () => {
-      if (!url.trim()) return
-      setLoading(true); setError(''); setResult(null)
-      try {
-        const res = await fetch('/api/seo-check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url:url.trim() }) })
-        const data = await res.json()
-        if (!data.success) { setError(data.error||'Failed'); return }
-        const check = { id:uid(), url:data.url, date:new Date().toISOString(), score:data.score, breakdown:data.breakdown, meta:data.meta }
-        setResult(check); addSeoCheck(check); setHistory(getSeoChecks()); setExpandedId(check.id)
-      } catch { setError('Network error') } finally { setLoading(false) }
-    }
+  function renderBars(check) {
+    return KEYS.map(function(key) {
+      var max = SEO_MAX[key];
+      var val = (check.breakdown[key] || 0);
+      var col = sCol(val, max);
+      var pct = Math.round((val/max)*100);
+      return (
+        <div key={key}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+            <span style={{ fontSize:11, color:'var(--t3)' }}>{SEO_LABELS[key]}</span>
+            <span style={{ fontSize:11, fontWeight:700, color:col }}>{val}/{max}</span>
+          </div>
+          <div style={{ height:4, background:'var(--border)', borderRadius:2 }}>
+            <div style={{ height:4, borderRadius:2, background:col, width:pct+'%' }} />
+          </div>
+        </div>
+      );
+    });
+  }
 
-    const del = (id) => { deleteSeoCheck(id); setHistory(getSeoChecks()); if(expandedId===id)setExpandedId(null); if(result?.id===id)setResult(null) }
+  async function run() {
+    if (!url.trim()) return;
+    setLoading(true); setError(''); setResult(null);
+    try {
+      var res = await fetch('/api/seo-check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url:url.trim() }) });
+      var data = await res.json();
+      if (!data.success) { setError(data.error||'Failed'); return; }
+      var check = { id:uid(), url:data.url, date:new Date().toISOString(), score:data.score, breakdown:data.breakdown, meta:data.meta };
+      setResult(check); addSeoCheck(check); setHistory(getSeoChecks()); setExpandedId(check.id);
+    } catch(e) { setError('Network error'); } finally { setLoading(false); }
+  }
 
-    return (
-      <>
-        <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
-        <div style={{ padding:'28px 32px', maxWidth:860 }}>
+  function del(id) {
+    deleteSeoCheck(id); setHistory(getSeoChecks());
+    if (expandedId===id) setExpandedId(null);
+    if (result && result.id===id) setResult(null);
+  }
+
+  return (
+    <>
+      <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, run repeatedly to track improvement." />
+      <div className="flex-1 overflow-y-auto" style={{ padding:'28px 32px', maxWidth:860 }}>
+        <Card style={{ marginBottom:24 }}>
+          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+            <input
+              style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
+              placeholder="https://example.com/page"
+              value={url}
+              onChange={function(e) { setUrl(e.target.value); }}
+              onKeyDown={function(e) { if(e.key==='Enter') run(); }}
+              disabled={loading}
+            />
+            <Btn onClick={function() { run(); }} disabled={loading} style={{ whiteSpace:'nowrap', minWidth:120 }}>
+              {loading ? 'Checking…' : 'Run Check'}
+            </Btn>
+          </div>
+          {error && <div style={{ marginTop:10, color:'#EF4444', fontSize:13 }}>{error}</div>}
+        </Card>
+
+        {result && (
           <Card style={{ marginBottom:24 }}>
-            <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-              <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
-                placeholder="https://example.com/page" value={url}
-                onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key==='Enter'&&run()} disabled={loading} />
-              <Btn onClick={run} disabled={loading} style={{ whiteSpace:'nowrap', minWidth:120 }}>{loading?'Checking…':'Run Check'}</Btn>
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:13, color:'var(--t3)', marginBottom:4 }}>{result.url}</div>
+              <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                <span style={{ fontSize:48, fontWeight:700, color:tCol(result.score), lineHeight:1 }}>{result.score}</span>
+                <span style={{ fontSize:18, color:'var(--t3)' }}>/65</span>
+              </div>
             </div>
-            {error && <div style={{ marginTop:10, color:'#EF4444', fontSize:13 }}>{error}</div>}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px', marginBottom:8 }}>
+              {renderBars(result)}
+            </div>
+            {renderBreakdown(result)}
           </Card>
+        )}
 
-          {result && (
-            <Card style={{ marginBottom:24 }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                <div>
-                  <div style={{ fontSize:13, color:'var(--t3)', marginBottom:4 }}>{result.url}</div>
-                  <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-                    <span style={{ fontSize:48, fontWeight:700, color:tCol(result.score), lineHeight:1 }}>{result.score}</span>
-                    <span style={{ fontSize:18, color:'var(--t3)' }}>/65</span>
-                  </div>
-                </div>
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px', marginBottom:8 }}>
-                {Object.entries(SEO_MAX).map(([key, max]) => {
-                  const val = result.breakdown[key]??0; const col = sCol(val,max)
-                  return <div key={key}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
-                      <span style={{ fontSize:11, color:'var(--t3)' }}>{SEO_LABELS[key]}</span>
-                      <span style={{ fontSize:11, fontWeight:700, color:col }}>{val}/{max}</span>
-                    </div>
-                    <div style={{ height:4, background:'var(--border)', borderRadius:2 }}>
-                      <div style={{ height:4, borderRadius:2, background:col, width:`${(val/max)*100}%` }} />
-                    </div>
-                  </div>
-                })}
-              </div>
-              <Table r={result} />
-            </Card>
-          )}
-
-          {history.length > 0 && (
-            <div>
-              <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.1em', color:'var(--t3)', marginBottom:12 }}>HISTORY</div>
-              {history.map(h => (
+        {history.length > 0 && (
+          <div>
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.1em', color:'var(--t3)', marginBottom:12 }}>HISTORY</div>
+            {history.map(function(h) {
+              return (
                 <div key={h.id} style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, marginBottom:8, overflow:'hidden' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', cursor:'pointer' }} onClick={() => setExpandedId(expandedId===h.id?null:h.id)}>
+                  <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', cursor:'pointer' }}
+                    onClick={function() { setExpandedId(expandedId===h.id?null:h.id); }}>
                     <span style={{ fontSize:20, fontWeight:700, color:tCol(h.score), minWidth:42 }}>{h.score}</span>
                     <span style={{ fontSize:10, color:'var(--t3)', minWidth:24 }}>/65</span>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -377,20 +408,25 @@ function SeoCheckSection() {
                       <div style={{ fontSize:11, color:'var(--t3)', marginTop:2 }}>{new Date(h.date).toLocaleString('en-AU')}</div>
                     </div>
                     <div style={{ width:80, height:6, background:'var(--border)', borderRadius:3, flexShrink:0 }}>
-                      <div style={{ height:6, borderRadius:3, background:tCol(h.score), width:`${(h.score/65)*100}%` }} />
+                      <div style={{ height:6, borderRadius:3, background:tCol(h.score), width:Math.round(h.score/65*100)+'%' }} />
                     </div>
-                    <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
+                    <Btn sm danger onClick={function(e) { e.stopPropagation(); del(h.id); }}>Delete</Btn>
                     <span style={{ color:'var(--t3)', fontSize:12 }}>{expandedId===h.id?'▲':'▼'}</span>
                   </div>
-                  {expandedId===h.id && <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}><Table r={h} /></div>}
+                  {expandedId===h.id && (
+                    <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}>
+                      {renderBreakdown(h)}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </>
-    )
-  }
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
   return (
     <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
