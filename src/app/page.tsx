@@ -279,7 +279,7 @@ function SeoCheckSection() {
     if (key==='responseTime') return m.responseTimeMs+'ms';
     return '';
   }
-
+}
   function renderBreakdown(check) {
     var rows = KEYS.map(function(key, ridx) {
       var max = SEO_MAX[key];
@@ -295,6 +295,7 @@ function SeoCheckSection() {
           <td style={{ padding:'8px 10px', color:'var(--t3)', fontSize:12 }}>{getHint(key, check.meta)}</td>
         </tr>
       );
+    }
     );
     return (
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
