@@ -295,7 +295,7 @@ function SeoCheckSection() {
           <td style={{ padding:'8px 10px', color:'var(--t3)', fontSize:12 }}>{getHint(key, check.meta)}</td>
         </tr>
       );
-    });
+    );
     return (
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
         <thead><tr style={{ borderBottom:'1px solid var(--border)' }}>
