@@ -251,6 +251,352 @@ export default function Home() {
     )
   }
 
+
+
+  function SeoCheckSection() {
+    const [url, setUrl] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [result, setResult] = useState<SeoCheckResult | null>(null)
+    const [history, setHistory] = useState<SeoCheckResult[]>(() => getSeoChecks())
+    const [expandedId, setExpandedId] = useState<string | null>(null)
+
+    const SEO_MAX: Record<string, number> = {
+      title: 10, metaDescription: 8, h1: 8, wordCount: 8,
+      https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5,
+      schema: 4, canonical: 3, responseTime: 3
+    }
+    const SEO_LABELS: Record<string, string> = {
+      title: 'Title Tag', metaDescription: 'Meta Description', h1: 'H1 Tag',
+      wordCount: 'Word Count', https: 'HTTPS', viewport: 'Mobile Viewport',
+      imageAlt: 'Image Alt Text', titleH1Alignment: 'Title / H1 Alignment',
+      schema: 'Schema Markup', canonical: 'Canonical Tag', responseTime: 'Response Time'
+    }
+    const SEO_HINTS: Record<string, (r: SeoCheckResult) => string> = {
+      title: r => r.meta.titleLength ? `${r.meta.titleLength} chars — ideal 30–65` : 'No title found',
+      metaDescription: r => r.meta.metaDescriptionLength ? `${r.meta.metaDescriptionLength} chars — ideal 80–165` : 'No meta description',
+      h1: r => `${r.meta.h1Count} H1 found — ideal: exactly 1`,
+      wordCount: r => `${r.meta.wordCount} words — 800+ for full marks`,
+      https: r => r.meta.hasHttps ? 'HTTPS enabled' : 'No HTTPS — critical issue',
+      viewport: r => r.meta.hasViewport ? 'Viewport meta tag present' : 'Missing viewport meta tag',
+      imageAlt: r => `${r.meta.imagesWithAlt}/${r.meta.images} images have alt text`,
+      titleH1Alignment: r => 'Keyword overlap between title and H1',
+      schema: r => r.meta.hasSchema ? `Schema: ${(r.meta.schemaTypes || []).slice(0,3).join(', ')}` : 'No schema markup found',
+      canonical: r => r.meta.hasCanonical ? 'Canonical tag present' : 'No canonical tag',
+      responseTime: r => `${r.meta.responseTimeMs}ms — under 800ms for full marks`,
+    }
+
+    const scCol = (score: number, max: number) => {
+      const pct = score / max
+      return pct === 1 ? '#10B981' : pct >= 0.5 ? '#F59E0B' : '#EF4444'
+    }
+    const totalCol = (s: number) => s >= 56 ? '#10B981' : s >= 45 ? '#F59E0B' : '#EF4444'
+
+    const run = async () => {
+      if (!url.trim()) return
+      setLoading(true); setError(''); setResult(null)
+      try {
+        const res = await fetch('/api/seo-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url.trim() })
+        })
+        const data = await res.json()
+        if (!data.success) { setError(data.error || 'Failed'); return }
+        const check: SeoCheckResult = {
+          id: uid(), url: data.url, date: new Date().toISOString(),
+          score: data.score, breakdown: data.breakdown, meta: data.meta
+        }
+        setResult(check)
+        addSeoCheck(check)
+        setHistory(getSeoChecks())
+        setExpandedId(check.id)
+      } catch { setError('Network error') }
+      finally { setLoading(false) }
+    }
+
+    const del = (id: string) => {
+      deleteSeoCheck(id)
+      setHistory(getSeoChecks())
+      if (expandedId === id) setExpandedId(null)
+      if (result?.id === id) setResult(null)
+    }
+
+    const BreakdownTable = ({ r }: { r: SeoCheckResult }) => (
+      <div style={{ marginTop: 16 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>CHECK</th>
+              <th style={{ textAlign: 'center', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>SCORE</th>
+              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>DETAIL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(SEO_MAX).map(([key, max], i) => {
+              const val = r.breakdown[key] ?? 0
+              const col = scCol(val, max)
+              const hint = SEO_HINTS[key]?.(r) ?? ''
+              return (
+                <tr key={key} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 1 ? 'var(--surface)' : 'transparent' }}>
+                  <td style={{ padding: '8px 10px', color: 'var(--t2)', fontWeight: 500 }}>{SEO_LABELS[key]}</td>
+                  <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 700, color: col }}>{val}</span>
+                    <span style={{ color: 'var(--t3)', fontWeight: 400 }}>/{max}</span>
+                  </td>
+                  <td style={{ padding: '8px 10px', color: 'var(--t3)', fontSize: 12 }}>{hint}</td>
+                </tr>
+              )
+            })}
+            <tr style={{ borderTop: '2px solid var(--border)', background: 'var(--surface)' }}>
+              <td style={{ padding: '10px', fontWeight: 700, color: 'var(--t1)' }}>Total</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>
+                <span style={{ fontWeight: 700, color: totalCol(r.score) }}>{r.score}</span>
+                <span style={{ color: 'var(--t3)' }}>/65</span>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+
+    return (
+      <>
+        <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
+        <div style={{ padding: '28px 32px', maxWidth: 860 }}>
+
+          {/* URL Input */}
+          <Card style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <input
+                className="w-full"
+                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--t1)', fontSize: 14, outline: 'none' }}
+                placeholder="https://example.com/page"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && run()}
+                disabled={loading}
+              />
+              <Btn onClick={run} disabled={loading} style={{ whiteSpace: 'nowrap', minWidth: 120 }}>
+                {loading ? 'Checking…' : 'Run Check'}
+              </Btn>
+            </div>
+            {error && <div style={{ marginTop: 10, color: '#EF4444', fontSize: 13 }}>{error}</div>}
+          </Card>
+
+          {/* Latest Result */}
+          {result && (
+            <Card style={{ marginBottom: 24, borderColor: 'var(--accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 4 }}>{result.url}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 48, fontWeight: 700, color: totalCol(result.score), lineHeight: 1 }}>{result.score}</span>
+                    <span style={{ fontSize: 18, color: 'var(--t3)' }}>/65</span>
+                  </div>
+                </div>
+                <div style={{ width: 80, height: 80 }}>
+                  <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.9" fill="none"
+                      stroke={totalCol(result.score)} strokeWidth="3"
+                      strokeDasharray={`${(result.score / 65) * 100} 100`}
+                      strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+              {/* Score bars */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 16 }}>
+                {Object.entries(SEO_MAX).map(([key, max]) => {
+                  const val = result.breakdown[key] ?? 0
+                  const col = scCol(val, max)
+                  return (
+                    <div key={key}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, color: 'var(--t3)' }}>{SEO_LABELS[key]}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: col }}>{val}/{max}</span>
+                      </div>
+                      <div style={{ height: 4, background: 'var(--border)', borderRadius: 2 }}>
+                        <div style={{ height: 4, borderRadius: 2, background: col, width: `${(val/max)*100}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <BreakdownTable r={result} />
+            </Card>
+          )}
+
+          {/* History */}
+          {history.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', color: 'var(--t3)', marginBottom: 12 }}>HISTORY</div>
+              {history.map(h => (
+                <div key={h.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer' }}
+                    onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}
+                  >
+                    <span style={{ fontSize: 20, fontWeight: 700, color: totalCol(h.score), minWidth: 42 }}>{h.score}</span>
+                    <span style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 400, minWidth: 30 }}>/65</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
+                      <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>{new Date(h.date).toLocaleString('en-AU')}</div>
+                    </div>
+                    {/* Score bar */}
+                    <div style={{ width: 80, height: 6, background: 'var(--border)', borderRadius: 3, flexShrink: 0 }}>
+                      <div style={{ height: 6, borderRadius: 3, background: totalCol(h.score), width: `${(h.score/65)*100}%` }} />
+                    </div>
+                    <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
+                    <span style={{ color: 'var(--t3)', fontSize: 12 }}>{expandedId === h.id ? '▲' : '▼'}</span>
+                  </div>
+                  {expandedId === h.id && (
+                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
+                      <BreakdownTable r={h} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    )
+  }
+}
+
+  const scCol = (n: number) => n >= 75 ? 'var(--green)' : n >= 50 ? 'var(--accent)' : 'var(--red)'
+  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
+
+  return (
+    <>
+      <TopBar title="The Greats" sub="Find the best businesses in any market - steal their playbook" />
+      <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.length > 0 ? 88 : 24 }}>
+        <Card>
+          <CTitle>Find top performers</CTitle>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
+            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
+          </div>
+          <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find The Greats'}</Btn>
+        </Card>
+
+        {savedSearches.length > 0 && greats.length === 0 && !loading && (
+          <Card>
+            <CTitle>Previous searches</CTitle>
+            <div className="flex flex-col gap-2 mt-2">
+              {savedSearches.map(s => (
+                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses / {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                  </div>
+                  <Btn sm onClick={() => { setGreats(s.greats); setSelected([]) }}>Load</Btn>
+                  <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>X</Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {loading && (
+          <Card>
+            <div className="flex flex-col items-center py-6 gap-4">
+              <Spinner />
+              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
+              <div className="flex flex-col gap-1.5">
+                {STEPS.map((step, i) => (
+                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
+                    <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
+                    {step}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
+
+        {greats.length > 0 && (
+          <div className="flex flex-col gap-3 mt-4">
+            <div className="flex items-center justify-between">
+              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
+                {selected.length > 0
+                  ? <span style={{ color: 'var(--accent)' }}>{selected.length} selected - pick a project below</span>
+                  : 'Click cards to select, then add as competitors to a project'}
+              </div>
+              <Btn sm onClick={() => selected.length === greats.length ? setSelected([]) : setSelected(greats.map((_, i) => i))}>
+                {selected.length === greats.length ? 'Deselect all' : 'Select all'}
+              </Btn>
+            </div>
+            {greats.map((g, i) => {
+              const isSel = selected.includes(i)
+              return (
+                <Card key={i} cls={isSel ? 'ring-2 ring-[var(--accent)]' : ''}>
+                  <div className="flex items-center gap-3 mb-2" onClick={() => toggleSelect(i)} style={{ cursor: 'pointer' }}>
+                    <div className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: isSel ? 'var(--accent)' : 'var(--t3)', background: isSel ? 'var(--accent)' : 'transparent' }}>
+                      {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>+</span>}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
+                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{g.website}</div>
+                    </div>
+                    <div className="text-[24px] font-bold" style={{ color: scCol(g.overallScore) }}>{g.overallScore}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {CAT_KEYS.map(k => (
+                      <div key={k}>
+                        <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase() + k.slice(1)}</div>
+                        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                          <div className="h-full rounded-full" style={{ width: (g.categories[k] || 0) + '%', background: scCol(g.categories[k] || 0) }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {g.reviewCount > 0 && <div className="text-[11px] mb-2" style={{ color: 'var(--t3)' }}>{g.reviewRating} stars / {g.reviewCount} reviews</div>}
+                  <p className="text-[12px] mb-2 pl-3" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</p>
+                  {g.strengths.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Why they rank</div>
+                      {g.strengths.map((s, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>+ {s}</div>)}
+                    </div>
+                  )}
+                  {g.keyTactics.length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
+                      {g.keyTactics.map((t, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>{'-> '}{t}</div>)}
+                    </div>
+                  )}
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {selected.length > 0 && (
+        <div className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}>
+          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.length} business{selected.length !== 1 ? 'es' : ''} selected</div>
+          <div className="flex-1">
+            <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
+              <option value="">Add to project...</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <Btn primary onClick={addToProject} disabled={!targetProject}>{added ? 'Added!' : 'Add as competitors'}</Btn>
+          <Btn onClick={() => setSelected([])}>Cancel</Btn>
+        </div>
+      )}
+    </>
+  )
+}
+
   return (
     <div className="flex overflow-hidden" style={{ height: '100vh', background: 'var(--bg)' }}>
       <aside className="flex flex-col border-r" style={{ width: 230, minWidth: 230, background: 'var(--bg2)', borderColor: 'var(--border)' }}>
@@ -2117,347 +2463,3 @@ function TheGreatsPage({ projects, onRefresh }: { projects: Project[]; onRefresh
     updateProject({ ...proj, competitors: newComps }); onRefresh(); setAdded(true); setSelected([])
     setTimeout(() => setAdded(false), 3000)
   
-
-  function SeoCheckSection() {
-    const [url, setUrl] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-    const [result, setResult] = useState<SeoCheckResult | null>(null)
-    const [history, setHistory] = useState<SeoCheckResult[]>(() => getSeoChecks())
-    const [expandedId, setExpandedId] = useState<string | null>(null)
-
-    const SEO_MAX: Record<string, number> = {
-      title: 10, metaDescription: 8, h1: 8, wordCount: 8,
-      https: 6, viewport: 5, imageAlt: 5, titleH1Alignment: 5,
-      schema: 4, canonical: 3, responseTime: 3
-    }
-    const SEO_LABELS: Record<string, string> = {
-      title: 'Title Tag', metaDescription: 'Meta Description', h1: 'H1 Tag',
-      wordCount: 'Word Count', https: 'HTTPS', viewport: 'Mobile Viewport',
-      imageAlt: 'Image Alt Text', titleH1Alignment: 'Title / H1 Alignment',
-      schema: 'Schema Markup', canonical: 'Canonical Tag', responseTime: 'Response Time'
-    }
-    const SEO_HINTS: Record<string, (r: SeoCheckResult) => string> = {
-      title: r => r.meta.titleLength ? `${r.meta.titleLength} chars — ideal 30–65` : 'No title found',
-      metaDescription: r => r.meta.metaDescriptionLength ? `${r.meta.metaDescriptionLength} chars — ideal 80–165` : 'No meta description',
-      h1: r => `${r.meta.h1Count} H1 found — ideal: exactly 1`,
-      wordCount: r => `${r.meta.wordCount} words — 800+ for full marks`,
-      https: r => r.meta.hasHttps ? 'HTTPS enabled' : 'No HTTPS — critical issue',
-      viewport: r => r.meta.hasViewport ? 'Viewport meta tag present' : 'Missing viewport meta tag',
-      imageAlt: r => `${r.meta.imagesWithAlt}/${r.meta.images} images have alt text`,
-      titleH1Alignment: r => 'Keyword overlap between title and H1',
-      schema: r => r.meta.hasSchema ? `Schema: ${(r.meta.schemaTypes || []).slice(0,3).join(', ')}` : 'No schema markup found',
-      canonical: r => r.meta.hasCanonical ? 'Canonical tag present' : 'No canonical tag',
-      responseTime: r => `${r.meta.responseTimeMs}ms — under 800ms for full marks`,
-    }
-
-    const scCol = (score: number, max: number) => {
-      const pct = score / max
-      return pct === 1 ? '#10B981' : pct >= 0.5 ? '#F59E0B' : '#EF4444'
-    }
-    const totalCol = (s: number) => s >= 56 ? '#10B981' : s >= 45 ? '#F59E0B' : '#EF4444'
-
-    const run = async () => {
-      if (!url.trim()) return
-      setLoading(true); setError(''); setResult(null)
-      try {
-        const res = await fetch('/api/seo-check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url.trim() })
-        })
-        const data = await res.json()
-        if (!data.success) { setError(data.error || 'Failed'); return }
-        const check: SeoCheckResult = {
-          id: uid(), url: data.url, date: new Date().toISOString(),
-          score: data.score, breakdown: data.breakdown, meta: data.meta
-        }
-        setResult(check)
-        addSeoCheck(check)
-        setHistory(getSeoChecks())
-        setExpandedId(check.id)
-      } catch { setError('Network error') }
-      finally { setLoading(false) }
-    }
-
-    const del = (id: string) => {
-      deleteSeoCheck(id)
-      setHistory(getSeoChecks())
-      if (expandedId === id) setExpandedId(null)
-      if (result?.id === id) setResult(null)
-    }
-
-    const BreakdownTable = ({ r }: { r: SeoCheckResult }) => (
-      <div style={{ marginTop: 16 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>CHECK</th>
-              <th style={{ textAlign: 'center', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>SCORE</th>
-              <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--t3)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em' }}>DETAIL</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(SEO_MAX).map(([key, max], i) => {
-              const val = r.breakdown[key] ?? 0
-              const col = scCol(val, max)
-              const hint = SEO_HINTS[key]?.(r) ?? ''
-              return (
-                <tr key={key} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 1 ? 'var(--surface)' : 'transparent' }}>
-                  <td style={{ padding: '8px 10px', color: 'var(--t2)', fontWeight: 500 }}>{SEO_LABELS[key]}</td>
-                  <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                    <span style={{ fontWeight: 700, color: col }}>{val}</span>
-                    <span style={{ color: 'var(--t3)', fontWeight: 400 }}>/{max}</span>
-                  </td>
-                  <td style={{ padding: '8px 10px', color: 'var(--t3)', fontSize: 12 }}>{hint}</td>
-                </tr>
-              )
-            })}
-            <tr style={{ borderTop: '2px solid var(--border)', background: 'var(--surface)' }}>
-              <td style={{ padding: '10px', fontWeight: 700, color: 'var(--t1)' }}>Total</td>
-              <td style={{ padding: '10px', textAlign: 'center' }}>
-                <span style={{ fontWeight: 700, color: totalCol(r.score) }}>{r.score}</span>
-                <span style={{ color: 'var(--t3)' }}>/65</span>
-              </td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    )
-
-    return (
-      <>
-        <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
-        <div style={{ padding: '28px 32px', maxWidth: 860 }}>
-
-          {/* URL Input */}
-          <Card style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <input
-                className="w-full"
-                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--t1)', fontSize: 14, outline: 'none' }}
-                placeholder="https://example.com/page"
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && run()}
-                disabled={loading}
-              />
-              <Btn onClick={run} disabled={loading} style={{ whiteSpace: 'nowrap', minWidth: 120 }}>
-                {loading ? 'Checking…' : 'Run Check'}
-              </Btn>
-            </div>
-            {error && <div style={{ marginTop: 10, color: '#EF4444', fontSize: 13 }}>{error}</div>}
-          </Card>
-
-          {/* Latest Result */}
-          {result && (
-            <Card style={{ marginBottom: 24, borderColor: 'var(--accent)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 4 }}>{result.url}</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontSize: 48, fontWeight: 700, color: totalCol(result.score), lineHeight: 1 }}>{result.score}</span>
-                    <span style={{ fontSize: 18, color: 'var(--t3)' }}>/65</span>
-                  </div>
-                </div>
-                <div style={{ width: 80, height: 80 }}>
-                  <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" strokeWidth="3" />
-                    <circle cx="18" cy="18" r="15.9" fill="none"
-                      stroke={totalCol(result.score)} strokeWidth="3"
-                      strokeDasharray={`${(result.score / 65) * 100} 100`}
-                      strokeLinecap="round" />
-                  </svg>
-                </div>
-              </div>
-              {/* Score bars */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 16 }}>
-                {Object.entries(SEO_MAX).map(([key, max]) => {
-                  const val = result.breakdown[key] ?? 0
-                  const col = scCol(val, max)
-                  return (
-                    <div key={key}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                        <span style={{ fontSize: 11, color: 'var(--t3)' }}>{SEO_LABELS[key]}</span>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: col }}>{val}/{max}</span>
-                      </div>
-                      <div style={{ height: 4, background: 'var(--border)', borderRadius: 2 }}>
-                        <div style={{ height: 4, borderRadius: 2, background: col, width: `${(val/max)*100}%` }} />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <BreakdownTable r={result} />
-            </Card>
-          )}
-
-          {/* History */}
-          {history.length > 0 && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', color: 'var(--t3)', marginBottom: 12 }}>HISTORY</div>
-              {history.map(h => (
-                <div key={h.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
-                  <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer' }}
-                    onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}
-                  >
-                    <span style={{ fontSize: 20, fontWeight: 700, color: totalCol(h.score), minWidth: 42 }}>{h.score}</span>
-                    <span style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 400, minWidth: 30 }}>/65</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
-                      <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>{new Date(h.date).toLocaleString('en-AU')}</div>
-                    </div>
-                    {/* Score bar */}
-                    <div style={{ width: 80, height: 6, background: 'var(--border)', borderRadius: 3, flexShrink: 0 }}>
-                      <div style={{ height: 6, borderRadius: 3, background: totalCol(h.score), width: `${(h.score/65)*100}%` }} />
-                    </div>
-                    <Btn sm danger onClick={e => { e.stopPropagation(); del(h.id) }}>Delete</Btn>
-                    <span style={{ color: 'var(--t3)', fontSize: 12 }}>{expandedId === h.id ? '▲' : '▼'}</span>
-                  </div>
-                  {expandedId === h.id && (
-                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
-                      <BreakdownTable r={h} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </>
-    )
-  }
-}
-
-  const scCol = (n: number) => n >= 75 ? 'var(--green)' : n >= 50 ? 'var(--accent)' : 'var(--red)'
-  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
-
-  return (
-    <>
-      <TopBar title="The Greats" sub="Find the best businesses in any market - steal their playbook" />
-      <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.length > 0 ? 88 : 24 }}>
-        <Card>
-          <CTitle>Find top performers</CTitle>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
-            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 businesses</option><option value="5">5 businesses</option><option value="8">8 businesses</option></select></div>
-          </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find The Greats'}</Btn>
-        </Card>
-
-        {savedSearches.length > 0 && greats.length === 0 && !loading && (
-          <Card>
-            <CTitle>Previous searches</CTitle>
-            <div className="flex flex-col gap-2 mt-2">
-              {savedSearches.map(s => (
-                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-                  <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} / {s.postcode}{s.suburb ? ' / ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses / {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
-                  </div>
-                  <Btn sm onClick={() => { setGreats(s.greats); setSelected([]) }}>Load</Btn>
-                  <Btn sm danger onClick={() => { deleteGreatsSearch(s.id); setSavedSearches(getGreatsSearches()) }}>X</Btn>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {loading && (
-          <Card>
-            <div className="flex flex-col items-center py-6 gap-4">
-              <Spinner />
-              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
-              <div className="flex flex-col gap-1.5">
-                {STEPS.map((step, i) => (
-                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
-                    <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
-                    {step}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
-
-        {greats.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
-                {selected.length > 0
-                  ? <span style={{ color: 'var(--accent)' }}>{selected.length} selected - pick a project below</span>
-                  : 'Click cards to select, then add as competitors to a project'}
-              </div>
-              <Btn sm onClick={() => selected.length === greats.length ? setSelected([]) : setSelected(greats.map((_, i) => i))}>
-                {selected.length === greats.length ? 'Deselect all' : 'Select all'}
-              </Btn>
-            </div>
-            {greats.map((g, i) => {
-              const isSel = selected.includes(i)
-              return (
-                <Card key={i} cls={isSel ? 'ring-2 ring-[var(--accent)]' : ''}>
-                  <div className="flex items-center gap-3 mb-2" onClick={() => toggleSelect(i)} style={{ cursor: 'pointer' }}>
-                    <div className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: isSel ? 'var(--accent)' : 'var(--t3)', background: isSel ? 'var(--accent)' : 'transparent' }}>
-                      {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>+</span>}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{g.website}</div>
-                    </div>
-                    <div className="text-[24px] font-bold" style={{ color: scCol(g.overallScore) }}>{g.overallScore}</div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    {CAT_KEYS.map(k => (
-                      <div key={k}>
-                        <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase() + k.slice(1)}</div>
-                        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                          <div className="h-full rounded-full" style={{ width: (g.categories[k] || 0) + '%', background: scCol(g.categories[k] || 0) }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {g.reviewCount > 0 && <div className="text-[11px] mb-2" style={{ color: 'var(--t3)' }}>{g.reviewRating} stars / {g.reviewCount} reviews</div>}
-                  <p className="text-[12px] mb-2 pl-3" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</p>
-                  {g.strengths.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Why they rank</div>
-                      {g.strengths.map((s, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>+ {s}</div>)}
-                    </div>
-                  )}
-                  {g.keyTactics.length > 0 && (
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
-                      {g.keyTactics.map((t, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>{'-> '}{t}</div>)}
-                    </div>
-                  )}
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {selected.length > 0 && (
-        <div className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}>
-          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.length} business{selected.length !== 1 ? 'es' : ''} selected</div>
-          <div className="flex-1">
-            <select value={targetProject} onChange={e => setTargetProject(e.target.value)} className="inp w-full max-w-xs">
-              <option value="">Add to project...</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <Btn primary onClick={addToProject} disabled={!targetProject}>{added ? 'Added!' : 'Add as competitors'}</Btn>
-          <Btn onClick={() => setSelected([])}>Cancel</Btn>
-        </div>
-      )}
-    </>
-  )
-}
