@@ -279,7 +279,7 @@ function SeoCheckSection() {
       return ''
     }
     const sCol = (v, mx) => { const p = v/mx; return p===1?'#10B981':p>=0.5?'#F59E0B':'#EF4444' }
-    const tCol = (s: number) => s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'
+    const tCol = (s) => s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'
 
     const Table = ({ r }) => (
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
@@ -319,7 +319,7 @@ function SeoCheckSection() {
       } catch { setError('Network error') } finally { setLoading(false) }
     }
 
-    const del = (id: string) => { deleteSeoCheck(id); setHistory(getSeoChecks()); if(expandedId===id)setExpandedId(null); if(result?.id===id)setResult(null) }
+    const del = (id) => { deleteSeoCheck(id); setHistory(getSeoChecks()); if(expandedId===id)setExpandedId(null); if(result?.id===id)setResult(null) }
 
     return (
       <>
