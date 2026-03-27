@@ -10,7 +10,7 @@ import {
   getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
   getGbpAudits, saveGbpAudit, deleteGbpAudit, GbpAudit, GbpAuditData,
   getGreatsSearches, saveGreatsSearch, deleteGreatsSearch, GreatsSearch, Great,
-  getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult,
+  getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck,
 } from '@/lib/storage'
 import { exportHTML } from '@/lib/htmlExport'
 
