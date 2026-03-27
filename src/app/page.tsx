@@ -281,7 +281,7 @@ function SeoCheckSection() {
     const sCol = (v, mx) => { const p = v/mx; return p===1?'#10B981':p>=0.5?'#F59E0B':'#EF4444' }
     const tCol = (s) => s>=56?'#10B981':s>=45?'#F59E0B':'#EF4444'
 
-    const Table = ({ r }) => (
+    const Table = ({ r }: { r: any }) => (
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, marginTop:16 }}>
         <thead><tr style={{ borderBottom:'1px solid var(--border)' }}>
           <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>CHECK</th>
@@ -324,7 +324,7 @@ function SeoCheckSection() {
     return (
       <>
         <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
-        <div style={{ padding:'28px 32px', maxWidth:860 }}>
+        <div className="flex-1 overflow-y-auto" style={{ padding:'28px 32px', maxWidth:860 }}>
           <Card style={{ marginBottom:24 }}>
             <div style={{ display:'flex', gap:12, alignItems:'center' }}>
               <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
