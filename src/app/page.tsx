@@ -279,7 +279,7 @@ function SeoCheckSection() {
     if (key==='responseTime') return m.responseTimeMs+'ms';
     return '';
   }
-}
+
   function renderBreakdown(check) {
     var rows = KEYS.map(function(key, ridx) {
       var max = SEO_MAX[key];
