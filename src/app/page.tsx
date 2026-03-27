@@ -762,7 +762,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                   <div className="text-[15px] font-semibold mb-1">{p.name}</div>
                   <div className="font-mono text-[12px] mb-3" style={{ color: 'var(--accent2)' }}>{p.url}</div>
                   <div className="flex gap-4 mb-3">
-                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? ' — ', 'var(--accent2)'], ['LP Avg', avgL ?? ' — ', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(([l, v, c]) => (
+                    {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? ' — ', 'var(--accent2)'], ['LP Avg', avgL ?? ' — ', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(function(item) { const l=item[0],v=String(item[1]),c=String(item[2]); return (
                       <div key={String(l)}><div className="text-[10px]" style={{ color: 'var(--t3)' }}>{l}</div><div className="text-[14px] font-semibold" style={{ color: String(c) }}>{String(v)}</div></div>
                     ))}
                   </div>
@@ -932,7 +932,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         </div>
         {/* Stats row */}
         <div className="grid grid-cols-5 gap-2 mb-4">
-          {[['Response', r.overview.responseTime], ['File Size', r.overview.fileSize], ['Words', r.overview.wordCount], ['Int. Links', r.overview.internalLinks], ['Media', r.overview.mediaFiles]].map(([k, v]) => (
+          {[['Response', r.overview.responseTime], ['File Size', r.overview.fileSize], ['Words', r.overview.wordCount], ['Int. Links', r.overview.internalLinks], ['Media', r.overview.mediaFiles]].map(function(item) { const k=String(item[0]),v=item[1]; return (
             <div key={String(k)} className="rounded-lg p-2.5 border text-center" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>{k}</div>
               <div className="text-[14px] font-semibold">{String(v)}</div>
@@ -941,7 +941,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
         </div>
         {/* Score boxes */}
         <div className="flex gap-2.5 flex-wrap">
-          {([['SEO Score', r.scores.seo], ['LP Score', r.scores.lp], ['Overall', r.scores.overall]] as [string, number][]).map(([l, v]) => (
+          {([['SEO Score', r.scores.seo], ['LP Score', r.scores.lp], ['Overall', r.scores.overall]] as [string, number][]).map(function(item) { const l=item[0],v=item[1]; return (
             <div key={l} className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-[22px] font-bold" style={{ color: sc(v) }}>{v}</div>
