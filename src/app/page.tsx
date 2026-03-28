@@ -437,7 +437,7 @@ function SeoCheckSection() {
 
 //  Dashboard 
 
-function function LeadMachinePage({ projects, onRefresh, onAudit }: { projects: Project[]; onRefresh: () => void; onAudit: (url: string, label: string, industry: string) => void }) {
+function LeadMachinePage({ projects, onRefresh, onAudit }: { projects: Project[]; onRefresh: () => void; onAudit: (url: string, label: string, industry: string) => void }) {
   const [mode, setMode] = useState<'worst' | 'best'>('worst')
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
