@@ -452,7 +452,7 @@ function SeoCheckSection() {
 //  Dashboard 
 
 function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
-  const [mode, setMode] = useState<'worst'|'best'>('worst')
+  const [mode, setMode] = useState('worst')
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
   const [suburb, setSuburb] = useState('')
