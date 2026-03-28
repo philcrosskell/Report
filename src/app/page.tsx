@@ -989,7 +989,6 @@ function Dashboard({ projects, audits, gbpAudits, compReports, onNew, onAudit, o
             <div className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>Competitor Analysis</div>
             <div className="text-3xl font-semibold leading-none" style={{ color: 'var(--green)' }}>{compReports.length}</div>
           </div>
-                </div>
         <Card>
           <CTitle>Recent Audits</CTitle>
           {!recent.length ? <Empty icon="" title="No audits yet" sub="Run your first page audit to get started." /> : (
