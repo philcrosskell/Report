@@ -1611,7 +1611,7 @@ function CompTab({ r }: { r: AuditReport }) {
 function SwTab({ r }: { r: AuditReport }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      {([{ icon: '', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green' as const, bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: '', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red' as const, bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: '', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue' as const, bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
+      {([{ icon: '', title: 'Strengths', items: r.strengthsWeaknesses.strengths, color: 'green', bg: 'rgba(52,211,153,0.1)', tc: 'var(--green)' }, { icon: '', title: 'Weaknesses', items: r.strengthsWeaknesses.weaknesses, color: 'red', bg: 'rgba(248,113,113,0.1)', tc: 'var(--red)' }, { icon: '', title: 'Missed Opportunities', items: r.strengthsWeaknesses.missedOpportunities, color: 'blue', bg: 'rgba(96,165,250,0.1)', tc: 'var(--blue)' }]).map(s => (
         <Card key={s.title}>
           <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: s.bg, color: s.tc }}>{s.icon}</div><div className="text-[14px] font-semibold">{s.title}</div></div>
           <div className="flex flex-col gap-1.5">{s.items.map((item, i) => <Insight key={i} color={s.color} text={item} />)}</div>
