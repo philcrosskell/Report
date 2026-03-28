@@ -497,10 +497,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   return (
     <>
       <TopBar title="Lead Machine" sub="Search a keyword to find local prospects with weak online presence" />
-      <div style={{ display:'flex', gap:6, background:'var(--bg2)', borderRadius:20, padding:'3px 4px', border:'1px solid var(--border)' }}>
-        <button onClick={()=>setMode('worst')} style={{ padding:'4px 14px', borderRadius:16, fontSize:12, fontWeight:600, background:mode==='worst'?'var(--yellow)':'transparent', color:mode==='worst'?'#000':'var(--t2)', border:'none', cursor:'pointer' }}>Worst</button>
-        <button onClick={()=>setMode('best')} style={{ padding:'4px 14px', borderRadius:16, fontSize:12, fontWeight:600, background:mode==='best'?'var(--yellow)':'transparent', color:mode==='best'?'#000':'var(--t2)', border:'none', cursor:'pointer' }}>Best</button>
-      </div>
+      <div style={{ display:"flex", gap:6, background:"var(--bg2)", borderRadius:20, padding:"3px 4px", border:"1px solid var(--border)" }}><button onClick={function(){setMode("worst")}} style={{ padding:"4px 14px", borderRadius:16, fontSize:12, fontWeight:600, background:mode==="worst"?"var(--yellow)":"transparent", color:mode==="worst"?"#000":"var(--t2)", border:"none", cursor:"pointer" }}>Worst</button><button onClick={function(){setMode("best")}} style={{ padding:"4px 14px", borderRadius:16, fontSize:12, fontWeight:600, background:mode==="best"?"var(--yellow)":"transparent", color:mode==="best"?"#000":"var(--t2)", border:"none", cursor:"pointer" }}>Best</button></div>
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Find prospects</CTitle>
