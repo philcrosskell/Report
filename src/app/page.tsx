@@ -1,18 +1,4 @@
-'use client'
-
-import { useState, useEffect, useCallback } from 'react'
-import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
-import {
-  getProjects, addProject, updateProject, deleteProject,
-  getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
-  getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
-  getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
-  getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
-  getGbpAudits, saveGbpAudit, deleteGbpAudit, GbpAudit, GbpAuditData,
-  getGreatsSearches, saveGreatsSearch, deleteGreatsSearch, GreatsSearch, Great,
-  getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult,
-} from '@/lib/storage'
-import { exportHTML } from '@/lib/htmlExport'
+undefined
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
