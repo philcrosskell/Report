@@ -165,7 +165,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 //  app 
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats' | 'seocheck'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'seocheck'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -210,10 +210,9 @@ export default function Home() {
     { id: 'gbp', label: 'GBP Audit', section: 'Tools' },
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
-    { id: 'greats', label: 'The Greats', section: 'Tools' },
     { id: 'seocheck', label: 'SEO Check', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
-  ] as const
+  ]
 
   // If viewing a specific audit, show it full-screen
   if (viewingAudit) {
@@ -274,7 +273,7 @@ function SeoCheckSection() {
           <th style={{ textAlign:'left', padding:'6px 10px', color:'var(--t3)', fontSize:11, fontWeight:700, letterSpacing:'.06em' }}>DETAIL</th>
         </tr></thead>
         <tbody>
-          {Object.entries(SEO_MAX).map(([key, max], i) => {
+          {Object.entries(SEO_MAX).map(function(entry, i) { const key=entry[0],max=entry[1];
             const val = r.breakdown[key] ?? 0
             const col = sCol(val, max)
             return <tr key={key} style={{ borderBottom:'1px solid var(--border)', background:i%2===1?'var(--surface)':'transparent' }}>
@@ -392,7 +391,7 @@ function SeoCheckSection() {
           </div>
         </div>
         <nav className="p-2.5 flex-1 overflow-y-auto">
-          {(['Main', 'Tools', 'Config'] as const).map(section => (
+          {(['Main', 'Tools', 'Config']).map(section => (
             <div key={section}>
               <div className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-2" style={{ color: 'var(--t3)' }}>{section}</div>
               {navItems.filter(n => n.section === section).map(item => (
@@ -427,7 +426,6 @@ function SeoCheckSection() {
         {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
-        {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
         {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'seocheck' && <SeoCheckSection />}
           {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
@@ -484,8 +482,6 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   const [error, setError] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
   const [selected, setSelected] = useState<number[]>([])
-  const [targetProject, setTargetProject] = useState('')
-  const [added, setAdded] = useState(false)
   const [leadHistory, setLeadHistory] = useState<LeadSearch[]>(() => getLeadSearches())
   const [greatsHistory, setGreatsHistory] = useState<GreatsSearch[]>(() => getGreatsSearches())
 
@@ -496,7 +492,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   const scCol = (n: number) => n < 40 ? 'var(--red)' : n < 60 ? 'var(--accent)' : 'var(--green)'
 
   function switchMode(m: 'worst' | 'best') {
-    setMode(m); setProspects([]); setGreats([]); setError(''); setSelected([]); setAdded(false)
+    setMode(m); setProspects([]); setGreats([]); setError(''); setSelected([])
   }
 
   const run = async () => {
@@ -535,14 +531,6 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
 
   function toggleSelect(i: number) { setSelected(function(prev) { return prev.includes(i) ? prev.filter(function(x) { return x !== i }) : [...prev, i] }) }
 
-  function addToProject() {
-    if (!targetProject) return
-    const proj = projects.find(function(p) { return p.id === targetProject })
-    if (!proj) return
-    const toAdd = selected.map(function(i) { return greats[i] }).filter(Boolean)
-    const updated = { ...proj, competitors: [...proj.competitors, ...toAdd.map(function(g) { return { name: g.businessName, website: g.website } })] }
-    updateProject(updated); onRefresh(); setAdded(true); setSelected([])
-  }
 
   const hasResults = mode === 'worst' ? prospects.length > 0 : greats.length > 0
   const history = mode === 'worst' ? leadHistory : greatsHistory
@@ -725,19 +713,6 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
         )}
       </div>
 
-      {selected.length > 0 && (
-        <div className="fixed bottom-0 left-[230px] right-0 px-6 py-4 border-t flex items-center gap-3" style={{ background: 'var(--bg2)', borderColor: 'var(--accent)', borderTopWidth: 2, zIndex: 50 }}>
-          <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{selected.length} business{selected.length !== 1 ? 'es' : ''} selected</div>
-          <div className="flex-1">
-            <select value={targetProject} onChange={function(e) { setTargetProject(e.target.value) }} className="inp w-full max-w-xs">
-              <option value="">Add to project...</option>
-              {projects.map(function(p) { return <option key={p.id} value={p.id}>{p.name}</option> })}
-            </select>
-          </div>
-          <Btn primary onClick={addToProject} disabled={!targetProject}>{added ? 'Added!' : 'Add as competitors'}</Btn>
-          <Btn onClick={function() { setSelected([]) }}>Cancel</Btn>
-        </div>
-      )}
     </>
   )
 }
@@ -1048,7 +1023,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
       <div className="flex-1 overflow-y-auto p-6">
         {showForm && (
           <Card>
-            <CTitle>{editing ? `Edit  —  ${editing.name}` : 'Create New Project'}</CTitle>
+            <CTitle>{editing ? 'Edit  —  ' + editing.name : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
               <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
