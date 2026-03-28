@@ -165,7 +165,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 //  app 
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'seocheck'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'greats' | 'seocheck'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -176,7 +176,7 @@ const NAV_ICONS: Record<string, string> = {
   competitor: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
   reports: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-  seocheck: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v6m-3-3h6',
+  greats: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -210,6 +210,7 @@ export default function Home() {
     { id: 'gbp', label: 'GBP Audit', section: 'Tools' },
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
+    { id: 'greats', label: 'The Greats', section: 'Tools' },
     { id: 'seocheck', label: 'SEO Check', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
   ] as const
@@ -308,7 +309,7 @@ function SeoCheckSection() {
     return (
       <>
         <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
-        <div className="flex-1 overflow-y-auto" style={{ padding:'28px 32px', maxWidth:860 }}>
+        <div style={{ padding:'28px 32px', maxWidth:860 }}>
           <Card style={{ marginBottom:24 }}>
             <div style={{ display:'flex', gap:12, alignItems:'center' }}>
               <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
@@ -426,7 +427,8 @@ function SeoCheckSection() {
         {view === 'competitor' && <CompetitorPage projects={projects} onRefresh={refresh} brandLogo={brandLogo} onLogoChange={(l) => { setBrandLogo(l); if (l) saveBrandLogo(l); else clearBrandLogo() }} />}
         {view === 'reports' && <Reports audits={audits} compReports={compReports} projects={projects} onRefresh={refresh} onView={setViewingAudit} />}
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
-        {view === 'lead' && <LeadMachinePage onAudit={function(url, label, industry) { setView('audit'); setTimeout(function() { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
+        {view === 'greats' && <TheGreatsPage projects={projects} onRefresh={refresh} />}
+        {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 100) }} />}
         {view === 'seocheck' && <SeoCheckSection />}
           {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
@@ -464,7 +466,6 @@ function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; rev
   const overall = Math.round((completeness * 0.3 + reviews * 0.3 + photos * 0.15 + activity * 0.15 + localSeo * 0.1))
   return { overall, completeness, reviews, photos, activity, localSeo }
 }
-
 
 function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
   const [mode, setMode] = useState<'worst' | 'best'>('worst')
@@ -1047,7 +1048,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
       <div className="flex-1 overflow-y-auto p-6">
         {showForm && (
           <Card>
-            <CTitle>{editing ? 'Edit  —  ' + editing.name : 'Create New Project'}</CTitle>
+            <CTitle>{editing ? `Edit  —  ${editing.name}` : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
               <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
