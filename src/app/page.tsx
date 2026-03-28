@@ -1,4 +1,18 @@
-undefined
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
+import {
+  getProjects, addProject, updateProject, deleteProject,
+  getAudits, addAudit, deleteAudit, getAuditById, getAuditsByProject,
+  getLpWeights, saveLpWeights, DEFAULT_WEIGHTS,
+  getCompetitorReports, addCompetitorReport, deleteCompetitorReport,
+  getLeadSearches, saveLeadSearch, deleteLeadSearch, LeadSearch,
+  getGbpAudits, saveGbpAudit, deleteGbpAudit, GbpAudit, GbpAuditData,
+  getGreatsSearches, saveGreatsSearch, deleteGreatsSearch, GreatsSearch, Great,
+  getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult,
+} from '@/lib/storage'
+import { exportHTML } from '@/lib/htmlExport'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
@@ -177,6 +191,7 @@ const NAV_ICONS: Record<string, string> = {
   reports: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
   greats: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
+  seocheck: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v6m-3-3h6',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -308,7 +323,7 @@ function SeoCheckSection() {
     return (
       <>
         <TopBar title="SEO Check" sub="Instant technical SEO score — no AI, just fundamentals. Run repeatedly to track improvement." />
-        <div style={{ padding:'28px 32px', maxWidth:860 }}>
+        <div className="flex-1 overflow-y-auto" style={{ padding:'28px 32px', maxWidth:860 }}>
           <Card style={{ marginBottom:24 }}>
             <div style={{ display:'flex', gap:12, alignItems:'center' }}>
               <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
@@ -436,6 +451,153 @@ function SeoCheckSection() {
 
 //  Dashboard 
 
+function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
+  const [mode, setMode] = useState<'worst'|'best'>('worst')
+  const [industry, setIndustry] = useState('')
+  const [postcode, setPostcode] = useState('')
+  const [suburb, setSuburb] = useState('')
+  const [count, setCount] = useState('5')
+  const [loading, setLoading] = useState(false)
+  const [prospects, setProspects] = useState<Array<{
+    businessName: string; website: string; industry: string; overallScore: number;
+    categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number };
+    criticalIssues: number; opportunityScore: number; pitchHook: string;
+    issues: string[]; opportunities: string[];
+  }>>([])
+  const [error, setError] = useState('')
+  const [stepIdx, setStepIdx] = useState(0)
+  const [savedSearches, setSavedSearches] = useState<LeadSearch[]>(() => getLeadSearches())
+  const STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
+
+  const run = async () => {
+    if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
+    setLoading(true); setError(''); setProspects([]); setStepIdx(0)
+    const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 2800)
+    try {
+      const resp = await fetch(mode === 'best' ? '/api/greats' : '/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ industry, postcode, suburb, count })
+      })
+      const data = await resp.json()
+      clearInterval(timer)
+      if (!data.success) throw new Error(data.error || 'Search failed')
+      const search: LeadSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), prospects: data.prospects || [] }
+      saveLeadSearch(search)
+      setSavedSearches(getLeadSearches())
+      setProspects((data.prospects || []).map((p: Record<string,unknown>) => ({ ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] })))
+    } catch(e) {
+      clearInterval(timer)
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+    } finally { setLoading(false) }
+  }
+
+  const scoreCol = (n: number) => n < 40 ? 'var(--red)' : n < 60 ? 'var(--accent)' : 'var(--green)'
+
+  return (
+    <>
+      <TopBar title="Lead Machine" sub="Search a keyword to find local prospects with weak online presence" />
+      <div style={{ display:'flex', gap:6, background:'var(--bg2)', borderRadius:20, padding:'3px 4px', border:'1px solid var(--border)' }}>
+        <button onClick={()=>setMode('worst')} style={{ padding:'4px 14px', borderRadius:16, fontSize:12, fontWeight:600, background:mode==='worst'?'var(--yellow)':'transparent', color:mode==='worst'?'#000':'var(--t2)', border:'none', cursor:'pointer' }}>Worst</button>
+        <button onClick={()=>setMode('best')} style={{ padding:'4px 14px', borderRadius:16, fontSize:12, fontWeight:600, background:mode==='best'?'var(--yellow)':'transparent', color:mode==='best'?'#000':'var(--t2)', border:'none', cursor:'pointer' }}>Best</button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-6">
+        <Card>
+          <CTitle>Find prospects</CTitle>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
+            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={e => setPostcode(e.target.value)} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
+            <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
+          </div>
+          <Btn primary onClick={run} disabled={loading}>{loading ? ' Searching...' : ' Find prospects'}</Btn>
+        </Card>
+
+        {savedSearches.length > 0 && prospects.length === 0 && !loading && (
+          <Card>
+            <CTitle>Previous searches</CTitle>
+            <div className="flex flex-col gap-2 mt-2">
+              {savedSearches.map(s => (
+                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} Â· {s.postcode}{s.suburb ? ' Â· ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects Â· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                  </div>
+                  <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
+                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}></Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+        {loading && (
+          <Card>
+            <div className="flex flex-col items-center py-6 gap-4">
+              <Spinner />
+              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
+              <div className="flex flex-col gap-1.5">
+                {STEPS.map((step, i) => (
+                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
+                    <span className={'w-1.5 h-1.5 rounded-full ' + (i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700')} />
+                    {step}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
+
+        {prospects.length > 0 && (
+          <div className="flex flex-col gap-3 mt-4">
+            {prospects.map((p, i) => (
+              <Card key={i}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0"
+                    style={{ background: i < 2 ? '#fee2e2' : '#fef3c7', color: i < 2 ? '#991b1b' : '#92400e' }}>{i + 1}</div>
+                  <div className="flex-1">
+                    <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{p.website}</div>
+                  </div>
+                  <div className="text-[24px] font-bold" style={{ color: scoreCol(p.overallScore) }}>{p.overallScore}</div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {(['seo','ux','conversion','mobile','content','brand']).map(k => (
+                    <div key={k}>
+                      <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                        <div className="h-full rounded-full" style={{ width: ((p.categories?.[k]) || 0) + '%', background: scoreCol((p.categories?.[k]) || 0) }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 text-[11px] mb-3">
+                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--red)' }}>{p.criticalIssues} critical issues</span>
+                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>opp score {p.opportunityScore}/10</span>
+                </div>
+                <p className="text-[12px] mb-3 pl-3" style={{ color: 'var(--t2)', borderLeft: '2px solid var(--border)' }}>{p.pitchHook}</p>
+                {p.issues?.length > 0 && (
+                  <div className="mb-2">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Issues</div>
+                    {p.issues.map((iss, j) => <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>Fail {iss}</div>)}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-3">
+                  <Btn sm primary onClick={() => onAudit(p.website, p.businessName, p.industry || industry)}>Audit this prospect</Btn>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+
 function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; reviews: number; photos: number; activity: number; localSeo: number } {
   const pct = (val: boolean | null) => val ? 100 : 0
   const completeness = Math.round((
@@ -465,257 +627,6 @@ function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; rev
   return { overall, completeness, reviews, photos, activity, localSeo }
 }
 
-function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
-  const [mode, setMode] = useState<'worst' | 'best'>('worst')
-  const [industry, setIndustry] = useState('')
-  const [postcode, setPostcode] = useState('')
-  const [suburb, setSuburb] = useState('')
-  const [count, setCount] = useState('5')
-  const [loading, setLoading] = useState(false)
-  const [prospects, setProspects] = useState<Array<{
-    businessName: string; website: string; industry: string; overallScore: number;
-    categories: { seo: number; ux: number; conversion: number; mobile: number; content: number; brand: number };
-    criticalIssues: number; opportunityScore: number; pitchHook: string;
-    issues: string[]; opportunities: string[];
-  }>>([]);
-  const [greats, setGreats] = useState<Great[]>([])
-  const [error, setError] = useState('')
-  const [stepIdx, setStepIdx] = useState(0)
-  const [selected, setSelected] = useState<number[]>([])
-  const [leadHistory, setLeadHistory] = useState<LeadSearch[]>(() => getLeadSearches())
-  const [greatsHistory, setGreatsHistory] = useState<GreatsSearch[]>(() => getGreatsSearches())
-
-  const WORST_STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
-  const BEST_STEPS = ['Scanning local market...', 'Finding top performers...', 'Checking online presence...', 'Scoring websites...', 'Ranking by strength...']
-  const STEPS = mode === 'worst' ? WORST_STEPS : BEST_STEPS
-  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
-  const scCol = (n: number) => n < 40 ? 'var(--red)' : n < 60 ? 'var(--accent)' : 'var(--green)'
-
-  function switchMode(m: 'worst' | 'best') {
-    setMode(m); setProspects([]); setGreats([]); setError(''); setSelected([])
-  }
-
-  const run = async () => {
-    if (!industry || !postcode) { alert('Please enter both an industry and a postcode'); return }
-    setLoading(true); setError(''); setProspects([]); setGreats([]); setSelected([]); setAdded(false); setStepIdx(0)
-    const timer = setInterval(function() { setStepIdx(function(s) { return s < STEPS.length - 1 ? s + 1 : s }) }, 2800)
-    try {
-      if (mode === 'worst') {
-        const resp = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ industry, postcode, suburb, count }) })
-        const data = await resp.json()
-        clearInterval(timer)
-        if (!data.success) throw new Error(data.error || 'Search failed')
-        const search: LeadSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), prospects: data.prospects || [] }
-        saveLeadSearch(search); setLeadHistory(getLeadSearches())
-        setProspects((data.prospects || []).map(function(p: Record<string,unknown>) { return { ...p, categories: (p.categories as Record<string,number>) || { seo:0, ux:0, conversion:0, mobile:0, content:0, brand:0 }, issues: (p.issues as string[]) || [], opportunities: (p.opportunities as string[]) || [] } }))
-      } else {
-        const resp = await fetch('/api/greats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ industry, postcode, suburb, count }) })
-        const data = await resp.json() as { success: boolean; greats?: Record<string, unknown>[]; error?: string }
-        clearInterval(timer)
-        if (!data.success) throw new Error(data.error || 'Search failed')
-        const results: Great[] = (data.greats || []).map(function(g: Record<string, unknown>) { return {
-          businessName: String(g.businessName || ''), website: String(g.website || ''),
-          overallScore: Number(g.overallScore || 0),
-          categories: (g.categories as Record<string, number>) || { seo: 0, ux: 0, conversion: 0, mobile: 0, content: 0, brand: 0 },
-          reviewCount: Number(g.reviewCount || 0), reviewRating: Number(g.reviewRating || 0),
-          strengthScore: Number(g.strengthScore || 0), whyTheyRank: String(g.whyTheyRank || ''),
-          strengths: Array.isArray(g.strengths) ? (g.strengths as string[]) : [],
-          keyTactics: Array.isArray(g.keyTactics) ? (g.keyTactics as string[]) : [],
-        }})
-        const search: GreatsSearch = { id: Date.now().toString(), industry, postcode, suburb: suburb || '', searchedAt: new Date().toISOString(), greats: results }
-        saveGreatsSearch(search); setGreatsHistory(getGreatsSearches()); setGreats(results)
-      }
-    } catch(e) { clearInterval(timer); setError(e instanceof Error ? e.message : 'Something went wrong') }
-    finally { setLoading(false) }
-  }
-
-  function toggleSelect(i: number) { setSelected(function(prev) { return prev.includes(i) ? prev.filter(function(x) { return x !== i }) : [...prev, i] }) }
-
-
-  const hasResults = mode === 'worst' ? prospects.length > 0 : greats.length > 0
-  const history = mode === 'worst' ? leadHistory : greatsHistory
-
-  return (
-    <>
-      <TopBar title="Lead Machine" sub={mode === 'worst' ? 'Find local prospects with weak online presence' : 'Find top performers in any market'} />
-      <div className="flex-1 overflow-y-auto p-6" style={{ paddingBottom: selected.length > 0 ? 88 : 24 }}>
-
-        {/* Mode toggle */}
-        <div className="flex gap-1 p-1 rounded-lg mb-5 w-fit" style={{ background: 'var(--bg3)' }}>
-          <button onClick={function() { switchMode('worst') }}
-            className="px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all"
-            style={{ background: mode === 'worst' ? 'var(--accent)' : 'transparent', color: mode === 'worst' ? '#0f0f11' : 'var(--t2)' }}>
-            Worst
-          </button>
-          <button onClick={function() { switchMode('best') }}
-            className="px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all"
-            style={{ background: mode === 'best' ? 'var(--accent)' : 'transparent', color: mode === 'best' ? '#0f0f11' : 'var(--t2)' }}>
-            Best
-          </button>
-        </div>
-
-        <Card>
-          <CTitle>{mode === 'worst' ? 'Find prospects' : 'Find top performers'}</CTitle>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><Lbl>Keyword *</Lbl><input value={industry} onChange={function(e) { setIndustry(e.target.value) }} placeholder="e.g. web design, plumber, dentist" className="inp w-full" /></div>
-            <div><Lbl>Postcode *</Lbl><input value={postcode} onChange={function(e) { setPostcode(e.target.value) }} placeholder="e.g. 3000" maxLength={4} className="inp w-full" /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={function(e) { setSuburb(e.target.value) }} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
-            <div><Lbl>Results</Lbl><select value={count} onChange={function(e) { setCount(e.target.value) }} className="inp w-full"><option value="3">3 results</option><option value="5">5 results</option><option value="8">8 results</option></select></div>
-          </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? 'Searching...' : mode === 'worst' ? 'Find prospects' : 'Find The Greats'}</Btn>
-        </Card>
-
-        {history.length > 0 && !hasResults && !loading && (
-          <Card>
-            <CTitle>Previous searches</CTitle>
-            <div className="flex flex-col gap-2 mt-2">
-              {mode === 'worst' && (leadHistory as LeadSearch[]).map(function(s) { return (
-                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-                  <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
-                  </div>
-                  <Btn sm onClick={function() { setProspects(s.prospects as never) }}>Load</Btn>
-                  <Btn sm danger onClick={function() { deleteLeadSearch(s.id); setLeadHistory(getLeadSearches()) }}>×</Btn>
-                </div>
-              )})}
-              {mode === 'best' && (greatsHistory as GreatsSearch[]).map(function(s) { return (
-                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-                  <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.greats.length} businesses · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
-                  </div>
-                  <Btn sm onClick={function() { setGreats(s.greats); setSelected([]) }}>Load</Btn>
-                  <Btn sm danger onClick={function() { deleteGreatsSearch(s.id); setGreatsHistory(getGreatsSearches()) }}>×</Btn>
-                </div>
-              )})}
-            </div>
-          </Card>
-        )}
-
-        {loading && (
-          <Card>
-            <div className="flex flex-col items-center py-6 gap-4">
-              <Spinner />
-              <div className="text-[13px]" style={{ color: 'var(--t2)' }}>{STEPS[stepIdx]}...</div>
-              <div className="flex flex-col gap-1.5">
-                {STEPS.map(function(step, i) { return (
-                  <div key={step} className="flex items-center gap-2 text-[12px]" style={{ color: i <= stepIdx ? 'var(--t2)' : 'var(--t3)' }}>
-                    <span className={['w-1.5 h-1.5 rounded-full', i < stepIdx ? 'bg-emerald-400' : i === stepIdx ? 'bg-yellow-400' : 'bg-zinc-700'].join(' ')} />
-                    {step}
-                  </div>
-                )})}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {error && <Card><p className="text-[13px]" style={{ color: 'var(--red)' }}>{error}</p></Card>}
-
-        {mode === 'worst' && prospects.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
-            {prospects.map(function(p, i) { return (
-              <Card key={i}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0"
-                    style={{ background: i < 2 ? '#fee2e2' : '#fef3c7', color: i < 2 ? '#991b1b' : '#92400e' }}>{i + 1}</div>
-                  <div className="flex-1">
-                    <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{p.website}</div>
-                  </div>
-                  <div className="text-[24px] font-bold" style={{ color: scCol(p.overallScore) }}>{p.overallScore}</div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {CAT_KEYS.map(function(k) { return (
-                    <div key={k}>
-                      <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase()+k.slice(1)}</div>
-                      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                        <div className="h-full rounded-full" style={{ width: (p.categories?.[k] || 0) + '%', background: scCol(p.categories?.[k] || 0) }} />
-                      </div>
-                    </div>
-                  )})}
-                </div>
-                <div className="flex gap-2 text-[11px] mb-3">
-                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--red)' }}>{p.criticalIssues} critical issues</span>
-                  <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,229,0,0.1)', color: 'var(--accent)' }}>opp score {p.opportunityScore}/10</span>
-                </div>
-                <p className="text-[12px] mb-3 pl-3" style={{ color: 'var(--t2)', borderLeft: '2px solid var(--border)' }}>{p.pitchHook}</p>
-                {p.issues?.length > 0 && (
-                  <div className="mb-2">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Issues</div>
-                    {p.issues.map(function(iss, j) { return <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>✕ {iss}</div> })}
-                  </div>
-                )}
-                <div className="flex gap-2 mt-3">
-                  <Btn sm primary onClick={function() { onAudit(p.website, p.businessName, p.industry || industry) }}>Audit this prospect</Btn>
-                </div>
-              </Card>
-            )})}
-          </div>
-        )}
-
-        {mode === 'best' && greats.length > 0 && (
-          <div className="flex flex-col gap-3 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="text-[12px]" style={{ color: 'var(--t3)' }}>
-                {selected.length > 0
-                  ? <span style={{ color: 'var(--accent)' }}>{selected.length} selected — pick a project below</span>
-                  : 'Click cards to select, then add as competitors to a project'}
-              </div>
-              <Btn sm onClick={function() { selected.length === greats.length ? setSelected([]) : setSelected(greats.map(function(_, i) { return i })) }}>
-                {selected.length === greats.length ? 'Deselect all' : 'Select all'}
-              </Btn>
-            </div>
-            {greats.map(function(g, i) {
-              const isSel = selected.includes(i)
-              return (
-                <Card key={i} cls={isSel ? 'ring-2 ring-[var(--accent)]' : ''}>
-                  <div className="flex items-center gap-3 mb-2" onClick={function() { toggleSelect(i) }} style={{ cursor: 'pointer' }}>
-                    <div className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: isSel ? 'var(--accent)' : 'var(--t3)', background: isSel ? 'var(--accent)' : 'transparent' }}>
-                      {isSel && <span className="text-[11px] font-bold" style={{ color: '#0f0f11' }}>✓</span>}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{g.businessName}</div>
-                      <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{g.website}</div>
-                    </div>
-                    <div className="text-[24px] font-bold" style={{ color: scCol(g.overallScore) }}>{g.overallScore}</div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    {CAT_KEYS.map(function(k) { return (
-                      <div key={k}>
-                        <div className="text-[10px] mb-1" style={{ color: 'var(--t3)' }}>{k.charAt(0).toUpperCase() + k.slice(1)}</div>
-                        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                          <div className="h-full rounded-full" style={{ width: (g.categories[k] || 0) + '%', background: scCol(g.categories[k] || 0) }} />
-                        </div>
-                      </div>
-                    )})}
-                  </div>
-                  {g.reviewCount > 0 && <div className="text-[11px] mb-2" style={{ color: 'var(--t3)' }}>{g.reviewRating}★ · {g.reviewCount} reviews</div>}
-                  <p className="text-[12px] mb-2 pl-3" style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)' }}>{g.whyTheyRank}</p>
-                  {g.strengths.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Why they rank</div>
-                      {g.strengths.map(function(s, j) { return <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>+ {s}</div> })}
-                    </div>
-                  )}
-                  {g.keyTactics.length > 0 && (
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>Tactics to borrow</div>
-                      {g.keyTactics.map(function(t, j) { return <div key={j} className="text-[12px] py-0.5" style={{ color: 'var(--t2)' }}>→ {t}</div> })}
-                    </div>
-                  )}
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-    </>
-  )
-}
 function GbpScoreBar({ label, score }: { label: string; score: number }) {
   const col = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--accent)' : 'var(--red)'
   return (
