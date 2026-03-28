@@ -436,6 +436,36 @@ function SeoCheckSection() {
 
 //  Dashboard 
 
+function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; reviews: number; photos: number; activity: number; localSeo: number } {
+  const pct = (val: boolean | null) => val ? 100 : 0
+  const completeness = Math.round((
+    pct(!!d.phone) + pct(!!d.website) + pct(!!d.address) + pct(d.hasDescription) +
+    pct(d.descriptionUsesKeywords) + pct(d.hoursSet) + pct(d.allDaysSet) +
+    pct(d.servicesListed) + pct(!!d.category) + pct(d.secondaryCategories?.length > 0)
+  ) / 10)
+  const reviews = Math.round((
+    (d.rating ? Math.min(d.rating / 5 * 100, 100) : 0) +
+    (d.reviewCount ? Math.min(d.reviewCount / 50 * 100, 100) : 0) +
+    pct(d.hasRecentReviews) + pct(d.ownerRespondsToReviews) +
+    (d.unansweredReviews === 0 ? 100 : d.unansweredReviews < 3 ? 50 : 0)
+  ) / 5)
+  const photos = Math.round((
+    pct(d.hasLogo) + pct(d.hasCoverPhoto) + pct(d.hasRecentPhotos) +
+    (d.photoCount ? Math.min(d.photoCount / 20 * 100, 100) : 0)
+  ) / 4)
+  const activity = Math.round((
+    pct(d.hasRecentPosts) +
+    (d.lastPostDaysAgo !== null ? (d.lastPostDaysAgo < 14 ? 100 : d.lastPostDaysAgo < 30 ? 75 : d.lastPostDaysAgo < 60 ? 40 : d.lastPostDaysAgo < 90 ? 20 : 0) : 0)
+  ) / 2)
+  const localSeo = Math.round((
+    pct(d.serviceAreaSet) + pct(d.attributesSet) + pct(d.appointmentLink) +
+    pct(d.holidayHoursSet)
+  ) / 4)
+  const overall = Math.round((completeness * 0.3 + reviews * 0.3 + photos * 0.15 + activity * 0.15 + localSeo * 0.1))
+  return { overall, completeness, reviews, photos, activity, localSeo }
+}
+
+
 function LeadMachinePage({ projects, onRefresh, onAudit }: { projects: Project[]; onRefresh: () => void; onAudit: (url: string, label: string, industry: string) => void }) {
   const [mode, setMode] = useState<'worst' | 'best'>('worst')
   const [industry, setIndustry] = useState('')
