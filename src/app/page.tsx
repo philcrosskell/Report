@@ -466,7 +466,7 @@ function scoreGbp(d: GbpAuditData): { overall: number; completeness: number; rev
 }
 
 
-function LeadMachinePage({ projects, onRefresh, onAudit }: { projects: Project[]; onRefresh: () => void; onAudit: (url: string, label: string, industry: string) => void }) {
+function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, industry: string) => void }) {
   const [mode, setMode] = useState<'worst' | 'best'>('worst')
   const [industry, setIndustry] = useState('')
   const [postcode, setPostcode] = useState('')
@@ -491,7 +491,7 @@ function LeadMachinePage({ projects, onRefresh, onAudit }: { projects: Project[]
   const WORST_STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
   const BEST_STEPS = ['Scanning local market...', 'Finding top performers...', 'Checking online presence...', 'Scoring websites...', 'Ranking by strength...']
   const STEPS = mode === 'worst' ? WORST_STEPS : BEST_STEPS
-  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand'] as const
+  const CAT_KEYS = ['seo', 'ux', 'conversion', 'mobile', 'content', 'brand']
   const scCol = (n: number) => n < 40 ? 'var(--red)' : n < 60 ? 'var(--accent)' : 'var(--green)'
 
   function switchMode(m: 'worst' | 'best') {
