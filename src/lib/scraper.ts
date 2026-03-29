@@ -78,37 +78,38 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
   }
 
   try {
+    let html = clientHtml ?? ''
+
     if (!clientHtml) {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 12000)
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 12000)
 
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Accept-Language': 'en-AU,en;q=0.9',
-      },
-      redirect: 'follow',
-    })
-    clearTimeout(timeout)
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+        },
+        redirect: 'follow',
+      })
+      clearTimeout(timeout)
 
-    blank.responseTimeMs = Date.now() - start
-    blank.finalUrl = res.url
-    blank.hasHttps = res.url.startsWith('https')
-    blank.serverHeader = res.headers.get('server') ?? ''
-    blank.htmlSizeBytes = parseInt(res.headers.get('content-length') ?? '0')
-    if (res.status >= 400) {
       blank.responseTimeMs = Date.now() - start
-      return { ...blank, error: 'HTTP ' + res.status }
-    }
+      blank.finalUrl = res.url
+      blank.hasHttps = res.url.startsWith('https')
+      blank.serverHeader = res.headers.get('server') ?? ''
+      blank.htmlSizeBytes = parseInt(res.headers.get('content-length') ?? '0')
+
+      if (res.status >= 400) {
+        return { ...blank, error: 'HTTP ' + res.status }
+      }
+
+      html = await res.text()
     }
 
-    const html = clientHtml ?? ''
+    if (!blank.htmlSizeBytes) blank.htmlSizeBytes = new TextEncoder().encode(html).length
+
     if (!blank.htmlSizeBytes) blank.htmlSizeBytes = new TextEncoder().encode(html).length
 
     // ── Extract using regex (no DOM parser available in Node edge runtime) ──
