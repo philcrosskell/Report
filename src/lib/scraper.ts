@@ -80,6 +80,13 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
   try {
     let html = clientHtml ?? ''
 
+    if (clientHtml) {
+      blank.responseTimeMs = 0
+      blank.finalUrl = url
+      blank.hasHttps = url.startsWith('https')
+      blank.htmlSizeBytes = new TextEncoder().encode(clientHtml).length
+    }
+
     if (!clientHtml) {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 12000)
