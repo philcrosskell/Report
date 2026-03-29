@@ -497,9 +497,10 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   return (
     <>
       <TopBar title="Lead Machine" sub="Search a keyword to find local prospects with weak online presence" />
-      <div style={{ display:'flex', gap:8, padding:'0 24px 12px' }}>
-        <button onClick={() => setMode('worst')} style={{ padding:'4px 14px', borderRadius:999, fontSize:12, fontWeight:600, background: mode==='worst' ? 'var(--yellow)' : 'var(--bg2)', color: mode==='worst' ? '#000' : 'var(--t2)', border:'1px solid var(--border)', cursor:'pointer' }}>Worst</button>
-        <button onClick={() => setMode('best')} style={{ padding:'4px 14px', borderRadius:999, fontSize:12, fontWeight:600, background: mode==='best' ? 'var(--yellow)' : 'var(--bg2)', color: mode==='best' ? '#000' : 'var(--t2)', border:'1px solid var(--border)', cursor:'pointer' }}>Best</button>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 24px 14px' }}>
+        <span style={{ fontSize:13, color:'var(--t2)', fontWeight:500, marginRight:4 }}>Who are we hunting for today?</span>
+        <button onClick={() => setMode('worst')} style={{ padding:'6px 18px', borderRadius:999, fontSize:13, fontWeight:700, background: mode==='worst' ? '#e53935' : 'var(--bg2)', color: mode==='worst' ? '#fff' : 'var(--t2)', border: mode==='worst' ? '1px solid #e53935' : '1px solid var(--border)', cursor:'pointer', transition:'all 0.15s' }}>Worst</button>
+        <button onClick={() => setMode('best')} style={{ padding:'6px 18px', borderRadius:999, fontSize:13, fontWeight:700, background: mode==='best' ? '#2e7d32' : 'var(--bg2)', color: mode==='best' ? '#fff' : 'var(--t2)', border: mode==='best' ? '1px solid #2e7d32' : '1px solid var(--border)', cursor:'pointer', transition:'all 0.15s' }}>Best</button>
       </div>
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
