@@ -84,7 +84,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Step 4: Ask Claude to score by STRENGTH (Greats = find top performers)
     const businessList = candidates.slice(0, n + 3).map((p: AnyRecord) => ({
-      name: p.displayName?.text || '',
+      businessName: p.displayName?.text || '',
       address: p.formattedAddress || '',
       website: p.websiteUri || 'No website',
       rating: p.rating || null,
