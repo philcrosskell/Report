@@ -90,7 +90,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Step 4: Ask Claude to score the verified real businesses by WEAKNESS (Lead Machine = find weak prospects)
     const businessList = candidates.slice(0, n + 3).map((p: AnyRecord) => ({
-      name: p.displayName?.text || '',
+      businessName: p.displayName?.text || '',
       address: p.formattedAddress || '',
       website: p.websiteUri || 'No website',
       rating: p.rating || null,
