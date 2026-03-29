@@ -959,7 +959,7 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
                   <div className="flex gap-4 mb-3">
                     {[['Pages', pa.length, 'var(--t1)'], ['SEO Avg', avgS ?? ' — ', 'var(--accent2)'], ['LP Avg', avgL ?? ' — ', 'var(--amber)'], ['Comps', p.competitors.length, 'var(--t1)']].map(function(item_lvc) { const [l, v, c] = item_lvc; return (
                       <div key={String(l)}><div className="text-[10px]" style={{ color: 'var(--t3)' }}>{l}</div><div className="text-[14px] font-semibold" style={{ color: String(c) }}>{String(v)}</div></div>
-                    ))}
+                    ); })}
                   </div>
                   {p.competitors.length > 0 && (
                     <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -1140,7 +1140,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>{k}</div>
               <div className="text-[14px] font-semibold">{String(v)}</div>
             </div>
-          ))}
+          ); })}
         </div>
         {/* Score boxes */}
         <div className="flex gap-2.5 flex-wrap">
@@ -1149,7 +1149,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>{l}</div>
               <div className="text-[22px] font-bold" style={{ color: sc(v) }}>{v}</div>
             </div>
-          ))}
+          ); })}
           {r.aeoScore && (
             <div className="rounded-xl px-4 py-2.5 text-center border" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--t3)' }}>AEO Score</div>
