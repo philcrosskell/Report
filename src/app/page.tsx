@@ -497,7 +497,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   return (
     <>
       <TopBar title="Lead Machine" sub="Search a keyword to find local prospects with weak online presence" />
-      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 24px 14px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'20px 24px 8px' }}>
         <span style={{ fontSize:13, color:'var(--t2)', fontWeight:500, marginRight:4 }}>Who are we hunting for today?</span>
         <button onClick={() => setMode('worst')} style={{ padding:'6px 18px', borderRadius:999, fontSize:13, fontWeight:700, background: mode==='worst' ? '#e53935' : 'var(--bg2)', color: mode==='worst' ? '#fff' : 'var(--t2)', border: mode==='worst' ? '1px solid #e53935' : '1px solid var(--border)', cursor:'pointer', transition:'all 0.15s' }}>Worst</button>
         <button onClick={() => setMode('best')} style={{ padding:'6px 18px', borderRadius:999, fontSize:13, fontWeight:700, background: mode==='best' ? '#2e7d32' : 'var(--bg2)', color: mode==='best' ? '#fff' : 'var(--t2)', border: mode==='best' ? '1px solid #2e7d32' : '1px solid var(--border)', cursor:'pointer', transition:'all 0.15s' }}>Best</button>
