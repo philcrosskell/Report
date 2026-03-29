@@ -307,7 +307,7 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
   console.log(`Scraping: ${req.url}`)
   let scraped: ScrapedPage | undefined
   try {
-    scraped = await scrapePage(req.url)
+    scraped = await scrapePage(req.url, req.clientHtml)
     if (scraped.error) console.warn(`Scrape failed: ${scraped.error}`)
     else console.log(`Scraped: ${scraped.wordCount} words, ${scraped.formCount} forms, ${scraped.responseTimeMs}ms`)
   } catch (e) {

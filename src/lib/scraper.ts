@@ -54,7 +54,7 @@ export interface ScrapedPage {
   error?: string
 }
 
-export async function scrapePage(url: string): Promise<ScrapedPage> {
+export async function scrapePage(url: string, clientHtml?: string): Promise<ScrapedPage> {
   const start = Date.now()
   const blank: ScrapedPage = {
     url, finalUrl: url, title: '', metaDescription: '', canonicalUrl: '',
@@ -78,6 +78,7 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
   }
 
   try {
+    if (!clientHtml) {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 12000)
 
@@ -101,8 +102,13 @@ export async function scrapePage(url: string): Promise<ScrapedPage> {
     blank.hasHttps = res.url.startsWith('https')
     blank.serverHeader = res.headers.get('server') ?? ''
     blank.htmlSizeBytes = parseInt(res.headers.get('content-length') ?? '0')
+    if (res.status >= 400) {
+      blank.responseTimeMs = Date.now() - start
+      return { ...blank, error: 'HTTP ' + res.status }
+    }
+    }
 
-    const html = await res.text()
+    const html = clientHtml ?? ''
     if (!blank.htmlSizeBytes) blank.htmlSizeBytes = new TextEncoder().encode(html).length
 
     // ── Extract using regex (no DOM parser available in Node edge runtime) ──

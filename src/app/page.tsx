@@ -1000,7 +1000,15 @@ function AuditPage({ projects, weights, onRefresh }: { projects: Project[]; weig
     const existing = projectId ? getAuditsByProject(projectId).length : 0
     const timer = setInterval(() => setStepIdx(s => s < STEPS.length - 1 ? s + 1 : s), 1600)
     try {
-      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, industry, location, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights }) })
+      let clientHtml: string | undefined
+      try {
+        const prefetch = await fetch(url, { signal: AbortSignal.timeout(8000) })
+        if (prefetch.ok) {
+          const text = await prefetch.text()
+          if (text.length > 1000) clientHtml = text
+        }
+      } catch { /* CORS or network block — server will try instead */ }
+      const res = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, label, industry, location, projectId, assignedTo, project: selectedProject, competitors: selectedProject?.competitors ?? [], existingAuditsCount: existing, lpWeights: weights, clientHtml }) })
       const data = await res.json() as { success: boolean; report?: AuditReport; error?: string }
       clearInterval(timer)
       if (!data.success || !data.report) { setError(data.error ?? 'Audit failed'); return }

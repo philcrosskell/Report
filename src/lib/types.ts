@@ -215,6 +215,7 @@ export interface AuditRequest {
   competitors?: Competitor[]
   existingAuditsCount?: number
   lpWeights?: LpWeights
+  clientHtml?: string
 }
 
 export interface AuditResponse {
