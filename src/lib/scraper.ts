@@ -252,9 +252,11 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     )
     blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
 
-    // Phone numbers
-    const phoneMatches = html.match(/(?:tel:|href=["']tel:)[^"'\s<>]+/gi) ?? []
-    blank.phoneNumbers = ([...new Set(phoneMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim()))] as string[]).slice(0, 3)
+    // Phone numbers — check tel: href links AND scan text for AU phone patterns (catches JS-rendered phones)
+    const telMatches = html.match(/(?:tel:|href=["']tel:)[^"'\s<>]+/gi) ?? []
+    const telPhones = telMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim())
+    const auPhoneMatches = html.match(/(?:\+61|0)[2-9]\d{8}|(?:\+61|0)4\d{8}/g) ?? []
+    blank.phoneNumbers = ([...new Set([...telPhones, ...auPhoneMatches])].filter(p => p.length >= 8) as string[]).slice(0, 3)
 
     // Email addresses
     const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) ?? []
