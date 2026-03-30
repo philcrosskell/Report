@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const compList = competitors.filter(c => c.name && c.url).map(c => `- ${c.name} (${c.url})`).join('\n')
 
     // Pre-scrape all pages to get real metadata for the AI context
-    const metaMap: Record<string, { title: string; description: string }> = {}
+    const metaMap: Record<string, { title: string; description: string; ctaCount: number; hasForms: boolean; hasTestimonials: boolean; testimonialCount: number; hasStarRatings: boolean; phoneNumbers: string[]; wordCount: number }> = {}
     await Promise.allSettled(
       [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))].map(async ({ name, url }) => {
         try {
