@@ -523,11 +523,11 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
               {savedSearches.map(s => (
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} Â· {s.postcode}{s.suburb ? ' Â· ' + s.suburb : ''}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects Â· {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
-                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}></Btn>
+                  <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>✕</Btn>
                 </div>
               ))}
             </div>
@@ -805,7 +805,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   if (result) {
     return (
       <>
-        <TopBar title="GBP Audit" sub={result.businessName + ' Â· ' + result.suburb}>
+        <TopBar title="GBP Audit" sub={result.businessName + ' · ' + result.suburb}>
           <Btn sm onClick={() => setResult(null)}> New audit</Btn>
         </TopBar>
         <GbpReport audit={result} onDelete={() => { deleteGbpAudit(result.id); setSavedAudits(getGbpAudits()); onSave(); setResult(null) }} />
@@ -835,7 +835,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                 <div key={a.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                   <div className="flex-1">
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{a.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} Â· {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{a.suburb} · {new Date(a.auditedAt).toLocaleDateString('en-AU')}</div>
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
@@ -1699,7 +1699,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
               {brandLogo && <img src={brandLogo} alt="Logo" className="h-8 rounded object-contain flex-shrink-0" style={{ maxWidth: 100, background: 'var(--bg3)', padding: 3 }} />}
               <div className="flex-1">
                 <div className="text-[13px] font-semibold">{result.businessName}  —  Competitor Analysis Report</div>
-                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} Â· {result.profiles.length} businesses analysed</div>
+                <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{result.date} · {result.profiles.length} businesses analysed</div>
               </div>
               {!saved ? (
                 <>
@@ -1735,7 +1735,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           <img src={brandLogo} alt={r.businessName} className="h-10 object-contain rounded" style={{ maxWidth: 140, background: 'var(--bg3)', padding: 4 }} />
           <div>
             <div className="text-[13px] font-semibold">{r.businessName}</div>
-            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report Â· {r.date}</div>
+            <div className="text-[11px]" style={{ color: 'var(--t3)' }}>Competitor Analysis Report · {r.date}</div>
           </div>
         </div>
       )}
@@ -2043,7 +2043,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
           <Btn onClick={() => setViewingGbp(null)}>Back to Reports</Btn>
           <div className="flex-1">
             <div className="text-base font-semibold">{viewingGbp.businessName}  —  GBP Audit</div>
-            <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingGbp.suburb} Â· {new Date(viewingGbp.auditedAt).toLocaleDateString('en-AU')}</div>
+            <div className="text-[12px]" style={{ color: 'var(--t3)' }}>{viewingGbp.suburb} · {new Date(viewingGbp.auditedAt).toLocaleDateString('en-AU')}</div>
           </div>
           <Btn sm onClick={() => exportGbpPdf(viewingGbp.id)}> PDF</Btn>
           <Btn sm onClick={() => exportGbpHtml(viewingGbp.id)}> HTML</Btn>
@@ -2069,7 +2069,7 @@ function Reports({ audits, compReports, projects, onRefresh, onView }: { audits:
 
   return (
     <>
-      <TopBar title="Reports" sub={`${audits.length} page audits Â· ${compReports.length} competitor reports`} />
+      <TopBar title="Reports" sub={`${audits.length} page audits · ${compReports.length} competitor reports`} />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex gap-2 mb-5">
           <Btn onClick={() => setTab('audits')} primary={tab === 'audits'}>Page Audits ({audits.length})</Btn>
