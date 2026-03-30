@@ -79,23 +79,19 @@ export async function POST(req: NextRequest) {
 
   // Override AI social proof guesses with real scraped data where available
   if (Array.isArray(part3.socialProof)) {
-    part3.socialProof = (part3.socialProof as Record<string, unknown>[]).map(sp => {
-      const spName = (sp.name as string ?? '').toLowerCase()
-      const match = allUrls.find(u => u.name.toLowerCase().includes(spName) || spName.includes(u.name.toLowerCase()))
-      if (match) {
-        const normKey = match.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-        const real = scrapeMap[normKey]
-        if (real) {
-          return {
-            ...sp,
-            hasTestimonials: real.hasTestimonials,
-            testimonialCount: real.testimonialCount,
-            hasStarRatings: real.hasStarRatings,
-          }
+    const spList = part3.socialProof as Record<string, unknown>[]
+    for (let spIdx = 0; spIdx < spList.length; spIdx++) {
+      const spEntry = spList[spIdx]
+      const spName = ((spEntry.name as string) ?? '').toLowerCase()
+      const matchedUrl = allUrls.find(u => u.name.toLowerCase().includes(spName) || spName.includes(u.name.toLowerCase()))
+      if (matchedUrl) {
+        const normKey = matchedUrl.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+        const realData = scrapeMap[normKey]
+        if (realData) {
+          spList[spIdx] = { ...spEntry, hasTestimonials: realData.hasTestimonials, testimonialCount: realData.testimonialCount, hasStarRatings: realData.hasStarRatings }
         }
       }
-      return sp
-    })
+    }
   }
 
     // Scrape and score all URLs in parallel
