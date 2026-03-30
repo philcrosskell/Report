@@ -82,8 +82,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
     const candidates = localPlaces.length >= 2 ? localPlaces : places
 
+    // Only show businesses that have a website
+    const withWebsite = candidates.filter((p: AnyRecord) => !!(p.websiteUri))
+    if (!withWebsite.length) {
+      return NextResponse.json({ success: false, error: 'No businesses with a website found — try a different keyword or area' }, { status: 422 })
+    }
+
     // Step 4: Ask Claude to score by STRENGTH (Greats = find top performers)
-    const businessList = candidates.slice(0, n + 3).map((p: AnyRecord) => ({
+    const businessList = withWebsite.slice(0, n + 3).map((p: AnyRecord) => ({
       businessName: p.displayName?.text || '',
       address: p.formattedAddress || '',
       website: p.websiteUri || 'No website',
