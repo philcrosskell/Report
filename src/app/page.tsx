@@ -1126,7 +1126,7 @@ function AuditResultView({ report: r, url, label, auditId, tabs, defaultTab, onT
                 : <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400"> Estimated  —  page not reachable</span>
               }
             </div>
-            <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)' }}>{url}</div>
+            <div className="font-mono text-[12px] mb-2" style={{ color: 'var(--accent2)', wordBreak: 'break-all' }}>{url}</div>
             <SmartText text={r.overview.summary} color="var(--t3)" />
           </div>
           <ExportAuditBtn auditId={auditId} />
