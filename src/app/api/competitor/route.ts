@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
     "hookType":"string","hookHeadline":"string","hookEffectiveness":"string",
     "primaryAnxiety":"string","outcomePromised":"string","howTheyProve":"string","actionTrigger":"string"
   }],
-  "claimsMatrix":{"claimTypes":["string"],"rows":[{"claimType":"string","values":{"BusinessName":"Yes|No|Partial"}}]}
+  "claimsMatrix":{"claimTypes":["string"],"rows":[{"claimType":"string","values":{"BusinessName":"Yes|No|Partial"}}]},
+  "openingSummary":"3-4 plain English sentences for the business owner: who leads this market and why, where the primary business sits relative to each competitor, and the single most important opportunity. Name competitors specifically. No jargon."
 }`)
 
     // Call 2: Strategy
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
   "buyerAnxieties":[{"concern":"string","addressedBy":"string","ignoredBy":"string"}],
   "strategicImplications":[{"number":1,"title":"string","detail":"string"}],
   "quickWins":[{"action":"string","why":"string","effort":"Easy|Medium|Hard"}],
-  "summary":"2-3 plain English sentences explaining what this means for the business owner — no jargon, no buzzwords, just clear practical insight"
+  "summary":"3-4 plain English sentences directly answering: Am I winning or losing in this market, and why? Name the strongest competitor and explain specifically what they do better. Then give the single most important action the business owner should take. Be direct, specific, and honest — no consultant-speak."
 }`)
 
     // Call 3: Social proof audit per business

@@ -1739,7 +1739,15 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
           </div>
         </div>
       )}
-      {/* Headline findings */}
+      {/* Opening summary */}
+              {r.openingSummary && (
+                <div className="p-5 rounded-xl border mb-6" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.25)' }}>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Where You Stand</div>
+                  <div className="text-[14px] leading-relaxed" style={{ color: 'var(--t1)' }}>{r.openingSummary as string}</div>
+                </div>
+              )}
+
+              {/* Headline findings */}
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-1">The Short Version</div>
         <div className="text-[13px] mb-4" style={{ color: 'var(--t3)' }}>Three findings from analysing {r.profiles.length} businesses in this market.</div>
@@ -1997,7 +2005,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
 
       {/* Summary  —  structured not a wall of text */}
       <div className="p-5 rounded-xl border mb-4" style={{ background: 'rgba(255,229,0,0.04)', borderColor: 'rgba(255,229,0,0.15)' }}>
-        <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Summary</div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--accent2)' }}>Final Verdict</div>
         {(() => {
           const sentences = r.summary.match(/[^.!?]+[.!?]+/g) ?? [r.summary]
           const intro = sentences[0]?.trim() ?? ''
