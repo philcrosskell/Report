@@ -56,8 +56,8 @@ function TD({ children, mono = false }: { children: React.ReactNode; mono?: bool
   return <td className={mono ? 'font-mono text-[11px]' : ''} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)' }}>{children}</td>
 }
 function Bar({ pct }: { pct: number }) {
-  const col = pct >= 70 ? 'bg-emerald-400' : pct >= 40 ? 'bg-yellow-400' : 'bg-red-400'
-  return <div className="h-2 rounded overflow-hidden flex-1" style={{ background: 'var(--bg4)' }}><div className={`h-full rounded transition-all ${col}`} style={{ width: `${Math.min(100, pct)}%` }} /></div>
+  const col = pct >= 86 ? 'var(--green)' : pct >= 69 ? 'var(--amber)' : 'var(--red)'
+  return <div className="h-2 rounded overflow-hidden flex-1" style={{ background: 'var(--bg4)' }}><div className="h-full rounded transition-all" style={{ width: `${Math.min(100, pct)}%`, background: col }} /></div>
 }
 function Insight({ color, text }: { color: 'green' | 'red' | 'blue' | 'amber'; text: string }) {
   const m = { green: 'bg-emerald-400', red: 'bg-red-400', blue: 'bg-blue-400', amber: 'bg-yellow-400' }
