@@ -38,12 +38,12 @@ export async function POST(req: NextRequest) {
       [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))].map(async ({ name, url }) => {
         try {
           const s = await scrapePage(url)
-          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '' }
+          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '', ctaCount: s.ctaButtonCount || 0, hasForms: s.hasForms, hasTestimonials: s.hasTestimonials, testimonialCount: s.testimonialCount, hasStarRatings: s.hasStarRatings, phoneNumbers: s.phoneNumbers || [], wordCount: s.wordCount || 0 }
         } catch { /* ignore */ }
       })
     )
 
-    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" â ${m.description}`).join('\n')
+    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" — ${m.description}\n    [CTAs: ${m.ctaCount || 0}, Forms: ${m.hasForms ? 'yes' : 'no'}, Testimonials: ${m.hasTestimonials ? m.testimonialCount + ' visible' : 'none'}, Stars: ${m.hasStarRatings ? 'yes' : 'no'}, Phone: ${m.phoneNumbers && m.phoneNumbers.length ? m.phoneNumbers[0] : 'none'}, Words: ${m.wordCount || 0}]`).join('\n')
     const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these â do NOT guess):\n${metaLines}`
     const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words — except the "summary" field which must be 2-3 plain English sentences written for a business owner, not a consultant. No jargon.`
 
