@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" — ${m.description}\n    [CTAs: ${m.ctaCount || 0}, Forms: ${m.hasForms ? 'yes' : 'no'}, Testimonials: ${m.hasTestimonials ? m.testimonialCount + ' visible' : 'none'}, Stars: ${m.hasStarRatings ? 'yes' : 'no'}, Phone: ${m.phoneNumbers && m.phoneNumbers.length ? m.phoneNumbers[0] : 'none'}, Words: ${m.wordCount || 0}]`).join('\n')
+    const metaLines = Object.entries(metaMap).map((entry) => { const entryName = entry[0]; const entryMeta = entry[1]; return `  ${entryName}: "${entryMeta.title}" — ${entryMeta.description}\n    [CTAs: ${entryMeta.ctaCount || 0}, Forms: ${entryMeta.hasForms ? 'yes' : 'no'}, Testimonials: ${entryMeta.hasTestimonials ? entryMeta.testimonialCount + ' visible' : 'none'}, Stars: ${entryMeta.hasStarRatings ? 'yes' : 'no'}, Phone: ${entryMeta.phoneNumbers && entryMeta.phoneNumbers.length ? entryMeta.phoneNumbers[0] : 'none'}, Words: ${entryMeta.wordCount || 0}]`; }).join('\n')
     const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these â do NOT guess):\n${metaLines}`
     const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words — except the "summary" field which must be 2-3 plain English sentences written for a business owner, not a consultant. No jargon.`
 
