@@ -6,7 +6,7 @@ export function buildPromptPart1(req: AuditRequest, scraped?: ScrapedPage): stri
   const w = lpWeights ?? { messageClarity: 30, trustSocialProof: 25, ctaForms: 20, technicalPerformance: 15, visualUX: 10 }
   const hasReal = scraped && !scraped.error
 
-  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON.
+  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON. IMPORTANT: Never split domain names or URLs mid-sentence. Always treat a full domain (e.g. example.com.au) as a single unbreakable token — never end a sentence at a dot within a domain name.
 
 URL: ${url}
 Label: ${label ?? 'Not specified'}
