@@ -34,14 +34,13 @@ export async function POST(req: NextRequest) {
 
     // Pre-scrape all pages to get real metadata for the AI context
     const metaMap: Record<string, { title: string; description: string; ctaCount: number; hasForms: boolean; hasTestimonials: boolean; testimonialCount: number; hasStarRatings: boolean; phoneNumbers: string[]; wordCount: number }> = {}
-    await Promise.allSettled(
-      [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))].map(async ({ name, url }) => {
-        try {
-          const s = await scrapePage(url)
-          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '', ctaCount: s.ctaButtonCount || 0, hasForms: s.hasForms || false, hasTestimonials: s.hasTestimonials || false, testimonialCount: s.testimonialCount || 0, hasStarRatings: s.hasStarRatings || false, phoneNumbers: s.phoneNumbers || [], wordCount: s.wordCount || 0 }
-        } catch { /* ignore */ }
-      })
-    )
+    const metaScrapeTargets = [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))]
+  await Promise.allSettled(metaScrapeTargets.map(mt => (async () => {
+    try {
+      const ms = await scrapePage(mt.url)
+      if (!ms.error) metaMap[mt.name] = { title: ms.title || '', description: ms.metaDescription || '', ctaCount: ms.ctaButtonCount || 0, hasForms: ms.hasForms || false, hasTestimonials: ms.hasTestimonials || false, testimonialCount: ms.testimonialCount || 0, hasStarRatings: ms.hasStarRatings || false, phoneNumbers: ms.phoneNumbers || [], wordCount: ms.wordCount || 0 }
+    } catch { /* ignore */ }
+  })()))
 
     const metaLinesParts: string[] = []
   for (const ek in metaMap) {
@@ -91,19 +90,16 @@ export async function POST(req: NextRequest) {
       ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))
     ]
     const seoScores: Record<string, { score: number; breakdown: Record<string, number> }> = {}
-    await Promise.allSettled(
-      allUrls.map(async ({ name, url }) => {
-        try {
-          const scraped = await scrapePage(url)
-          if (!scraped.error) {
-            const tech = runTechnicalChecks(scraped)
-            // Store by normalised URL so we can match reliably
-            const normUrl = url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-            seoScores[normUrl] = { score: tech.score, breakdown: tech.breakdown }
-          }
-        } catch { /* skip failed scrapes */ }
-      })
-    )
+    await Promise.allSettled(allUrls.map(item => (async () => {
+      try {
+        const seoPage = await scrapePage(item.url)
+        if (!seoPage.error) {
+          const tech = runTechnicalChecks(seoPage)
+          const normUrl = item.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+          seoScores[normUrl] = { score: tech.score, breakdown: tech.breakdown }
+        }
+      } catch { /* skip */ }
+    })()))
 
     // Attach SEO scores to profiles â match by URL (reliable) then name (fallback)
     const profilesList = part1.profiles as Record<string, unknown>[] ?? []
