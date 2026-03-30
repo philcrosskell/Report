@@ -396,7 +396,7 @@ function SeoCheckSection() {
         {/* Yellow top bar */}
         <div style={{ height: 4, background: 'var(--accent)', flexShrink: 0 }} />
         {/* Logo area  —  BEAL wordmark */}
-        <div className="px-4 py-3.5 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)' }}>
+        <div className="px-4 border-b flex items-center gap-2.5" style={{ borderColor: 'var(--border)', paddingTop: '18px', paddingBottom: '18px' }}>
           <svg width="18" height="40" viewBox="0 0 28 123" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 13.8432C0 6.19778 6.19354 0 13.8336 0C21.4738 0 27.6673 6.1978 27.6673 13.8432V109.157C27.6673 116.802 21.4738 123 13.8336 123C6.19354 123 0 116.802 0 109.157V13.8432Z" fill="#FFE500"/>
           </svg>
