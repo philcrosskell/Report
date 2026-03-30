@@ -77,12 +77,34 @@ export async function POST(req: NextRequest) {
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
     const part3 = safeParseJSON<Record<string, unknown>>(r3)
 
+  // Override AI social proof guesses with real scraped data where available
+  if (Array.isArray(part3.socialProof)) {
+    part3.socialProof = (part3.socialProof as Record<string, unknown>[]).map(sp => {
+      const spName = (sp.name as string ?? '').toLowerCase()
+      const match = allUrls.find(u => u.name.toLowerCase().includes(spName) || spName.includes(u.name.toLowerCase()))
+      if (match) {
+        const normKey = match.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+        const real = scrapeMap[normKey]
+        if (real) {
+          return {
+            ...sp,
+            hasTestimonials: real.hasTestimonials,
+            testimonialCount: real.testimonialCount,
+            hasStarRatings: real.hasStarRatings,
+          }
+        }
+      }
+      return sp
+    })
+  }
+
     // Scrape and score all URLs in parallel
     const allUrls = [
       { name: businessName, url: ensureHttps(businessUrl) },
       ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))
     ]
     const seoScores: Record<string, { score: number; breakdown: Record<string, number> }> = {}
+  const scrapeMap: Record<string, { hasTestimonials: boolean; testimonialCount: number; hasStarRatings: boolean; phoneNumbers: string[] }> = {}
     await Promise.allSettled(
       allUrls.map(async ({ name, url }) => {
         try {
@@ -92,6 +114,7 @@ export async function POST(req: NextRequest) {
             // Store by normalised URL so we can match reliably
             const normUrl = url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
             seoScores[normUrl] = { score: tech.score, breakdown: tech.breakdown }
+          scrapeMap[normUrl] = { hasTestimonials: scraped.hasTestimonials, testimonialCount: scraped.testimonialCount, hasStarRatings: scraped.hasStarRatings, phoneNumbers: scraped.phoneNumbers }
           }
         } catch { /* skip failed scrapes */ }
       })
