@@ -38,12 +38,17 @@ export async function POST(req: NextRequest) {
       [{ name: businessName, url: ensureHttps(businessUrl) }, ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))].map(async ({ name, url }) => {
         try {
           const s = await scrapePage(url)
-          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '', ctaCount: s.ctaButtonCount || 0, hasForms: s.hasForms, hasTestimonials: s.hasTestimonials, testimonialCount: s.testimonialCount, hasStarRatings: s.hasStarRatings, phoneNumbers: s.phoneNumbers || [], wordCount: s.wordCount || 0 }
+          if (!s.error) metaMap[name] = { title: s.title || '', description: s.metaDescription || '', ctaCount: s.ctaButtonCount || 0, hasForms: s.hasForms || false, hasTestimonials: s.hasTestimonials || false, testimonialCount: s.testimonialCount || 0, hasStarRatings: s.hasStarRatings || false, phoneNumbers: s.phoneNumbers || [], wordCount: s.wordCount || 0 }
         } catch { /* ignore */ }
       })
     )
 
-    const metaLines = Object.entries(metaMap).map((entry) => { const entryName = entry[0]; const entryMeta = entry[1]; return `  ${entryName}: "${entryMeta.title}" — ${entryMeta.description} | CTAs:${entryMeta.ctaCount || 0} Forms:${entryMeta.hasForms ? 'y' : 'n'} Testimonials:${entryMeta.hasTestimonials ? entryMeta.testimonialCount : 0} Stars:${entryMeta.hasStarRatings ? 'y' : 'n'} Phone:${entryMeta.phoneNumbers && entryMeta.phoneNumbers.length ? entryMeta.phoneNumbers[0] : 'none'} Words:${entryMeta.wordCount || 0}`; }).join('\n')
+    const metaLinesParts: string[] = []
+  for (const ek in metaMap) {
+    const ev = metaMap[ek]
+    metaLinesParts.push(`  ${ek}: "${ev.title}" — ${ev.description} | CTAs:${ev.ctaCount||0} Forms:${ev.hasForms?'y':'n'} Testimonials:${ev.testimonialCount||0} Stars:${ev.hasStarRatings?'y':'n'} Phone:${ev.phoneNumbers&&ev.phoneNumbers.length?ev.phoneNumbers[0]:'none'} Words:${ev.wordCount||0}`)
+  }
+  const metaLines = metaLinesParts.join('\n')
     const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these â do NOT guess):\n${metaLines}`
     const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words — except the "summary" field which must be 2-3 plain English sentences written for a business owner, not a consultant. No jargon.`
 
@@ -57,7 +62,7 @@ export async function POST(req: NextRequest) {
     "primaryAnxiety":"string","outcomePromised":"string","howTheyProve":"string","actionTrigger":"string"
   }],
   "claimsMatrix":{"claimTypes":["string"],"rows":[{"claimType":"string","values":{"BusinessName":"Yes|No|Partial"}}]},
-  "openingSummary":"3-4 plain English sentences for the business owner: who leads this market and why, where the primary business sits relative to each competitor, and the single most important opportunity. Name competitors specifically. No jargon."
+  "openingSummary":"3-4 plain English sentences: who leads this market and why, where the primary business sits vs each competitor, and the single most important opportunity. Name competitors. No jargon."
 }`)
 
     // Call 2: Strategy
@@ -68,31 +73,17 @@ export async function POST(req: NextRequest) {
   "buyerAnxieties":[{"concern":"string","addressedBy":"string","ignoredBy":"string"}],
   "strategicImplications":[{"number":1,"title":"string","detail":"string"}],
   "quickWins":[{"action":"string","why":"string","effort":"Easy|Medium|Hard"}],
-  "summary":"3-4 plain English sentences directly answering: Am I winning or losing in this market, and why? Name the strongest competitor and explain specifically what they do better. Then give the single most important action the business owner should take. Be direct, specific, and honest — no consultant-speak."
+  "summary":"2-3 plain English sentences explaining what this means for the business owner — no jargon, no buzzwords, just clear practical insight"
 }`)
 
     // Call 3: Social proof audit per business
   const r3 = await callAI(sys, `Analyse the social proof for each business. Return ONLY this JSON, all strings max 20 words:\n\n${ctx}\n\n{ "socialProof": [{ "name": "string", "hasTestimonials": true, "testimonialCount": 0, "hasReviews": true, "reviewPlatforms": ["string"], "reviewRating": 0.0, "reviewCount": 0, "hasCaseStudies": true, "caseStudyCount": 0, "hasTrustBadges": true, "trustBadgeTypes": ["string"], "hasStarRatings": true, "socialProofScore": 0, "socialProofSummary": "string" }] }\n\nsocialProofScore 0-100 (higher = more). Start with {`)
+  // Call 3: Social proof
+  const r3 = await callAI(sys, `Analyse social proof for each business. Return ONLY this JSON:\n\n${ctx}\n\n{"socialProof":[{"name":"string","hasTestimonials":true,"testimonialCount":0,"hasReviews":true,"reviewRating":0.0,"reviewCount":0,"hasCaseStudies":true,"caseStudyCount":0,"hasTrustBadges":true,"trustBadgeTypes":["string"],"hasStarRatings":true,"socialProofScore":0,"socialProofSummary":"string"}]}\n\nsocialProofScore 0-100. Start with {`)
   const part1 = safeParseJSON<Record<string, unknown>>(r1)
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
     const part3 = safeParseJSON<Record<string, unknown>>(r3)
-
-  // Override AI social proof guesses with real scraped data where available
-  if (Array.isArray(part3.socialProof)) {
-    const spList = part3.socialProof as Record<string, unknown>[]
-    for (let spIdx = 0; spIdx < spList.length; spIdx++) {
-      const spEntry = spList[spIdx]
-      const spName = ((spEntry.name as string) ?? '').toLowerCase()
-      const matchedUrl = allUrls.find(u => u.name.toLowerCase().includes(spName) || spName.includes(u.name.toLowerCase()))
-      if (matchedUrl) {
-        const normKey = matchedUrl.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-        const realData = scrapeMap[normKey]
-        if (realData) {
-          spList[spIdx] = { ...spEntry, hasTestimonials: realData.hasTestimonials, testimonialCount: realData.testimonialCount, hasStarRatings: realData.hasStarRatings }
-        }
-      }
-    }
-  }
+    const part3 = safeParseJSON<Record<string, unknown>>(r3)
 
     // Scrape and score all URLs in parallel
     const allUrls = [
@@ -100,7 +91,6 @@ export async function POST(req: NextRequest) {
       ...competitors.filter(c => c.name && c.url).map(c => ({ name: c.name, url: ensureHttps(c.url) }))
     ]
     const seoScores: Record<string, { score: number; breakdown: Record<string, number> }> = {}
-  const scrapeMap: Record<string, { hasTestimonials: boolean; testimonialCount: number; hasStarRatings: boolean; phoneNumbers: string[] }> = {}
     await Promise.allSettled(
       allUrls.map(async ({ name, url }) => {
         try {
@@ -110,7 +100,6 @@ export async function POST(req: NextRequest) {
             // Store by normalised URL so we can match reliably
             const normUrl = url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
             seoScores[normUrl] = { score: tech.score, breakdown: tech.breakdown }
-          scrapeMap[normUrl] = { hasTestimonials: scraped.hasTestimonials, testimonialCount: scraped.testimonialCount, hasStarRatings: scraped.hasStarRatings, phoneNumbers: scraped.phoneNumbers }
           }
         } catch { /* skip failed scrapes */ }
       })
@@ -120,26 +109,26 @@ export async function POST(req: NextRequest) {
     const profilesList = part1.profiles as Record<string, unknown>[] ?? []
   const profiles: Record<string, unknown>[] = []
   for (let pi = 0; pi < profilesList.length; pi++) {
-    const p = profilesList[pi]
-    const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-    const pName = (p.name as string ?? '').toLowerCase()
-    const urlMatch = seoScores[pUrl]
-    if (urlMatch) { profiles.push({ ...p, seoScore: urlMatch.score, seoBreakdown: urlMatch.breakdown }); continue }
-    let pushed = false
+    const prof = profilesList[pi]
+    const profUrl = ((prof.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+    const profName = ((prof.name as string) ?? '').toLowerCase()
+    const urlMatch = seoScores[profUrl]
+    if (urlMatch) { profiles.push({ ...prof, seoScore: urlMatch.score, seoBreakdown: urlMatch.breakdown }); continue }
+    let matched = false
     for (let ui = 0; ui < allUrls.length; ui++) {
       const uName = allUrls[ui].name.toLowerCase()
-      if (uName.includes(pName) || pName.includes(uName)) {
-        const normFallback = allUrls[ui].url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-        const fallbackScore = seoScores[normFallback]
-        if (fallbackScore) { profiles.push({ ...p, seoScore: fallbackScore.score, seoBreakdown: fallbackScore.breakdown }); pushed = true; break }
+      if (uName.includes(profName) || profName.includes(uName)) {
+        const normFb = allUrls[ui].url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+        const fbScore = seoScores[normFb]
+        if (fbScore) { profiles.push({ ...prof, seoScore: fbScore.score, seoBreakdown: fbScore.breakdown }); matched = true; break }
       }
     }
-    if (!pushed) profiles.push(p)
+    if (!matched) profiles.push(prof)
   }
 
     return NextResponse.json({ success: true, report: {
       businessName, businessUrl, market: market ?? '', date: new Date().toISOString(),
-      brandLogo: brandLogo ?? '', ...part1, profiles, seoScores, ...part2, ...part3
+      brandLogo: brandLogo ?? '', ...part1, profiles, seoScores, ...part2, ...part3, ...part3
     }})
   } catch (err) {
     console.error('Competitor analysis error:', err)
