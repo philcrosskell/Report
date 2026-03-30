@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const metaLines = Object.entries(metaMap).map(([n, m]) => `  ${n}: "${m.title}" â ${m.description}`).join('\n')
     const ctx = `Business: ${businessName} (${businessUrl})\nMarket: ${market ?? 'Not specified'}\nCompetitors:\n${compList}\n\nActual page titles & descriptions (use these â do NOT guess):\n${metaLines}`
-    const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words.`
+    const sys = `You are a competitive intelligence analyst. Respond ONLY with valid JSON. No markdown. Keep ALL string values under 20 words — except the "summary" field which must be 2-3 plain English sentences written for a business owner, not a consultant. No jargon.`
 
     // Call 1: Profiles + Claims + Headlines
     const r1 = await callAI(sys, `Analyse these businesses. Return ONLY this JSON, all strings max 20 words:\n\n${ctx}\n\n{
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   "buyerAnxieties":[{"concern":"string","addressedBy":"string","ignoredBy":"string"}],
   "strategicImplications":[{"number":1,"title":"string","detail":"string"}],
   "quickWins":[{"action":"string","why":"string","effort":"Easy|Medium|Hard"}],
-  "summary":"string"
+  "summary":"2-3 plain English sentences explaining what this means for the business owner — no jargon, no buzzwords, just clear practical insight"
 }`)
 
     // Call 3: Social proof audit per business
