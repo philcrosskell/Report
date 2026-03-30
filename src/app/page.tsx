@@ -1931,7 +1931,39 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Strategic implications */}
+      {/* Social Proof Audit */}
+              <Card>
+                <CTitle>Social Proof Audit</CTitle>
+                <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Testimonials, reviews, case studies and trust signals across all businesses.</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="w-full text-[12px]" style={{ minWidth: 600 }}>
+                    <THead cols={['Business', 'Score', 'Testimonials', 'Reviews', 'Case Studies', 'Trust Badges', 'Summary']} />
+                    <tbody>{(r.socialProof as Record<string, unknown>[] ?? []).map((sp, i) => (
+                      <tr key={i} className="hover:bg-[var(--bg3)] transition-colors">
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{sp.name as string}</td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          <Tag color={(sp.socialProofScore as number) >= 70 ? 'green' : (sp.socialProofScore as number) >= 40 ? 'amber' : 'red'}>{sp.socialProofScore as number}/100</Tag>
+                        </td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {sp.hasTestimonials ? <Tag color="green">{sp.testimonialCount as number} visible</Tag> : <Tag color="red">None</Tag>}
+                        </td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {sp.hasReviews ? <Tag color="green">{sp.reviewRating as number}★ ({sp.reviewCount as number})</Tag> : <Tag color="red">None</Tag>}
+                        </td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {sp.hasCaseStudies ? <Tag color="green">{sp.caseStudyCount as number} found</Tag> : <Tag color="red">None</Tag>}
+                        </td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {sp.hasTrustBadges ? <Tag color="green">{(sp.trustBadgeTypes as string[]).join(', ')}</Tag> : <Tag color="red">None</Tag>}
+                        </td>
+                        <TD>{sp.socialProofSummary as string}</TD>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+              </Card>
+
+              {/* Strategic implications */}
       <div className="mb-4">
         <div className="text-[15px] font-semibold mb-4">Strategic Implications</div>
         {r.strategicImplications.map(s => (
