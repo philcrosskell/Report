@@ -34,7 +34,7 @@ ${scraped.isSinglePageSite ? `
 - Missing location pages: cannot rank for multiple cities/regions
 - No internal linking structure: limits crawlability and authority distribution
 - No content strategy possible: organic traffic growth permanently capped
-- Recommend migration to multi-page structure as highest-impact SEO change` : ''}` : 'No live page data — infer from URL and domain context only.'}
+- Recommend migration to multi-page structure as highest-impact SEO change` : ''}` : 'No live page data — infer from URL and domain context only. Write the summary as 2-3 flowing sentences without breaking domain names mid-sentence or referencing TLD components separately.'}
 
 LP weights: messageClarity=${w.messageClarity}, trustSocialProof=${w.trustSocialProof}, ctaForms=${w.ctaForms}, technicalPerformance=${w.technicalPerformance}, visualUX=${w.visualUX}
 Grades: A=90-100 B=70-89 C=50-69 D=30-49 F=0-29
