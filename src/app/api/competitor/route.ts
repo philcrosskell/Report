@@ -117,24 +117,25 @@ export async function POST(req: NextRequest) {
     )
 
     // Attach SEO scores to profiles â match by URL (reliable) then name (fallback)
-    const profiles = (part1.profiles as Record<string, unknown>[] ?? []).map(p => {
-      const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
-      const pName = (p.name as string ?? '').toLowerCase()
-      // Try URL match first
-      const urlMatch = seoScores[pUrl]
-      if (urlMatch) return { ...p, seoScore: urlMatch.score, seoBreakdown: urlMatch.breakdown }
-      // Fallback: partial name match against the allUrls list
-      const nameMatch = allUrls.find(u => {
-        const uName = u.name.toLowerCase()
-        return uName.includes(pName) || pName.includes(uName)
-      })
-      if (nameMatch) {
-        const normFallback = nameMatch.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+    const profilesList = part1.profiles as Record<string, unknown>[] ?? []
+  const profiles: Record<string, unknown>[] = []
+  for (let pi = 0; pi < profilesList.length; pi++) {
+    const p = profilesList[pi]
+    const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+    const pName = (p.name as string ?? '').toLowerCase()
+    const urlMatch = seoScores[pUrl]
+    if (urlMatch) { profiles.push({ ...p, seoScore: urlMatch.score, seoBreakdown: urlMatch.breakdown }); continue }
+    let pushed = false
+    for (let ui = 0; ui < allUrls.length; ui++) {
+      const uName = allUrls[ui].name.toLowerCase()
+      if (uName.includes(pName) || pName.includes(uName)) {
+        const normFallback = allUrls[ui].url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
         const fallbackScore = seoScores[normFallback]
-        if (fallbackScore) return { ...p, seoScore: fallbackScore.score, seoBreakdown: fallbackScore.breakdown }
+        if (fallbackScore) { profiles.push({ ...p, seoScore: fallbackScore.score, seoBreakdown: fallbackScore.breakdown }); pushed = true; break }
       }
-      return p
-    })
+    }
+    if (!pushed) profiles.push(p)
+  }
 
     return NextResponse.json({ success: true, report: {
       businessName, businessUrl, market: market ?? '', date: new Date().toISOString(),
