@@ -51,6 +51,8 @@ export interface ScrapedPage {
   hasTestimonials: boolean
   testimonialCount: number
   hasStarRatings: boolean
+  hasCaseStudies: boolean
+  navLinks: string[]
   error?: string
 }
 
@@ -75,6 +77,8 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
   hasTestimonials: false,
   testimonialCount: 0,
   hasStarRatings: false,
+  hasCaseStudies: false,
+  navLinks: [],
   }
 
   try {
@@ -318,6 +322,20 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
 
     // Star rating detection
     blank.hasStarRatings = /(?:class=["'][^"']*(?:star-rating|stars|fa-star|rating)[^"']*["']|"ratingValue"|itemprop=["']ratingValue["'])/i.test(html)
+
+    // Case study / portfolio detection
+    blank.hasCaseStudies = /case.stud|portfolio|our.work|client.result|project.result|view.work|see.work|success.stor/i.test(html)
+
+    // Nav link text extraction
+    const navMatches = html.match(/<(?:nav|header)[^>]*>[\s\S]*?<\/(?:nav|header)>/gi) ?? []
+    const navHtml = navMatches.join(' ')
+    const navAnchorMatches = navHtml.match(/<a[^>]*>([^<]+)<\/a>/gi) ?? []
+    const navLinkTexts: string[] = []
+    for (let ni = 0; ni < navAnchorMatches.length; ni++) {
+      const navM = navAnchorMatches[ni].match(/<a[^>]*>([^<]+)<\/a>/i)
+      if (navM && navM[1]) navLinkTexts.push(navM[1].trim())
+    }
+    blank.navLinks = [...new Set(navLinkTexts)].filter(t => t.length > 1 && t.length < 40).slice(0, 20)
 
     return blank
   } catch (err) {

@@ -6,7 +6,9 @@ export function buildPromptPart1(req: AuditRequest, scraped?: ScrapedPage): stri
   const w = lpWeights ?? { messageClarity: 30, trustSocialProof: 25, ctaForms: 20, technicalPerformance: 15, visualUX: 10 }
   const hasReal = scraped && !scraped.error
 
-  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON. IMPORTANT: CRITICAL URL RULE: Domain names and URLs must NEVER be split across sentences. A domain like bealcreative.com.au is ONE token — do not place a full stop after "bealcreative" or "com" as if they are sentence endings. When referencing a URL in the summary, either use it at the start of a clause or wrap the entire reference in a single sentence. Never write "operating through bealcreative. com. au" or similar.
+  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON. IMPORTANT: GROUND TRUTH RULE: The scraped page data is fact. Do NOT claim content is missing (case studies, testimonials, phone numbers, etc.) if the scraper detected it. If hasCaseStudies is true, the page HAS case studies — do not say otherwise. If navLinks lists a page, it exists.
+
+CRITICAL URL RULE: Domain names and URLs must NEVER be split across sentences. A domain like bealcreative.com.au is ONE token — do not place a full stop after "bealcreative" or "com" as if they are sentence endings. When referencing a URL in the summary, either use it at the start of a clause or wrap the entire reference in a single sentence. Never write "operating through bealcreative. com. au" or similar.
 
 URL: ${url}
 Label: ${label ?? 'Not specified'}
@@ -26,7 +28,7 @@ CTAs: ${scraped.ctaButtonCount} | Phone: ${scraped.phoneNumbers[0] ?? 'none'} | 
 Testimonials/Reviews: ${scraped.hasTestimonials ? `YES — ${scraped.testimonialCount} detected` : 'NONE DETECTED'} | Star ratings: ${scraped.hasStarRatings ? 'YES' : 'NO'}
 HTTPS: ${scraped.hasHttps ? 'yes' : 'NO'} | Response: ${scraped.responseTimeMs}ms | Size: ${Math.round(scraped.htmlSizeBytes/1024)}kB
 Canonical: ${scraped.canonicalUrl || 'missing'} | Lang: ${scraped.language || 'not set'} | Viewport: ${scraped.hasViewport ? 'yes' : 'MISSING'}
-Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'}
+Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'} | Case studies/portfolio: ${scraped.hasCaseStudies ? 'YES — detected on page' : 'not detected in HTML (may be JS-rendered)'} | Nav pages: ${scraped.navLinks && scraped.navLinks.length ? scraped.navLinks.join(', ') : 'unknown'}
 ${scraped.isSinglePageSite ? `
 ⚠ SINGLE PAGE SITE — This appears to be a single page website. You MUST flag the following as critical SEO issues in pageQuality and linkStructure checks:
 - Limited keyword targeting: can only rank for one primary topic
