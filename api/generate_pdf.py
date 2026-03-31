@@ -570,19 +570,21 @@ def generate_pdf(audit):
             page_n += 1
             cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
             y = 4 + 36 + 20
-        for k, cat_label in group:
+        for cat_idx, (k, cat_label) in enumerate(group):
             cat = seo_cats.get(k, {})
             score = cat.get('score', 0)
             checks = cat.get('checks', [])
             if not checks:
                 continue
-            # If this category won't fit on current page, push to new continuation page
-            estimated_h = len(checks) * 60 + 60
-            if y + estimated_h > H - 80:
-                new_page()
-                page_n += 1
-                cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
-                y = 4 + 36 + 20
+            # Only check overflow for categories beyond the first in a group
+            # (first cat always fits — we just forced a new page for groups 2+)
+            if cat_idx > 0:
+                estimated_h = len(checks) * 60 + 60
+                if y + estimated_h > H - 80:
+                    new_page()
+                    page_n += 1
+                    cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
+                    y = 4 + 36 + 20
             y = sub_head(cv, y, f'{cat_label} — {score}%', scol(score))
             for check in checks:
                 status = check.get('status', 'warn')
