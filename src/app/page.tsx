@@ -561,7 +561,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                     style={{ background: i < 2 ? '#fee2e2' : '#fef3c7', color: i < 2 ? '#991b1b' : '#92400e' }}>{i + 1}</div>
                   <div className="flex-1">
                     <div className="text-[14px] font-semibold" style={{ color: 'var(--t1)' }}>{p.businessName}</div>
-                    <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{p.website}</div>
+                    <a href={p.website} target="_blank" rel="noreferrer" className="text-[11px]" style={{ color: 'var(--accent)', textDecoration: 'none' }}>{p.website}</a>
                   </div>
                   <div className="text-[24px] font-bold" style={{ color: scoreCol(p.overallScore) }}>{p.overallScore}</div>
                 </div>
