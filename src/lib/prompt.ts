@@ -6,7 +6,7 @@ export function buildPromptPart1(req: AuditRequest, scraped?: ScrapedPage): stri
   const w = lpWeights ?? { messageClarity: 30, trustSocialProof: 25, ctaForms: 20, technicalPerformance: 15, visualUX: 10 }
   const hasReal = scraped && !scraped.error
 
-  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON. IMPORTANT: Never split domain names or URLs mid-sentence. Always treat a full domain (e.g. example.com.au) as a single unbreakable token — never end a sentence at a dot within a domain name.
+  return `You are a senior SEO and landing page auditor. Analyse this page and return Part 1 of the audit as JSON. IMPORTANT: CRITICAL URL RULE: Domain names and URLs must NEVER be split across sentences. A domain like bealcreative.com.au is ONE token — do not place a full stop after "bealcreative" or "com" as if they are sentence endings. When referencing a URL in the summary, either use it at the start of a clause or wrap the entire reference in a single sentence. Never write "operating through bealcreative. com. au" or similar.
 
 URL: ${url}
 Label: ${label ?? 'Not specified'}
@@ -43,7 +43,7 @@ Return ONLY valid complete JSON for Part 1. Start your response with { and end w
 
 Schema:
 {
-  "overview": { "url": string, "title": string, "description": string, "pageType": string, "wordCount": number, "responseTime": string, "fileSize": string, "internalLinks": number, "externalLinks": number, "mediaFiles": number, "summary": string },
+  "overview": { "url": string, "title": string, "description": string, "pageType": string, "wordCount": number, "responseTime": string, "fileSize": string, "internalLinks": number, "externalLinks": number, "mediaFiles": number, "summary": string /* 2-3 sentences, NEVER split domain names mid-sentence */ },
   "scores": { "seo": number, "lp": number, "overall": number, "grade": "A"|"B"|"C"|"D"|"F" },
   "seoCategories": {
     "metaInformation": { "score": number, "checks": [{ "label": string, "status": "pass"|"warn"|"fail", "detail": string, "criticality": "critical"|"important"|"somewhat"|"nice" }] },
