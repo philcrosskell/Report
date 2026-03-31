@@ -254,6 +254,8 @@ export default function Home() {
 function SeoCheckSection() {
     const [url, setUrl] = useState('')
     const [loading, setLoading] = useState(false)
+  const ensureHttps = (v: string) => v && !v.startsWith('http') ? 'https://' + v : v
+
     const [error, setError] = useState('')
     const [result, setResult] = useState(null)
     const [history, setHistory] = useState(() => getSeoChecks())
@@ -328,7 +330,7 @@ function SeoCheckSection() {
             <div style={{ display:'flex', gap:12, alignItems:'center' }}>
               <input style={{ flex:1, background:'var(--bg)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--t1)', fontSize:14, outline:'none' }}
                 placeholder="https://example.com/page" value={url}
-                onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key==='Enter'&&run()} disabled={loading} />
+                onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(ensureHttps(e.target.value))} onKeyDown={e => e.key==='Enter'&&run()} disabled={loading} />
               <Btn onClick={run} disabled={loading} style={{ whiteSpace:'nowrap', minWidth:120 }}>{loading?'Checking…':'Run Check'}</Btn>
             </div>
             {error && <div style={{ marginTop:10, color:'#EF4444', fontSize:13 }}>{error}</div>}
@@ -938,13 +940,13 @@ function Projects({ projects, audits, onRefresh, onAudit }: { projects: Project[
             <CTitle>{editing ? 'Edit  —  ' + editing.name : 'Create New Project'}</CTitle>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div><Lbl>Business Name *</Lbl><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+              <div><Lbl>Website URL *</Lbl><input value={url} onChange={e => setUrl(e.target.value)} onBlur={e => setUrl(ensureHttps(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
             </div>
             <div className="text-[11px] font-semibold uppercase tracking-widest border-b pb-2 mb-3" style={{ color: 'var(--t3)', borderColor: 'var(--border)' }}>Competitors (optional)</div>
             {comps.map((c, i) => (
               <div key={i} className="grid grid-cols-2 gap-3 mb-2.5">
                 <div><Lbl>Competitor {i + 1} Name</Lbl><input value={c.name} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} /></div>
-                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} type="url" /></div>
+                <div><Lbl>Competitor {i + 1} URL</Lbl><input value={c.url} onChange={e => setComps(comps.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} onBlur={e => setComps(comps.map((x, j) => j === i ? { ...x, url: ensureHttps(e.target.value) } : x))} type="url" /></div>
               </div>
             ))}
             <div className="flex gap-2 justify-end mt-4"><Btn onClick={() => setShowForm(false)}>Cancel</Btn><Btn primary onClick={save}>{editing ? 'Save Changes' : 'Save Project'}</Btn></div>
@@ -1623,7 +1625,7 @@ function CompetitorPage({ projects, onRefresh, brandLogo, onLogoChange }: { proj
             <>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div><Lbl>Your Business Name</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. BEAL Creative" /></div>
-                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} type="url" placeholder="e.g. bealcreative.com.au" /></div>
+                <div><Lbl>Your Business URL *</Lbl><input value={bizUrl} onChange={e => setBizUrl(e.target.value)} onBlur={e => setBizUrl(ensureHttps(e.target.value))} type="url" placeholder="e.g. bealcreative.com.au" /></div>
               </div>
               <div className="mb-3"><Lbl>Market / Industry (optional)</Lbl><input value={market} onChange={e => setMarket(e.target.value)} placeholder="e.g. Digital marketing agencies in regional Australia" /></div>
               <SectionDivider label="Competitors" />
