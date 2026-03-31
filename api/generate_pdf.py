@@ -546,50 +546,59 @@ def generate_pdf(audit):
         y = cat_bar(cv, y, cat_label, score, scol(score), scol(score))
     y += 4
 
+    # SEO category page groups:
+    # Group 1: Meta Information + Page Quality (continue from score bars page)
+    # Group 2: Page Structure + Link Structure (new page)
+    # Group 3: Server & Technical + External Factors (new page)
+    page_groups = [
+        [('metaInformation', 'Meta Information'), ('pageQuality', 'Page Quality')],
+        [('pageStructure', 'Page Structure'), ('linkStructure', 'Link Structure')],
+        [('serverTechnical', 'Server & Technical'), ('externalFactors', 'External Factors')],
+    ]
     page_n = pg_seo_start
-    for k, cat_label in cat_labels.items():
-        cat = seo_cats.get(k, {})
-        score = cat.get('score', 0)
-        checks = cat.get('checks', [])
-        if not checks:
-            continue
-
-        # Check if we need a new page
-        estimated_h = len(checks) * 60 + 60
-        if y + estimated_h > H - 80:
+    crit_map = {'critical': 'Critical', 'important': 'Important', 'somewhat': 'Somewhat', 'nice': 'Nice to have'}
+    tg_map_def = {
+        'critical': (TAG_RED_BG, TAG_RED_FG),
+        'important': (TAG_AMB_BG, TAG_AMB_FG),
+        'somewhat': (TAG_BLU_BG, TAG_BLU_FG),
+        'nice': (TAG_GRN_BG, TAG_GRN_FG),
+    }
+    for group_idx, group in enumerate(page_groups):
+        # Force new page for groups 2 and 3
+        if group_idx > 0:
             new_page()
             page_n += 1
             cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
             y = 4 + 36 + 20
-
-        y = sub_head(cv, y, f'{cat_label} — {score}%', scol(score))
-
-        crit_map = {'critical': 'Critical', 'important': 'Important', 'somewhat': 'Somewhat', 'nice': 'Nice to have'}
-        for check in checks:
-            status = check.get('status', 'warn')
-            crit   = check.get('criticality', 'important')
-            dot_col = {'pass': GREEN, 'fail': CORAL, 'warn': AMBER}.get(status, AMBER)
-            tg_map = {
-                'critical': (TAG_RED_BG, TAG_RED_FG),
-                'important': (TAG_AMB_BG, TAG_AMB_FG),
-                'somewhat': (TAG_BLU_BG, TAG_BLU_FG),
-                'nice': (TAG_GRN_BG, TAG_GRN_FG),
-            }
-            tg_bg, tg_fg = tg_map.get(crit, (TAG_AMB_BG, TAG_AMB_FG))
-            tg_text = crit_map.get(crit, crit)
-
-            # Page break check
-            det_lines = simpleSplit(check.get('detail',''), 'Helvetica', 9.5, int(CW*0.68)-14)
-            item_h = len(det_lines)*13 + 30
-            if y + item_h > H - 80:
+        for k, cat_label in group:
+            cat = seo_cats.get(k, {})
+            score = cat.get('score', 0)
+            checks = cat.get('checks', [])
+            if not checks:
+                continue
+            # If this category won't fit on current page, push to new continuation page
+            estimated_h = len(checks) * 60 + 60
+            if y + estimated_h > H - 80:
                 new_page()
                 page_n += 1
                 cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
                 y = 4 + 36 + 20
-
-            y = check_item(cv, y, dot_col, check.get('label',''), tg_text, tg_bg, tg_fg, check.get('detail',''))
-        y += 6
-
+            y = sub_head(cv, y, f'{cat_label} — {score}%', scol(score))
+            for check in checks:
+                status = check.get('status', 'warn')
+                crit   = check.get('criticality', 'important')
+                dot_col = {'pass': GREEN, 'fail': CORAL, 'warn': AMBER}.get(status, AMBER)
+                tg_bg, tg_fg = tg_map_def.get(crit, (TAG_AMB_BG, TAG_AMB_FG))
+                tg_text = crit_map.get(crit, crit)
+                det_lines = simpleSplit(check.get('detail',''), 'Helvetica', 9.5*0.9, int(CW*0.68)-14)
+                item_h = len(det_lines)*13 + 30
+                if y + item_h > H - 80:
+                    new_page()
+                    page_n += 1
+                    cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
+                    y = 4 + 36 + 20
+                y = check_item(cv, y, dot_col, check.get('label',''), tg_text, tg_bg, tg_fg, check.get('detail',''))
+            y += 6
     # ─────────────── AEO SECTION ──────────────────────────────────────────────
     aeo = r.get('aeoScore')
     if aeo:
