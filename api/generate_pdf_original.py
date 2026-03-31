@@ -63,7 +63,7 @@ def rect(cv, x, y_top, w, h, fill=None, stroke=None, r=0, sw=0.75):
     cv.roundRect(x, ry(y_top+h), w, h, r, fill=1 if fill else 0, stroke=1 if stroke else 0)
     cv.restoreState()
 
-def txt(cv, x, y_top, text, bold=False, sz=9, col=None, align='left'):
+def txt(cv, x, y_top, text, bold=False, sz=10, col=None, align='left'):
     cv.saveState()
     cv.setFillColor(col or BODY)
     cv.setFont('Helvetica-Bold' if bold else 'Helvetica', sz)
@@ -73,10 +73,10 @@ def txt(cv, x, y_top, text, bold=False, sz=9, col=None, align='left'):
     else: cv.drawString(x, yt, text)
     cv.restoreState()
 
-def tw(cv, text, bold=False, sz=9):
+def tw(cv, text, bold=False, sz=10):
     return cv.stringWidth(text, 'Helvetica-Bold' if bold else 'Helvetica', sz)
 
-def wrap(cv, x, y_top, text, bold=False, sz=9, col=None, maxw=None, lh=14):
+def wrap(cv, x, y_top, text, bold=False, sz=10, col=None, maxw=None, lh=14):
     if maxw is None: maxw = R - x
     fn = 'Helvetica-Bold' if bold else 'Helvetica'
     lines = simpleSplit(text, fn, sz, maxw)
@@ -94,10 +94,10 @@ def donut(cv, cx, cy_top, OR, IR, pct, ac, bgc):
     cv.wedge(cx-OR, cy-OR, cx+OR, cy+OR, 90, -pct*360, fill=1, stroke=0)
     cv.setFillColor(bgc); cv.circle(cx, cy, IR, fill=1, stroke=0)
 
-def tag(cv, x, y_top, text, bg, fg, sz=6.8):
+def tag(cv, x, y_top, text, bg, fg, sz=7.5):
     fn = 'Helvetica-Bold'
     t_w = cv.stringWidth(text, fn, sz)
-    px, py = 8, 3.5; th = sz + py*2; total_w = t_w + px*2
+    px, py = 9, 4; th = sz + py*2; total_w = t_w + px*2
     cv.saveState()
     cv.setFillColor(bg); cv.roundRect(x, ry(y_top+th), total_w, th, th/2, fill=1, stroke=0)
     cv.setFillColor(fg); cv.setFont(fn, sz); cv.drawString(x+px, ry(y_top+th)+py, text)
@@ -110,23 +110,23 @@ def hline(cv, y_top, col=None, lw=0.75):
 
 def sec_header(cv, strip_c1, strip_c2, label, title, pg, audit_lbl):
     grad_strip(cv, 0, 6, strip_c1, strip_c2)
-    rect(cv, 0, 6, W, 65, fill=DARK)
-    txt(cv, L, 6+26, label, bold=True, sz=6.8, col=Color(1,1,1,0.3))
-    txt(cv, L, 6+52, title, bold=True, sz=23.4, col=WHITE)
-    txt(cv, R, 6+30, 'Page '+pg, sz=8.1, col=Color(1,1,1,0.2), align='right')
-    txt(cv, R, 6+46, audit_lbl, sz=6.8, col=Color(1,1,1,0.15), align='right')
+    rect(cv, 0, 6, W, 72, fill=DARK)
+    txt(cv, L, 6+26, label, bold=True, sz=7.5, col=Color(1,1,1,0.3))
+    txt(cv, L, 6+52, title, bold=True, sz=26, col=WHITE)
+    txt(cv, R, 6+30, 'Page '+pg, sz=9, col=Color(1,1,1,0.2), align='right')
+    txt(cv, R, 6+46, audit_lbl, sz=7.5, col=Color(1,1,1,0.15), align='right')
 
 def cont_header(cv, strip_c1, strip_c2, label, pg, audit_lbl):
     grad_strip(cv, 0, 4, strip_c1, strip_c2)
-    rect(cv, 0, 4, W, 32, fill=DARK)
-    txt(cv, L, 4+24, label.upper() + ' \u2014 CONTINUED', bold=True, sz=8.1, col=Color(1,1,1,0.5))
-    txt(cv, R, 4+16, 'Page ' + pg, sz=8.1, col=Color(1,1,1,0.2), align='right')
-    txt(cv, R, 4+28, audit_lbl, sz=6.8, col=Color(1,1,1,0.15), align='right')
+    rect(cv, 0, 4, W, 36, fill=DARK)
+    txt(cv, L, 4+24, label.upper() + ' \u2014 CONTINUED', bold=True, sz=9, col=Color(1,1,1,0.5))
+    txt(cv, R, 4+16, 'Page ' + pg, sz=9, col=Color(1,1,1,0.2), align='right')
+    txt(cv, R, 4+28, audit_lbl, sz=7.5, col=Color(1,1,1,0.15), align='right')
 
 def sub_head(cv, y, text, dot_col, top_gap=18):
     y += top_gap
-    cv.saveState(); cv.setFillColor(dot_col); cv.circle(L+4, ry(y-3), 3.5, fill=1, stroke=0); cv.restoreState()
-    txt(cv, L+14, y, text, bold=True, sz=10.8, col=DARK_TEXT)
+    cv.saveState(); cv.setFillColor(dot_col); cv.circle(L+4, ry(y-3), 4, fill=1, stroke=0); cv.restoreState()
+    txt(cv, L+14, y, text, bold=True, sz=12, col=DARK_TEXT)
     hline(cv, y+8, col=BORDER, lw=1.5)
     return y + 32
 
@@ -136,10 +136,10 @@ def callout_box(cv, y, border_col, label_col, label, text, bg=None):
     lh = 14; total_h = len(lines)*lh + 48
     rect(cv, L, y, CW, total_h, fill=bg, r=8)
     rect(cv, L, y, 4, total_h, fill=border_col)
-    txt(cv, L+16, y+16, label, bold=True, sz=6.8, col=label_col)
+    txt(cv, L+16, y+16, label, bold=True, sz=7.5, col=label_col)
     cy = y + 32
     for ln in lines:
-        txt(cv, L+16, cy, ln, sz=9, col=BODY); cy += lh
+        txt(cv, L+16, cy, ln, sz=10, col=BODY); cy += lh
     return y + total_h + 16
 
 def issue_card(cv, y, accent, title, impact, fix_text, eff_text, eff_bg, eff_fg):
@@ -156,17 +156,17 @@ def issue_card(cv, y, accent, title, impact, fix_text, eff_text, eff_bg, eff_fg)
     for ln in t_lines:
         cv.drawString(ix, ry(cy), ln); cy += 15
     cv.restoreState(); cy += 8
-    txt(cv, ix, cy, 'IMPACT', bold=True, sz=6.8, col=LABEL); cy += 13
+    txt(cv, ix, cy, 'IMPACT', bold=True, sz=7.5, col=LABEL); cy += 13
     for ln in im_lines:
-        txt(cv, ix, cy, ln, sz=9, col=MUTED); cy += lh
+        txt(cv, ix, cy, ln, sz=10, col=MUTED); cy += lh
     cy += 8
-    txt(cv, ix, cy, 'FIX', bold=True, sz=6.8, col=LABEL); cy += 13
+    txt(cv, ix, cy, 'FIX', bold=True, sz=7.5, col=LABEL); cy += 13
     for ln in fx_lines:
-        txt(cv, ix, cy, ln, sz=9, col=BODY); cy += lh
+        txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     return y + total_h + 14
 
 def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg, uplift):
-    AW = 47
+    AW = 52
     t_lines = simpleSplit(title,    'Helvetica-Bold', 12.5, CW-AW-28)
     p_lines = simpleSplit(prob,     'Helvetica',      10,   CW-AW-28)
     f_lines = simpleSplit(fix_text, 'Helvetica',      10,   CW-AW-28)
@@ -174,7 +174,7 @@ def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg
     total_h = len(t_lines)*16 + len(p_lines)*lh + len(f_lines)*lh + 96
     light = lc(accent, WHITE, 0.82)
     rect(cv, L, y, AW, total_h, fill=light)
-    cv.setFillColor(accent); cv.circle(L+26, ry(y+24), 15, fill=1, stroke=0)
+    cv.setFillColor(accent); cv.circle(L+26, ry(y+24), 17, fill=1, stroke=0)
     cv.saveState(); cv.setFillColor(WHITE); cv.setFont('Helvetica-Bold', 10.5)
     cv.drawCentredString(L+26, ry(y+29), str(num)); cv.restoreState()
     rect(cv, L+AW, y, CW-AW, total_h, fill=WHITE, stroke=BORDER)
@@ -183,39 +183,39 @@ def fix_card(cv, y, accent, num, title, prob, fix_text, eff_text, eff_bg, eff_fg
     for ln in t_lines:
         cv.drawString(ix, ry(cy), ln); cy += 16
     cv.restoreState(); cy += 8
-    txt(cv, ix, cy, 'PROBLEM', bold=True, sz=6.8, col=LABEL); cy += 13
+    txt(cv, ix, cy, 'PROBLEM', bold=True, sz=7.5, col=LABEL); cy += 13
     for ln in p_lines:
-        txt(cv, ix, cy, ln, sz=9, col=BODY); cy += lh
+        txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     cy += 8
-    txt(cv, ix, cy, 'FIX', bold=True, sz=6.8, col=LABEL); cy += 13
+    txt(cv, ix, cy, 'FIX', bold=True, sz=7.5, col=LABEL); cy += 13
     for ln in f_lines:
-        txt(cv, ix, cy, ln, sz=9, col=BODY); cy += lh
+        txt(cv, ix, cy, ln, sz=10, col=BODY); cy += lh
     cy += 12
     tag_w = tag(cv, ix, cy, eff_text, eff_bg, eff_fg)
     uplift_max_w = R - ix - tag_w - 16
     uplift_line = simpleSplit(uplift, 'Helvetica-Bold', 8.5, uplift_max_w)[0] if uplift else ''
-    txt(cv, ix+tag_w+10, cy+10, uplift_line, bold=True, sz=7.7, col=INDIGO)
+    txt(cv, ix+tag_w+10, cy+10, uplift_line, bold=True, sz=8.5, col=INDIGO)
     return y + total_h + 16
 
 def cat_bar(cv, y, label, pct, fill_col, pct_col):
-    txt(cv, L, y, label, sz=8.6, col=BODY)
+    txt(cv, L, y, label, sz=9.5, col=BODY)
     bx = L+155; bw = CW-165-38; bh = 10
     rect(cv, bx, y-2, bw, bh, fill=BORDER, r=5)
     rect(cv, bx, y-2, bw*pct/100, bh, fill=fill_col, r=5)
-    txt(cv, R-8, y, f'{pct}%', bold=True, sz=9, col=pct_col, align='right')
+    txt(cv, R-8, y, f'{pct}%', bold=True, sz=10, col=pct_col, align='right')
     return y + 18
 
 def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail):
     text_w = int(CW * 0.68)
     cv.setFillColor(dot_col); cv.circle(L+4, ry(y-3), 4, fill=1, stroke=0)
-    txt(cv, L+14, y, label, bold=True, sz=9.5, col=DARK_TEXT)
+    txt(cv, L+14, y, label, bold=True, sz=10.5, col=DARK_TEXT)
     tw_tag = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
     tag_x = (L + text_w + R) / 2 - tw_tag / 2
     tag(cv, tag_x, y-3, tg_text, tg_bg, tg_fg)
     det_lines = simpleSplit(detail, 'Helvetica', 9.5, text_w - 14)
     cy = y + 14
     for ln in det_lines:
-        txt(cv, L+14, cy, ln, sz=8.6, col=MUTED); cy += 13
+        txt(cv, L+14, cy, ln, sz=9.5, col=MUTED); cy += 13
     return cy + 8
 
 def qw_item(cv, y, title, tg_text, tg_bg, tg_fg, detail):
@@ -232,18 +232,18 @@ def qw_item(cv, y, title, tg_text, tg_bg, tg_fg, detail):
         cv.drawString(L+16, ry(cy), ln); cy += 14
     cv.restoreState(); cy += 4
     for ln in det_lines:
-        txt(cv, L+16, cy, ln, sz=8.6, col=MUTED); cy += 13
+        txt(cv, L+16, cy, ln, sz=9.5, col=MUTED); cy += 13
     return y + total_h + 10
 
 def top_rec_box(cv, y, text):
     lines = simpleSplit(text, 'Helvetica-Bold', 10.5, CW-28)
     total_h = len(lines)*15 + 52
     rect(cv, L, y,    CW, 28,        fill=INDIGO)
-    txt(cv, L+14, y+20, '\u2605  TOP RECOMMENDATION', bold=True, sz=7.2, col=WHITE)
+    txt(cv, L+14, y+20, '\u2605  TOP RECOMMENDATION', bold=True, sz=8, col=WHITE)
     rect(cv, L, y+28, CW, total_h-28, fill=INDIGO_LIGHT)
     cy = y + 46
     for ln in lines:
-        txt(cv, L+14, cy, ln, bold=True, sz=9.5, col=INDIGO_DEEP); cy += 15
+        txt(cv, L+14, cy, ln, bold=True, sz=10.5, col=INDIGO_DEEP); cy += 15
     return y + total_h + 14
 
 def anxiety_item(cv, y, yes, title, note):
@@ -253,11 +253,11 @@ def anxiety_item(cv, y, yes, title, note):
     note_lines = simpleSplit(note, 'Helvetica', 9.5, CW-48)
     total_h = len(note_lines)*13 + 44
     rect(cv, L, y, CW, total_h, fill=bg, r=8)
-    txt(cv, L+16, y+20, icon, bold=True, sz=11.7, col=col)
-    txt(cv, L+36, y+20, title, bold=True, sz=9.5, col=DARK_TEXT)
+    txt(cv, L+16, y+20, icon, bold=True, sz=13, col=col)
+    txt(cv, L+36, y+20, title, bold=True, sz=10.5, col=DARK_TEXT)
     cy = y+34
     for ln in note_lines:
-        txt(cv, L+36, cy, ln, sz=8.6, col=MUTED); cy += 13
+        txt(cv, L+36, cy, ln, sz=9.5, col=MUTED); cy += 13
     return y + total_h + 10
 
 def tbl_header(cv, y, cols, headers, bg=None, col_bgs=None):
@@ -265,7 +265,7 @@ def tbl_header(cv, y, cols, headers, bg=None, col_bgs=None):
     for i, (w, h) in enumerate(zip(cols, headers)):
         cell_bg = (col_bgs[i] if col_bgs else None) or bg
         rect(cv, x, y, w, rh, fill=cell_bg)
-        txt(cv, x+14, y+20, h, bold=True, sz=8.1, col=WHITE)
+        txt(cv, x+14, y+20, h, bold=True, sz=9, col=WHITE)
         x += w
     return y + rh
 
@@ -283,7 +283,7 @@ def tbl_row(cv, y, cols, cells, even=False, cell_cols=None):
         lines = simpleSplit(cell, 'Helvetica', 9.5, w-28)
         cy = y+16
         for ln in lines:
-            txt(cv, x+14, cy, ln, sz=8.6, col=col); cy += lh
+            txt(cv, x+14, cy, ln, sz=9.5, col=col); cy += lh
         x += w
     cv.saveState(); cv.setStrokeColor(BORDER); cv.setLineWidth(0.75)
     cv.line(L, ry(y+rh), R, ry(y+rh)); cv.restoreState()
@@ -321,7 +321,7 @@ def generate_pdf(audit):
     rect(cv, 0, 6, W, 108, fill=DARK)
 
     # Brand block
-    bar_w, bar_h, bar_y = 4.5, 32, 44
+    bar_w, bar_h, bar_y = 5, 36, 42
     cv.setFillColor(YELLOW)
     cv.roundRect(L, ry(bar_y + bar_h), bar_w, bar_h, bar_w/2, fill=1, stroke=0)
     tx = L + 13
@@ -348,20 +348,20 @@ def generate_pdf(audit):
     business_name = label
     name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
     for ln in name_lines[:2]:
-        txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT); y += 56
+        txt(cv, L, y, ln, bold=True, sz=52, col=DARK_TEXT); y += 56
     y += 20 - 56  # adjust: we already added 56 per line, subtract one extra 56, add 20
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
     # Reset properly:
     y = 6 + 108 + 90
     for i, ln in enumerate(name_lines[:2]):
-        txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT)
+        txt(cv, L, y, ln, bold=True, sz=52, col=DARK_TEXT)
         y += 56
     y -= 56; y += 20  # replace last line-advance with 20
 
     page_type = r['overview'].get('pageType', '')
-    txt(cv, L, y, page_type, sz=13.5, col=MUTED); y += 15
-    txt(cv, L, y, audit['url'], sz=8.6, col=LABEL); y += 20
+    txt(cv, L, y, page_type, sz=15, col=MUTED); y += 15
+    txt(cv, L, y, audit['url'], sz=9.5, col=LABEL); y += 20
     hline(cv, y); y += 22
 
     # Score cards
@@ -372,7 +372,7 @@ def generate_pdf(audit):
         (r['scores']['overall'], None,                        'OVERALL'),
         (None,                   r['scores']['grade'],        'GRADE'),
     ]
-    OR_r, IR_r = 30, 21
+    OR_r, IR_r = 33, 23
     ch = OR_r*2 + 38
     for i, (num, grade, lbl) in enumerate(scores_def):
         cx_c = L + i*(CARD_W+14)
@@ -382,8 +382,8 @@ def generate_pdf(audit):
         pct = (num/100) if num is not None else (r['scores']['overall']/100)
         donut(cv, rcx, y+5+OR_r+14, OR_r, IR_r, pct, AMBER, LIGHT_BG)
         val = str(num) if num is not None else str(grade)
-        txt(cv, rcx, y+5+OR_r+8+14, val, bold=True, sz=16.2, col=AMBER_D, align='center')
-        txt(cv, rcx, y+5+OR_r*2+26, lbl, bold=True, sz=6.8, col=LABEL, align='center')
+        txt(cv, rcx, y+5+OR_r+8+14, val, bold=True, sz=18, col=AMBER_D, align='center')
+        txt(cv, rcx, y+5+OR_r*2+26, lbl, bold=True, sz=7.5, col=LABEL, align='center')
     card_h = OR_r*2 + 5 + 38
     y += card_h + 18
 
@@ -402,8 +402,8 @@ def generate_pdf(audit):
         if i > 0:
             cv.saveState(); cv.setStrokeColor(BORDER); cv.setLineWidth(0.75)
             cv.line(sx, ry(y+8), sx, ry(y+30)); cv.restoreState()
-        txt(cv, sx+12, y+13, sl, bold=True, sz=6.8, col=LABEL)
-        txt(cv, sx+12, y+26, sv, bold=True, sz=9,  col=BODY)
+        txt(cv, sx+12, y+13, sl, bold=True, sz=7.5, col=LABEL)
+        txt(cv, sx+12, y+26, sv, bold=True, sz=10,  col=BODY)
     y += 38 + 16
 
     summary = overview.get('summary', '')
@@ -452,7 +452,7 @@ def generate_pdf(audit):
             y = y_s + 8
         else:
             # Fallback: plain wrap
-            wrap(cv, L, y, summary, sz=9.5, col=BODY, maxw=CW, lh=16)
+            wrap(cv, L, y, summary, sz=10.5, col=BODY, maxw=CW, lh=16)
             y += len(simpleSplit(summary, 'Helvetica', 10.5, CW)) * 16 + 8
 
     # ─────────────── GAP ANALYSIS ────────────────────────────────────────────
@@ -480,10 +480,10 @@ def generate_pdf(audit):
         rect(cv, bx, y, bw, 5, fill=bc)
         rect(cv, bx, y+5, bw, 60, fill=bg, stroke=BORDER if i<2 else HexColor('#A7F3D0'))
         lbl_col = MUTED if i<2 else HexColor('#059669')
-        txt(cv, bx+14, y+19, lbl, bold=True, sz=6.8, col=lbl_col)
-        txt(cv, bx+14, y+54, val, bold=True, sz=34.2, col=col)
+        txt(cv, bx+14, y+19, lbl, bold=True, sz=7.5, col=lbl_col)
+        txt(cv, bx+14, y+54, val, bold=True, sz=38, col=col)
         if grade_lbl:
-            txt(cv, bx+14+tw(cv, val, True, 38)+4, y+54, grade_lbl, sz=10.8, col=MUTED)
+            txt(cv, bx+14+tw(cv, val, True, 38)+4, y+54, grade_lbl, sz=12, col=MUTED)
     y += 65 + 16
 
     exec_sum = g.get('executiveSummary', '')
@@ -606,7 +606,7 @@ def generate_pdf(audit):
         is_na_page = faq_score is None
         bd         = aeo.get('breakdown', {})
 
-        txt(cv, L, y, 'How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews', sz=8.6, col=MUTED)
+        txt(cv, L, y, 'How well this page is structured for AI tools like ChatGPT, Perplexity and Google AI Overviews', sz=9.5, col=MUTED)
         y += 18
 
         # ── Score summary boxes ──────────────────────────────────────────────
@@ -621,15 +621,15 @@ def generate_pdf(audit):
             bx = L + i*(box_w+14)
             rect(cv, bx, y, box_w, 5, fill=AMBER)
             rect(cv, bx, y+5, box_w, box_h, fill=LIGHT_BG, stroke=BORDER)
-            txt(cv, bx+box_w/2, y+5+12, lbl, sz=6.3, col=MUTED, align='center')
-            txt(cv, bx+box_w/2, y+5+28, val, bold=True, sz=14.4, col=col, align='center')
+            txt(cv, bx+box_w/2, y+5+12, lbl, sz=7, col=MUTED, align='center')
+            txt(cv, bx+box_w/2, y+5+28, val, bold=True, sz=16, col=col, align='center')
         y += box_h + 18
 
         # ── FAQ Score sub-section ────────────────────────────────────────────
         y = sub_head(cv, y, 'FAQ Score' + (' — N/A for this page type' if is_na_page else f' — {faq_score}/10'), AMBER)
 
         if is_na_page:
-            txt(cv, L, y, 'FAQ checks are not applicable to contact and about pages.', sz=8.6, col=MUTED)
+            txt(cv, L, y, 'FAQ checks are not applicable to contact and about pages.', sz=9.5, col=MUTED)
             y += 16
         else:
             faq_checks = [
@@ -640,11 +640,11 @@ def generate_pdf(audit):
             for label, pts, max_pts in faq_checks:
                 pts = pts or 0
                 pct = int(pts / max_pts * 100) if max_pts else 0
-                txt(cv, L, y, label, sz=8.6, col=BODY)
+                txt(cv, L, y, label, sz=9.5, col=BODY)
                 bx = L+155; bw = CW-165-38; bh = 10
                 rect(cv, bx, y-2, bw, bh, fill=BORDER, r=5)
                 rect(cv, bx, y-2, bw*pct/100, bh, fill=scol(pct), r=5)
-                txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=9, col=scol(pct), align='right')
+                txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=10, col=scol(pct), align='right')
                 y += 20
         y += 8
 
@@ -668,11 +668,11 @@ def generate_pdf(audit):
                 new_page()
                 cont_header(cv, AMBER, ORANGE, 'Answer Engine Optimisation', '', audit_lbl)
                 y = 4 + 36 + 20
-            txt(cv, L, y, label, sz=8.6, col=BODY)
+            txt(cv, L, y, label, sz=9.5, col=BODY)
             bx = L+155; bw = CW-165-38; bh = 10
             rect(cv, bx, y-2, bw, bh, fill=BORDER, r=5)
             rect(cv, bx, y-2, bw*pct/100, bh, fill=scol(pct), r=5)
-            txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=9, col=scol(pct), align='right')
+            txt(cv, R-8, y, f'{pts}/{max_pts}', bold=True, sz=10, col=scol(pct), align='right')
             y += 20
         y += 8
 
@@ -708,18 +708,18 @@ def generate_pdf(audit):
     ca = r.get('competitorAnalysis', {})
 
     y = sub_head(cv, y, 'Hook Type & Positioning', PURPLE)
-    txt(cv, L, y, 'Hook Type: ', bold=True, sz=9, col=DARK_TEXT)
-    txt(cv, L+tw(cv,'Hook Type: ',True,10), y, ca.get('hookType',''), sz=9, col=AMBER_D)
+    txt(cv, L, y, 'Hook Type: ', bold=True, sz=10, col=DARK_TEXT)
+    txt(cv, L+tw(cv,'Hook Type: ',True,10), y, ca.get('hookType',''), sz=10, col=AMBER_D)
     y += 14
-    y = wrap(cv, L, y, ca.get('hookAnalysis',''), sz=9, col=MUTED, maxw=CW, lh=14)
+    y = wrap(cv, L, y, ca.get('hookAnalysis',''), sz=10, col=MUTED, maxw=CW, lh=14)
     y += 8
 
     pos_strength = ca.get('positioningStrength','')
     pos_col = {'Strong': GREEN, 'Moderate': AMBER, 'Weak': CORAL}.get(pos_strength, AMBER)
-    txt(cv, L, y, 'Positioning Strength: ', bold=True, sz=9, col=DARK_TEXT)
-    txt(cv, L+tw(cv,'Positioning Strength: ',True,10), y, pos_strength, sz=9, col=pos_col)
+    txt(cv, L, y, 'Positioning Strength: ', bold=True, sz=10, col=DARK_TEXT)
+    txt(cv, L+tw(cv,'Positioning Strength: ',True,10), y, pos_strength, sz=10, col=pos_col)
     y += 14
-    y = wrap(cv, L, y, ca.get('positioningNote',''), sz=9, col=MUTED, maxw=CW, lh=14)
+    y = wrap(cv, L, y, ca.get('positioningNote',''), sz=10, col=MUTED, maxw=CW, lh=14)
     y += 12
 
     y = sub_head(cv, y, 'Buyer Anxiety Audit', AMBER)
