@@ -376,6 +376,23 @@ export async function generateAuditReport(req: AuditRequest): Promise<AuditRepor
     part1.overview.fileSize = `${Math.round(scraped.htmlSizeBytes / 1024)} kB`
     if (scraped.title) part1.overview.title = scraped.title
     if (scraped.metaDescription) part1.overview.description = scraped.metaDescription
+
+  // Post-process: rejoin domain names split across sentence boundaries by the AI
+  const repairDomains = (text: string): string => {
+    if (!text) return text
+    // Rejoin fragments like "example.\n\ncom.\n\nau" or "example. com. au"
+    // Pattern: word ending with dot, followed by whitespace/newlines, followed by known TLD segment or continuation
+    let fixed = text
+    // Step 1: collapse multiple newlines between domain fragments
+    fixed = fixed.replace(/([a-zA-Z0-9-]+)\.\s*\n+\s*([a-zA-Z]{2,6})\.\s*\n+\s*([a-zA-Z]{2,6})/g, '$1.$2.$3')
+    // Step 2: collapse single newline between domain fragments
+    fixed = fixed.replace(/([a-zA-Z0-9-]+)\.\n([a-zA-Z]{2,6})\.\n([a-zA-Z]{2,6})/g, '$1.$2.$3')
+    // Step 3: fix "word. com" with space (AI adds space after dot)
+    fixed = fixed.replace(/([a-zA-Z0-9-]+)\. (com|com\.au|net|org|au|co|io|app|dev)(\.|\s|$)/g, '$1.$2$3')
+    return fixed
+  }
+  part1.overview.summary = repairDomains(part1.overview.summary || '')
+  part1.overview.description = repairDomains(part1.overview.description || '')
   }
 
   const summary = `SEO: ${part1.scores.seo}, LP: ${part1.scores.lp}, Overall: ${part1.scores.overall}, Grade: ${part1.scores.grade}. Page: ${part1.overview.pageType}. ${part1.overview.summary}`
