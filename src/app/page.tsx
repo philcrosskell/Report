@@ -1980,7 +1980,48 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Social Proof Audit */}
+      {/* Content & Messaging Analysis */}
+              <Card>
+                <CTitle>Content & Messaging Analysis</CTitle>
+                <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>How each business talks to customers — messaging themes, pain points addressed, and audience targeting.</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="w-full text-[12px]" style={{ minWidth: 650 }}>
+                    <THead cols={['Business', 'Primary Message', 'Pain Points', 'Audience', 'Tone', 'Themes']} />
+                    <tbody>{(r.messagingAnalysis as Record<string, unknown>[] ?? []).map((m, i) => (
+                      <tr key={i} className="hover:bg-[var(--bg3)] transition-colors">
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{m.name as string}</td>
+                        <TD>{m.primaryMessage as string}</TD>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {(m.painPointsAddressed as string[] ?? []).map((pp, pi) => (
+                            <div key={pi} className="text-[11px] mb-1" style={{ color: 'var(--t2)' }}>• {pp}</div>
+                          ))}
+                        </td>
+                        <TD>{m.targetAudience as string}</TD>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          <Tag color={(m.tone as string) === 'Trust-based' || (m.tone as string) === 'Aspirational' ? 'green' : (m.tone as string) === 'Fear-based' || (m.tone as string) === 'Urgent' ? 'red' : 'amber'}>{m.tone as string}</Tag>
+                        </td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                          {(m.contentThemes as string[] ?? []).map((t, ti) => (
+                            <div key={ti} className="text-[11px] mb-1" style={{ color: 'var(--t2)' }}>• {t}</div>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+                {(r.contentGaps as string[] ?? []).length > 0 && (
+                  <div className="mt-4 p-3 rounded-lg" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Content Gaps — Topics Nobody Is Covering</div>
+                    <div className="flex flex-wrap gap-2">
+                      {(r.contentGaps as string[]).map((gap, gi) => (
+                        <Tag key={gi} color="blue">{gap}</Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* Social Proof Audit */}
               <Card>
                 <CTitle>Social Proof Audit</CTitle>
                 <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Testimonials, reviews, case studies and trust signals across all businesses.</div>

@@ -75,11 +75,15 @@ export async function POST(req: NextRequest) {
   "summary":"2-3 plain English sentences explaining what this means for the business owner — no jargon, no buzzwords, just clear practical insight"
 }`)
 
-    // Call 3: Social proof
+    // Call 4: Content & Messaging Analysis
+  const r4 = await callAI(sys, `Analyse the content and messaging for each business. Return ONLY this JSON:\n\n${ctx}\n\n{"messagingAnalysis":[{"name":"string","primaryMessage":"string","painPointsAddressed":["string"],"targetAudience":"string","tone":"string","contentThemes":["string"]}],"contentGaps":["string"]}\n\nprimaryMessage: their core homepage value prop in max 10 words. painPointsAddressed: 2-3 specific customer problems they call out. targetAudience: who they speak to in max 8 words. tone: one of Formal/Casual/Urgent/Aspirational/Fear-based/Trust-based. contentThemes: 2-3 topics they focus on. contentGaps: 2-3 topics none of the competitors address. Start with {`)
+
+  // Call 3: Social proof
   const r3 = await callAI(sys, `Analyse social proof for each business. Return ONLY this JSON:\n\n${ctx}\n\n{"socialProof":[{"name":"string","hasTestimonials":true,"testimonialCount":0,"hasReviews":true,"reviewRating":0.0,"reviewCount":0,"hasCaseStudies":true,"caseStudyCount":0,"hasTrustBadges":true,"trustBadgeTypes":["string"],"hasStarRatings":true,"socialProofScore":0,"socialProofSummary":"string"}]}\n\nsocialProofScore 0-100. Start with {`)
   const part1 = safeParseJSON<Record<string, unknown>>(r1)
     const part2 = safeParseJSON<Record<string, unknown>>(r2)
     const part3 = safeParseJSON<Record<string, unknown>>(r3)
+    const part4 = safeParseJSON<Record<string, unknown>>(r4)
 
     // Scrape and score all URLs in parallel
     const allUrls = [
@@ -121,7 +125,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, report: {
       businessName, businessUrl, market: market ?? '', date: new Date().toISOString(),
-      brandLogo: brandLogo ?? '', ...part1, profiles, seoScores, ...part2, ...part3
+      brandLogo: brandLogo ?? '', ...part1, profiles, seoScores, ...part2, ...part3, ...part4
     }})
   } catch (err) {
     console.error('Competitor analysis error:', err)
