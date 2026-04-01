@@ -1880,17 +1880,17 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
               {/* Technical Snapshot */}
               <Card>
                 <CTitle>Technical Snapshot</CTitle>
-                <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>SEO category breakdown scores for each business — scraped live.</div>
+                <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>SEO technical scores for each business — scraped live. Scores show points earned per check.</div>
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="w-full text-[12px]" style={{ minWidth: 700 }}>
-                    <THead cols={['Business', 'Overall', 'Meta', 'Page Quality', 'Structure', 'Links', 'Server', 'External']} />
+                  <table className="w-full text-[12px]" style={{ minWidth: 750 }}>
+                    <THead cols={['Business', 'Overall', 'Title', 'Meta Desc', 'H1', 'Word Count', 'HTTPS', 'Schema', 'Canonical', 'Img Alt']} />
                     <tbody>{(r.profiles as Record<string, unknown>[] ?? []).map((p, i) => {
-                      const bd = (p.seoBreakdown as Record<string, number>) ?? {}
                       const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
                       const seoEntry = r.seoScores ? (r.seoScores as Record<string, {score:number;breakdown:Record<string,number>}>)[pUrl] : null
-                      const breakdown = seoEntry ? seoEntry.breakdown : bd
+                      const bd = seoEntry ? seoEntry.breakdown : ((p.seoBreakdown as Record<string, number>) ?? {})
                       const overall = (p.seoScore as number) ?? (seoEntry ? seoEntry.score : null)
-                      const catKeys = ['metaInformation','pageQuality','pageStructure','linkStructure','serverTechnical','externalFactors']
+                      const checkKeys = ['title','metaDescription','h1','wordCount','https','schema','canonical','imageAlt']
+                      const maxScores: Record<string,number> = { title:10, metaDescription:10, h1:10, wordCount:10, https:10, schema:10, canonical:10, imageAlt:10 }
                       return (
                         <tr key={i} className="hover:bg-[var(--bg3)] transition-colors">
                           <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>
@@ -1900,11 +1900,13 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                           <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
                             {overall != null ? <Tag color={(overall as number) >= 56 ? 'green' : (overall as number) >= 45 ? 'amber' : 'red'}>{overall as number}</Tag> : <span style={{ color: 'var(--t3)' }}>—</span>}
                           </td>
-                          {catKeys.map((key, ki) => {
-                            const v = breakdown[key]
+                          {checkKeys.map((key, ki) => {
+                            const v = bd[key]
+                            const max = maxScores[key] ?? 10
+                            const pct = v != null ? Math.round((v / max) * 100) : null
                             return (
                               <td key={ki} style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>
-                                {v != null ? <span style={{ color: v >= 70 ? 'var(--green)' : v >= 40 ? 'var(--amber)' : 'var(--red)', fontWeight: 600 }}>{v}</span> : <span style={{ color: 'var(--t3)' }}>—</span>}
+                                {v != null ? <span style={{ color: pct != null && pct >= 70 ? 'var(--green)' : pct != null && pct >= 40 ? 'var(--amber)' : 'var(--red)', fontWeight: 600 }}>{v}/{max}</span> : <span style={{ color: 'var(--t3)' }}>—</span>}
                               </td>
                             )
                           })}
@@ -1915,72 +1917,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                 </div>
               </Card>
 
-              {/* Claims matrix */}
-      <Card>
-        <CTitle>How the Market Talks to Customers</CTitle>
-        <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims  —  and how specifically.</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="text-[12px]" style={{ minWidth: 600, width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th className="text-left text-[11px] font-semibold uppercase tracking-wider" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t3)', minWidth: 140 }}>Claim Type</th>
-                {r.profiles.map(p => <th key={p.url} className="text-left text-[11px] font-semibold uppercase tracking-wider" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: p.tier === 'Client' ? 'var(--accent2)' : 'var(--t3)' }}>{p.name}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {r.claimsMatrix.rows.map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 1 ? 'var(--bg3)' : 'transparent' }}>
-                  <td className="font-semibold text-[12px]" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t2)' }}>{row.claimType}</td>
-                  {r.profiles.map(p => (
-                    <td key={p.url} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', color: row.values[p.name] === 'Not mentioned' ? 'var(--t3)' : 'var(--t2)', fontStyle: row.values[p.name] === 'Not mentioned' ? 'italic' : 'normal' }}>
-                      {row.values[p.name] ?? ' — '}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Table stakes vs white space */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <Card>
-          <CTitle>Table Stakes  —  Everyone Claims This</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Expected by prospects  —  not differentiating.</div>
-          {r.tableStakes.map((t, i) => <div key={i} className="py-2 border-b last:border-0 text-[13px]" style={{ borderColor: 'var(--border)', color: 'var(--t2)' }}>• {t}</div>)}
-        </Card>
-        <Card>
-          <CTitle>White Space  —  Worth Claiming</CTitle>
-          <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>Claims made by 0-1 competitors. Strong differentiation potential.</div>
-          {r.whiteSpace.map((w, i) => (
-            <div key={i} className="mb-3 pb-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
-              <div className="text-[13px] font-semibold mb-1">{w.opportunity}</div>
-              <SmartText text={w.rationale} color="var(--t3)" className="mb-1.5" />
-              <Tag color="green">{w.owner}</Tag>
-            </div>
-          ))}
-        </Card>
-      </div>
-
-      {/* Buyer anxieties */}
-      <Card>
-        <CTitle>What Customers Worry About</CTitle>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="w-full text-[13px]" style={{ minWidth: 500 }}>
-            <THead cols={['Common Concern', 'Who Addresses It Well', 'Who Ignores It']} />
-            <tbody>{r.buyerAnxieties.map((b, i) => (
-              <tr key={i} className="hover:bg-[var(--bg3)] transition-colors">
-                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 500 }}>{b.concern}</td>
-                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--green)' }}>{b.addressedBy}</td>
-                <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', color: 'var(--t3)' }}>{b.ignoredBy}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Content & Messaging Analysis */}
+              {/* Content & Messaging Analysis */}
               <Card>
                 <CTitle>Content & Messaging Analysis</CTitle>
                 <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>How each business talks to customers — messaging themes, pain points addressed, and audience targeting.</div>
