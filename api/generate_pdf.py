@@ -223,7 +223,8 @@ def qw_item(cv, y, title, tg_text, tg_bg, tg_fg, detail):
     t_lines  = simpleSplit(title,  'Helvetica-Bold', 10.5, body_w - 32)
     det_lines = simpleSplit(detail, 'Helvetica', 9.5, body_w - 32)
     total_h = len(t_lines)*14 + len(det_lines)*13 + 36
-    rect(cv, L, y, CW, total_h, fill=LIGHT_BG2, r=8)
+    rect(cv, L, y, CW, total_h, fill=WHITE, stroke=BORDER, r=0)
+    rect(cv, L, y, 4, total_h, fill=GREEN)
     tag_w = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
     tag(cv, R - tag_w - 16, y+13, tg_text, tg_bg, tg_fg)
     cy = y + 18
@@ -318,10 +319,10 @@ def generate_pdf(audit):
 
     # ─────────────── COVER ───────────────────────────────────────────────────
     grad_strip(cv, 0, 6, INDIGO, PINK)
-    rect(cv, 0, 6, W, 108, fill=DARK)
+    rect(cv, 0, 6, W, 87, fill=DARK)
 
     # Brand block
-    bar_w, bar_h, bar_y = 4.5, 32, 44
+    bar_w, bar_h, bar_y = 4.5, 32, 35
     cv.setFillColor(YELLOW)
     cv.roundRect(L, ry(bar_y + bar_h), bar_w, bar_h, bar_w/2, fill=1, stroke=0)
     tx = L + 13
@@ -335,7 +336,7 @@ def generate_pdf(audit):
     cv.drawString(tx + beal_w + space_w, ry(59), 'Creative.')
     cv.restoreState()
     cv.saveState()
-    cv.setFont('Helvetica-Bold', 8); cv.setFillColor(Color(1,1,1,0.35))
+    cv.setFont('Helvetica-Bold', 8); cv.setFillColor(Color(1,1,1,0.15))
     cv.drawString(tx, ry(74), 'AUDIT MACHINE')
     cv.restoreState()
     cv.saveState()
@@ -344,7 +345,7 @@ def generate_pdf(audit):
     cv.restoreState()
 
     # Cover body
-    y = 6 + 108 + 90
+    y = 6 + 87 + 72
     business_name = label
     name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
     for ln in name_lines[:2]:
@@ -353,7 +354,7 @@ def generate_pdf(audit):
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
     # Reset properly:
-    y = 6 + 108 + 90
+    y = 6 + 87 + 72
     for i, ln in enumerate(name_lines[:2]):
         txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT)
         y += 56
@@ -454,6 +455,30 @@ def generate_pdf(audit):
             # Fallback: plain wrap
             wrap(cv, L, y, summary, sz=9.5, col=BODY, maxw=CW, lh=16)
             y += len(simpleSplit(summary, 'Helvetica', 10.5, CW)) * 16 + 8
+
+
+    # ─── Cover: Critical Issues + Quick Wins preview ──────────────────────────
+    gap_data = r.get('gapAnalysis', {})
+    cover_issues = gap_data.get('criticalIssues', [])[:3]
+    cover_qws = gap_data.get('quickWins', [])[:3]
+    if cover_issues or cover_qws:
+        y += 12
+        hline(cv, y, col=BORDER); y += 16
+    if cover_issues:
+        txt(cv, L, y, 'CRITICAL ISSUES', bold=True, sz=6.8, col=CORAL); y += 14
+        for ci in cover_issues:
+            ci_lines = simpleSplit('•  ' + ci.get('issue', ''), 'Helvetica-Bold', 9, CW - 20)
+            for ln in ci_lines:
+                txt(cv, L, y, ln, bold=True, sz=9, col=DARK_TEXT); y += 13
+            y += 3
+    if cover_qws:
+        y += 8
+        txt(cv, L, y, 'QUICK WINS', bold=True, sz=6.8, col=GREEN); y += 14
+        for qw in cover_qws:
+            qw_lines = simpleSplit('•  ' + qw.get('win', ''), 'Helvetica', 9, CW - 20)
+            for ln in qw_lines:
+                txt(cv, L, y, ln, sz=9, col=BODY); y += 13
+            y += 3
 
     # ─────────────── GAP ANALYSIS ────────────────────────────────────────────
     new_page()
