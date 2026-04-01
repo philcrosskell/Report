@@ -319,10 +319,10 @@ def generate_pdf(audit):
 
     # ─────────────── COVER ───────────────────────────────────────────────────
     grad_strip(cv, 0, 6, INDIGO, PINK)
-    rect(cv, 0, 6, W, 87, fill=DARK)
+    rect(cv, 0, 6, W, 108, fill=DARK)
 
     # Brand block
-    bar_w, bar_h, bar_y = 4.5, 32, 35
+    bar_w, bar_h, bar_y = 4.5, 32, 44
     cv.setFillColor(YELLOW)
     cv.roundRect(L, ry(bar_y + bar_h), bar_w, bar_h, bar_w/2, fill=1, stroke=0)
     tx = L + 13
@@ -345,7 +345,7 @@ def generate_pdf(audit):
     cv.restoreState()
 
     # Cover body
-    y = 6 + 87 + 72
+    y = 6 + 108 + 90
     business_name = label
     name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
     for ln in name_lines[:2]:
@@ -354,7 +354,7 @@ def generate_pdf(audit):
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
     # Reset properly:
-    y = 6 + 87 + 72
+    y = 6 + 108 + 90
     for i, ln in enumerate(name_lines[:2]):
         txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT)
         y += 56
