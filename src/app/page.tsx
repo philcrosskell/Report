@@ -1767,7 +1767,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         <div style={{ overflowX: 'auto' }}>
           <table className="w-full text-[13px]" style={{ minWidth: 600 }}>
             <THead cols={['Business', 'Tier', 'SEO Score', 'Their Positioning', 'What They Do Well']} />
-            <tbody>{r.profiles.map(p => (
+            <tbody>{(r.profiles as Record<string, unknown>[] ?? []).map((p: Record<string, unknown>) => (
               <tr key={p.url} className="hover:bg-[var(--bg3)] transition-colors">
                 <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
                   <div className="font-semibold">{p.name}</div>
@@ -1884,7 +1884,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                 <div style={{ overflowX: 'auto' }}>
                   <table className="w-full text-[12px]" style={{ minWidth: 700 }}>
                     <THead cols={['Business', 'Overall', 'Meta', 'Page Quality', 'Structure', 'Links', 'Server', 'External']} />
-                    <tbody>{profiles.map((p, i) => {
+                    <tbody>{(r.profiles as Record<string, unknown>[] ?? []).map((p, i) => {
                       const bd = (p.seoBreakdown as Record<string, number>) ?? {}
                       const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
                       const seoEntry = r.seoScores ? (r.seoScores as Record<string, {score:number;breakdown:Record<string,number>}>)[pUrl] : null
@@ -1992,7 +1992,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{m.name as string}</td>
                         <TD>{m.primaryMessage as string}</TD>
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
-                          {(m.painPointsAddressed as string[] ?? []).map((pp, pi) => (
+                          {((m.painPointsAddressed as string[]) || []).map((pp, pi) => (
                             <div key={pi} className="text-[11px] mb-1" style={{ color: 'var(--t2)' }}>• {pp}</div>
                           ))}
                         </td>
@@ -2001,7 +2001,7 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
                           <Tag color={(m.tone as string) === 'Trust-based' || (m.tone as string) === 'Aspirational' ? 'green' : (m.tone as string) === 'Fear-based' || (m.tone as string) === 'Urgent' ? 'red' : 'amber'}>{m.tone as string}</Tag>
                         </td>
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
-                          {(m.contentThemes as string[] ?? []).map((t, ti) => (
+                          {((m.contentThemes as string[]) || []).map((t, ti) => (
                             <div key={ti} className="text-[11px] mb-1" style={{ color: 'var(--t2)' }}>• {t}</div>
                           ))}
                         </td>
