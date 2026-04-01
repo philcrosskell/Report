@@ -1876,7 +1876,46 @@ function CompIntelReport({ r, brandLogo = '' }: { r: CompetitorIntelligenceRepor
         </div>
       </Card>
 
-      {/* Claims matrix */}
+      
+              {/* Technical Snapshot */}
+              <Card>
+                <CTitle>Technical Snapshot</CTitle>
+                <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>SEO category breakdown scores for each business — scraped live.</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="w-full text-[12px]" style={{ minWidth: 700 }}>
+                    <THead cols={['Business', 'Overall', 'Meta', 'Page Quality', 'Structure', 'Links', 'Server', 'External']} />
+                    <tbody>{profiles.map((p, i) => {
+                      const bd = (p.seoBreakdown as Record<string, number>) ?? {}
+                      const pUrl = ((p.url as string) ?? '').replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+                      const seoEntry = r.seoScores ? (r.seoScores as Record<string, {score:number;breakdown:Record<string,number>}>)[pUrl] : null
+                      const breakdown = seoEntry ? seoEntry.breakdown : bd
+                      const overall = (p.seoScore as number) ?? (seoEntry ? seoEntry.score : null)
+                      const catKeys = ['metaInformation','pageQuality','pageStructure','linkStructure','serverTechnical','externalFactors']
+                      return (
+                        <tr key={i} className="hover:bg-[var(--bg3)] transition-colors">
+                          <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>
+                            <div>{p.name as string}</div>
+                            <div className="text-[10px] font-mono" style={{ color: 'var(--accent2)' }}>{p.url as string}</div>
+                          </td>
+                          <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+                            {overall != null ? <Tag color={(overall as number) >= 56 ? 'green' : (overall as number) >= 45 ? 'amber' : 'red'}>{overall as number}</Tag> : <span style={{ color: 'var(--t3)' }}>—</span>}
+                          </td>
+                          {catKeys.map((key, ki) => {
+                            const v = breakdown[key]
+                            return (
+                              <td key={ki} style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>
+                                {v != null ? <span style={{ color: v >= 70 ? 'var(--green)' : v >= 40 ? 'var(--amber)' : 'var(--red)', fontWeight: 600 }}>{v}</span> : <span style={{ color: 'var(--t3)' }}>—</span>}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )
+                    })}</tbody>
+                  </table>
+                </div>
+              </Card>
+
+              {/* Claims matrix */}
       <Card>
         <CTitle>How the Market Talks to Customers</CTitle>
         <div className="text-[12px] mb-3" style={{ color: 'var(--t3)' }}>What each business claims  —  and how specifically.</div>
