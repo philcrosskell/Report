@@ -324,7 +324,8 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     blank.hasStarRatings = /(?:class=["'][^"']*(?:star-rating|stars|fa-star|rating)[^"']*["']|"ratingValue"|itemprop=["']ratingValue["'])/i.test(html)
 
     // Case study / portfolio detection
-    blank.hasCaseStudies = /case.stud|portfolio|our.work|client.result|project.result|view.work|see.work|success.stor/i.test(html)
+    // Case study detection — broad pattern covering common ways agencies show their work
+    blank.hasCaseStudies = /case.stud|portfolio|our.work|client.result|project.result|view.work|see.work|success.stor|our.project|featured.work|recent.work|what.we.built|we.built|recent.project|client.project|work.we.ve|work.we.have|our.client|showcase|gallery|built.for|designed.for|developed.for|created.for|delivered.for|worked.with/i.test(html)
 
     // Nav link text extraction
     const navMatches = html.match(/<(?:nav|header)[^>]*>[\s\S]*?<\/(?:nav|header)>/gi) ?? []
