@@ -797,10 +797,22 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
     if (!bizName || !suburb) { alert('Please enter a business name and suburb'); return }
     setLoading(true); setError(''); setResult(null)
     try {
+      // Client-side Maps scrape
+      window._gbpClientHtml = ''
+      try {
+        const mapsQ = encodeURIComponent(bizName + ' ' + bizSuburb)
+        const scrapeTab = window.open('https://www.google.com/maps/search/' + mapsQ, '_blank', 'width=1,height=1,left=-9999,top=-9999')
+        if (scrapeTab) {
+          await new Promise(r => setTimeout(r, 5000))
+          try { window._gbpClientHtml = scrapeTab.document?.body?.innerText || '' } catch { /* cross-origin */ }
+          scrapeTab.close()
+        }
+      } catch { /* ignore — falls back to Places API */ }
+
       const res = await fetch('/api/gbp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName: bizName, suburb })
+        body: JSON.stringify({ businessName: bizName, suburb: bizSuburb, clientHtml: window._gbpClientHtml || '' })
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
