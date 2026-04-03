@@ -200,11 +200,19 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([])
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
+  const [gbpConnected, setGbpConnected] = useState<boolean | null>(null)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
   const [ready, setReady] = useState(false)
   const [viewingAudit, setViewingAudit] = useState<Audit | null>(null)
+
+  useEffect(() => {
+    // Check GBP connection status
+    fetch('/api/gbp', { method: 'GET' }).then(r => r.json()).then(d => {
+      setGbpConnected(!!(d as Record<string,unknown>).connected)
+    }).catch(() => setGbpConnected(false))
+  }, [])
 
   useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
@@ -818,6 +826,23 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   return (
     <>
       <TopBar title="GBP Audit" sub="Audit any Google Business Profile  —  scored and pitch-ready" />
+      {/* Google Account connection banner */}
+      <div className="px-6 pt-4">
+        {gbpConnected === false && (
+          <div className="flex items-center justify-between p-3 rounded-lg mb-2" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
+            <div>
+              <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>Connect Google Account for full accuracy</div>
+              <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Without connection, posts, service area and owner responses cannot be verified</div>
+            </div>
+            <a href="/api/auth/google" className="ml-4 shrink-0 px-4 py-2 rounded-lg text-[12px] font-semibold" style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}>Connect Google</a>
+          </div>
+        )}
+        {gbpConnected === true && (
+          <div className="flex items-center gap-2 p-2 rounded-lg mb-2 text-[12px]" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', color: 'var(--green)' }}>
+            <span>&#10003;</span><span className="font-semibold">Google Account connected</span><span style={{ color: 'var(--t3)' }}>— full Business Profile data enabled</span>
+          </div>
+        )}
+      </div>
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
