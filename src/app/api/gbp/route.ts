@@ -8,6 +8,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as AnyRecord
     const { businessName, suburb } = body as { businessName: string; suburb: string }
+    // Strip special chars that break search queries (=, +, &, etc.) — keep letters, numbers, spaces, hyphens
+    const searchName = businessName.replace(/[=+&@#%^*<>{}|\\[\]]/g, ' ').replace(/\s+/g, ' ').trim()
 
     if (!businessName || !suburb) {
       return NextResponse.json({ success: false, error: 'Business name and suburb are required' }, { status: 400 })
@@ -32,14 +34,14 @@ CRITICAL RULES â read carefully before searching:
 8. Output ONLY raw JSON â no markdown, no explanation.`,
       messages: [{
         role: 'user',
-        content: `Search Google for the business "${businessName}" in ${suburb}, Australia.
+        content: `Search Google for the business "${searchName}" (full name: "${businessName}") in ${suburb}, Australia.
 
 Do ALL 4 of these searches before writing your answer:
 
-1. Search: "${businessName} ${suburb}" â find their GBP panel, grab hours, rating, review count, description, category, photos, address, phone, website
-2. Search: "${businessName} ${suburb} reviews" â look specifically for review content and OWNER REPLIES. Any text saying "Response from the owner" or "Owner response" means ownerRespondsToReviews = true
-3. Search: "${businessName} ${suburb} Google Business" â find additional profile data: posts, Q&A, services, attributes
-4. Search: "${businessName} ${suburb} site:maps.google.com OR site:google.com/maps" â extract any remaining GBP details
+1. Search: "${searchName} ${suburb}" â find their GBP panel, grab hours, rating, review count, description, category, photos, address, phone, website
+2. Search: "${searchName} ${suburb} reviews" â look specifically for review content and OWNER REPLIES. Any text saying "Response from the owner" or "Owner response" means ownerRespondsToReviews = true
+3. Search: "${searchName} ${suburb} Google Business" â find additional profile data: posts, Q&A, services, attributes
+4. Search: "${searchName} ${suburb} site:maps.google.com OR site:google.com/maps" â extract any remaining GBP details
 
 After all 4 searches, return ONLY this JSON (no markdown fences):
 {
