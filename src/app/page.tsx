@@ -200,7 +200,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([])
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
-  const [gbpConnected, setGbpConnected] = useState<boolean | null>(null)
+  const [gbpConnected, setGbpConnected] = useState<boolean>(false)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
@@ -826,26 +826,23 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   return (
     <>
       <TopBar title="GBP Audit" sub="Audit any Google Business Profile  —  scored and pitch-ready" />
-      {/* Google Account connection banner */}
-      <div className="px-6 pt-4">
-        {gbpConnected === false && (
-          <div className="flex items-center justify-between p-3 rounded-lg mb-2" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
-            <div>
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>Connect Google Account for full accuracy</div>
-              <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Without connection, posts, service area and owner responses cannot be verified</div>
-            </div>
-            <a href="/api/auth/google" className="ml-4 shrink-0 px-4 py-2 rounded-lg text-[12px] font-semibold" style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}>Connect Google</a>
-          </div>
-        )}
-        {gbpConnected === true && (
-          <div className="flex items-center gap-2 p-2 rounded-lg mb-2 text-[12px]" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', color: 'var(--green)' }}>
-            <span>&#10003;</span><span className="font-semibold">Google Account connected</span><span style={{ color: 'var(--t3)' }}>— full Business Profile data enabled</span>
-          </div>
-        )}
-      </div>
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
+              {!gbpConnected && (
+                <div className="flex items-center justify-between p-3 rounded-lg mt-2 mb-1" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
+                  <div>
+                    <div className="text-[12px] font-semibold" style={{ color: 'var(--t1)' }}>Connect Google Account for accurate results</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Posts, service area and owner responses require authentication</div>
+                  </div>
+                  <a href="/api/auth/google" className="ml-4 shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold" style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}>Connect Google</a>
+                </div>
+              )}
+              {gbpConnected && (
+                <div className="flex items-center gap-2 p-2 rounded-lg mt-2 mb-1 text-[12px]" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', color: 'var(--green)' }}>
+                  <span>&#10003;</span><span className="font-semibold">Google Account connected</span><span style={{ color: 'var(--t3)' }}> — full Business Profile data enabled</span>
+                </div>
+              )}
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
             <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
