@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyRecord = Record<string, any>
 
@@ -8,107 +7,117 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as AnyRecord
     const { businessName, suburb } = body as { businessName: string; suburb: string }
-    // Strip special chars that break search queries (=, +, &, etc.) — keep letters, numbers, spaces, hyphens
-    const searchName = businessName.replace(/[=+&@#%^*<>{}|\\[\]]/g, ' ').replace(/\s+/g, ' ').trim()
-
     if (!businessName || !suburb) {
       return NextResponse.json({ success: false, error: 'Business name and suburb are required' }, { status: 400 })
     }
 
+    const PLACES_KEY = process.env.GOOGLE_PLACES_API_KEY ?? ''
+    if (!PLACES_KEY) return NextResponse.json({ success: false, error: 'Google Places API key not configured' }, { status: 500 })
+
+    // Step 1: Find place_id via Text Search
+    const searchQuery = encodeURIComponent(businessName + ' ' + suburb + ' Australia')
+    const searchRes = await fetch(
+      'https://maps.googleapis.com/maps/api/place/textsearch/json?query=' + searchQuery + '&key=' + PLACES_KEY
+    )
+    const searchData = await searchRes.json() as AnyRecord
+    if (!searchData.results || searchData.results.length === 0) {
+      return NextResponse.json({ success: false, error: 'Business not found in Google Places — check the name and suburb' }, { status: 404 })
+    }
+    const place = searchData.results[0] as AnyRecord
+    const placeId = place.place_id as string
+
+    // Step 2: Get full place details
+    const fields = 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,photos,types,business_status,editorial_summary,serves_beer,serves_wine,wheelchair_accessible_entrance,reservable,delivery,dine_in,takeout,serves_breakfast,serves_lunch,serves_dinner,price_level'
+    const detailRes = await fetch(
+      'https://maps.googleapis.com/maps/api/place/details/json?place_id=' + placeId + '&fields=' + fields + '&key=' + PLACES_KEY
+    )
+    const detailData = await detailRes.json() as AnyRecord
+    const p = (detailData.result ?? {}) as AnyRecord
+
+    // Extract structured data from Places API
+    const name = (p.name ?? businessName) as string
+    const address = (p.formatted_address ?? '') as string
+    const phone = (p.formatted_phone_number ?? null) as string | null
+    const website = (p.website ?? null) as string | null
+    const rating = (p.rating ?? null) as number | null
+    const reviewCount = (p.user_ratings_total ?? 0) as number
+    const hours = p.opening_hours as AnyRecord | null
+    const hoursSet = !!(hours && hours.weekday_text && hours.weekday_text.length > 0)
+    const allDaysSet = hoursSet && (hours.weekday_text as string[]).length >= 7
+    const photoCount = p.photos ? (p.photos as unknown[]).length : 0
+    const hasCoverPhoto = photoCount > 0
+    const hasDescription = !!(p.editorial_summary && (p.editorial_summary as AnyRecord).overview)
+    const category = p.types ? (p.types as string[])[0].replace(/_/g, ' ') : ''
+    const isOpen = p.business_status === 'OPERATIONAL'
+
+    // Step 3: Ask Claude for qualitative analysis using the real data
     const client = new Anthropic()
+    const realDataSummary = [
+      'Business: ' + name,
+      'Address: ' + address,
+      'Phone: ' + (phone ?? 'not listed'),
+      'Website: ' + (website ?? 'not listed'),
+      'Rating: ' + (rating != null ? rating + '/5' : 'not found'),
+      'Review count: ' + reviewCount,
+      'Hours configured: ' + (hoursSet ? 'yes — ' + (hours.weekday_text as string[]).join(', ') : 'no'),
+      'Photos: ' + photoCount,
+      'Description: ' + (hasDescription ? (p.editorial_summary as AnyRecord).overview : 'none'),
+      'Category: ' + category,
+      'Business status: ' + (isOpen ? 'operational' : p.business_status ?? 'unknown'),
+    ].join('\n')
 
-    const response = await (client.messages as AnyRecord).create({
+    const aiRes = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      system: `You are a Google Business Profile auditor for Australian businesses. Your job is to search for a business and extract everything visible about their GBP listing.
-
-CRITICAL RULES â read carefully before searching:
-1. Always do ALL 4 searches before writing any JSON.
-2. Be DECISIVE. If data appears in search results, mark it as found. Never default to false/null just because you're unsure.
-3. reviewCount MUST be a number (e.g. 13). Never return null for reviewCount â use 0 if genuinely no reviews.
-4. ownerRespondsToReviews: search specifically for owner replies. If you see ANY "Response from the owner" text in any result, set true. If the business has 5+ reviews and no obvious complaints going unanswered, lean toward true.
-5. allDaysSet means hours are configured for every day â days explicitly marked "Closed" COUNT as set. Only return false if some days are completely missing from the hours listing.
-6. hoursSet: true if any business hours are shown at all.
-7. hasRecentPosts / lastPostDaysAgo: Posts older than 30 days are NOT a failure â they're just an opportunity to improve. Be accurate about the age.
-8. Output ONLY raw JSON â no markdown, no explanation.`,
+      max_tokens: 2000,
+      system: 'You are a Google Business Profile consultant. Given real GBP data, provide qualitative analysis. Output ONLY raw JSON — no markdown.',
       messages: [{
         role: 'user',
-        content: `Search Google for the business "${searchName}" (full name: "${businessName}") in ${suburb}, Australia.
-
-Do ALL 4 of these searches before writing your answer:
-
-1. Search: "${searchName} ${suburb}" â find their GBP panel, grab hours, rating, review count, description, category, photos, address, phone, website
-2. Search: "${searchName} ${suburb} reviews" â look specifically for review content and OWNER REPLIES. Any text saying "Response from the owner" or "Owner response" means ownerRespondsToReviews = true
-3. Search: "${searchName} ${suburb} Google Business" â find additional profile data: posts, Q&A, services, attributes
-4. Search: "${searchName} ${suburb} site:maps.google.com OR site:google.com/maps" â extract any remaining GBP details
-
-After all 4 searches, return ONLY this JSON (no markdown fences):
-{
-  "businessName": "exact business name from GBP",
-  "address": "full street address",
-  "suburb": "${suburb}",
-  "phone": "phone number as string, or null only if truly not listed",
-  "website": "website URL or null",
-  "category": "primary GBP category",
-  "secondaryCategories": [],
-  "rating": 4.5,
-  "reviewCount": 13,
-  "hasRecentReviews": true,
-  "unansweredReviews": 0,
-  "ownerRespondsToReviews": true,
-  "hoursSet": true,
-  "allDaysSet": true,
-  "holidayHoursSet": false,
-  "hasDescription": true,
-  "descriptionUsesKeywords": true,
-  "descriptionMentionsServiceArea": false,
-  "hasLogo": true,
-  "hasCoverPhoto": true,
-  "photoCount": 10,
-  "hasRecentPhotos": false,
-  "hasRecentPosts": false,
-  "lastPostDaysAgo": 45,
-  "appointmentLink": false,
-  "servicesListed": true,
-  "serviceAreaSet": false,
-  "attributesSet": true,
-  "issues": ["No Google posts in last 30 days â last post was ~45 days ago", "No Q&A section seeded with common questions"],
-  "wins": ["13 Google reviews with strong rating", "Owner actively responds to reviews", "Business hours fully configured including weekend closures"],
-  "pitchSummary": "Hi [Name], I came across [Business] on Google and noticed a few quick wins that could help you get more leads online. [Specific observation]. At BEAL Creative we help local businesses like yours get found faster â happy to show you what's possible. Phil",
-  "notFound": false
-}
-
-Field-by-field rules:
-- reviewCount: ALWAYS a number. If you saw "13 reviews" anywhere, set 13. Never null.
-- ownerRespondsToReviews: If you see ANY "Response from the owner" in search results â true. If business has many reviews and seems well-managed â lean true. Only set false if you explicitly see unanswered negative reviews or zero responses visible anywhere.
-- allDaysSet: Days listed as "Closed" on Saturday/Sunday STILL COUNT as set. Return true if every day of the week has an entry (even if some say Closed). Only false if days are completely absent from the hours listing.
-- hoursSet: true if any hours at all are shown.
-- hasRecentPosts: true only if a post is within the last 30 days. lastPostDaysAgo should be your best estimate of days since last post.
-- hasRecentReviews: true if any review is from the last 90 days.
-- unansweredReviews: your estimate of reviews without an owner reply â use 0 if all appear answered or you cannot confirm any are unanswered.
-- Make issues and wins SPECIFIC to this business, not generic platitudes.`
+        content: 'Here is the verified GBP data for this business:\n\n' + realDataSummary + '\n\nBased on this data, return ONLY this JSON:\n{"hasRecentReviews":true,"unansweredReviews":0,"ownerRespondsToReviews":true,"holidayHoursSet":false,"hasRecentPhotos":false,"hasRecentPosts":false,"lastPostDaysAgo":null,"appointmentLink":false,"servicesListed":true,"serviceAreaSet":false,"attributesSet":false,"descriptionUsesKeywords":true,"descriptionMentionsServiceArea":false,"hasLogo":true,"issues":["specific issue 1","specific issue 2"],"wins":["specific win 1","specific win 2"],"pitchSummary":"Hi [Name], I noticed...","notFound":false}\n\nRules:\n- issues and wins must be SPECIFIC to this business, not generic\n- If reviewCount > 0, hasRecentReviews is likely true\n- pitchSummary must be a real personalised cold outreach message referencing specific things you see in their data\n- hasLogo: true if they have photos (cover photo serves as logo signal)\n- serviceAreaSet: true only if service area is explicitly visible on GBP'
       }]
     })
 
-    const text = (response.content as AnyRecord[])
-      .filter((b: AnyRecord) => b.type === 'text')
-      .map((b: AnyRecord) => b.text as string)
-      .join('').trim()
+    const aiText = aiRes.content.filter(b => b.type === 'text').map(b => (b as AnyRecord).text as string).join('').trim()
+    const aiStart = aiText.indexOf('{')
+    const aiEnd = aiText.lastIndexOf('}')
+    const aiData = aiStart !== -1 && aiEnd > aiStart ? JSON.parse(aiText.substring(aiStart, aiEnd + 1)) as AnyRecord : {}
 
-    const start = text.indexOf('{')
-    const end = text.lastIndexOf('}')
-    if (start === -1 || end === -1) {
-      return NextResponse.json({ success: false, error: 'Could not extract GBP data â please try again' }, { status: 422 })
+    // Merge Places API facts with AI qualitative analysis
+    const result: AnyRecord = {
+      businessName: name,
+      address,
+      suburb,
+      phone,
+      website,
+      category,
+      secondaryCategories: p.types ? (p.types as string[]).slice(1, 4).map((t: string) => t.replace(/_/g, ' ')) : [],
+      rating,
+      reviewCount,
+      hasRecentReviews: reviewCount > 0 ? true : (aiData.hasRecentReviews ?? false),
+      unansweredReviews: aiData.unansweredReviews ?? 0,
+      ownerRespondsToReviews: aiData.ownerRespondsToReviews ?? false,
+      hoursSet,
+      allDaysSet,
+      holidayHoursSet: aiData.holidayHoursSet ?? false,
+      hasDescription,
+      descriptionUsesKeywords: aiData.descriptionUsesKeywords ?? hasDescription,
+      descriptionMentionsServiceArea: aiData.descriptionMentionsServiceArea ?? false,
+      hasLogo: photoCount > 0,
+      hasCoverPhoto,
+      photoCount,
+      hasRecentPhotos: aiData.hasRecentPhotos ?? (photoCount > 0),
+      hasRecentPosts: aiData.hasRecentPosts ?? false,
+      lastPostDaysAgo: aiData.lastPostDaysAgo ?? null,
+      appointmentLink: aiData.appointmentLink ?? false,
+      servicesListed: aiData.servicesListed ?? false,
+      serviceAreaSet: aiData.serviceAreaSet ?? false,
+      attributesSet: aiData.attributesSet ?? false,
+      issues: aiData.issues ?? [],
+      wins: aiData.wins ?? [],
+      pitchSummary: aiData.pitchSummary ?? '',
+      notFound: false,
     }
 
-    const data = JSON.parse(text.substring(start, end + 1)) as AnyRecord
-
-    // Post-process: ensure numeric fields are always numbers, never null
-    if (data.reviewCount === null || data.reviewCount === undefined) data.reviewCount = 0
-    if (data.unansweredReviews === null || data.unansweredReviews === undefined) data.unansweredReviews = 0
-    return NextResponse.json({ success: true, data })
-
+    return NextResponse.json({ success: true, data: result })
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Something went wrong'
     return NextResponse.json({ success: false, error: msg }, { status: 500 })
