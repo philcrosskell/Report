@@ -200,7 +200,6 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([])
   const [audits, setAudits] = useState<Audit[]>([])
   const [compReports, setCompReports] = useState<SavedCompetitorReport[]>([])
-  const [gbpConnected, setGbpConnected] = useState<boolean>(false)
   const [gbpAudits, setGbpAudits] = useState<GbpAudit[]>(() => getGbpAudits())
   const [weights, setWeights] = useState<LpWeights>(DEFAULT_WEIGHTS)
   const [brandLogo, setBrandLogo] = useState<string>('')
@@ -783,6 +782,10 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
 }
 
 function GbpAuditPage({ onSave }: { onSave: () => void }) {
+  const [gbpConnected, setGbpConnected] = useState<boolean>(false)
+  useEffect(() => {
+    fetch('/api/gbp').then(r => r.json()).then((d: Record<string,unknown>) => setGbpConnected(!!(d.connected))).catch(() => setGbpConnected(false))
+  }, [])
   const [bizName, setBizName] = useState('')
   const [suburb, setSuburb] = useState('')
   const [loading, setLoading] = useState(false)
