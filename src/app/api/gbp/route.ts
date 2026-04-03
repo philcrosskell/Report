@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const placeId = place.place_id as string
 
     // Step 2: Get full place details
-    const fields = 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,photos,types,business_status,editorial_summary,serves_beer,serves_wine,wheelchair_accessible_entrance,reservable,delivery,dine_in,takeout,serves_breakfast,serves_lunch,serves_dinner,price_level'
+    const fields = 'name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,opening_hours,photos,types,business_status,editorial_summary,reviews,price_level,serves_beer,serves_wine,wheelchair_accessible_entrance,reservable,delivery,dine_in,takeout,serves_breakfast,serves_lunch,serves_dinner'
     const detailRes = await fetch(
       'https://maps.googleapis.com/maps/api/place/details/json?place_id=' + placeId + '&fields=' + fields + '&key=' + PLACES_KEY
     )
@@ -47,6 +47,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const photoCount = p.photos ? (p.photos as unknown[]).length : 0
     const hasCoverPhoto = photoCount > 0
     const hasDescription = !!(p.editorial_summary && (p.editorial_summary as AnyRecord).overview)
+    // Reviews — check for owner responses
+    const reviews = (p.reviews ?? []) as AnyRecord[]
+    const ownerReplied = reviews.some((rev: AnyRecord) => !!(rev.owner_response && (rev.owner_response as AnyRecord).text))
+    const hasRecentReviews = reviews.length > 0
     const category = p.types ? (p.types as string[])[0].replace(/_/g, ' ') : ''
     const isOpen = p.business_status === 'OPERATIONAL'
 
@@ -61,7 +65,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       'Review count: ' + reviewCount,
       'Hours configured: ' + (hoursSet ? 'yes — ' + (hours.weekday_text as string[]).join(', ') : 'no'),
       'Photos: ' + photoCount,
-      'Description: ' + (hasDescription ? (p.editorial_summary as AnyRecord).overview : 'none'),
+      'Description: ' + (hasDescription ? (p.editorial_summary as AnyRecord).overview : 'NOT in editorial_summary — may exist as business description in GBP but not returned by Places API'),
+      'Owner responds to reviews: ' + (ownerReplied ? 'YES — seen in Places API reviews' : 'not confirmed from Places API data'),
+      'Recent reviews sample: ' + (reviews.length > 0 ? reviews.slice(0, 2).map((r: AnyRecord) => r.text as string).join(' | ') : 'none'),
       'Category: ' + category,
       'Business status: ' + (isOpen ? 'operational' : p.business_status ?? 'unknown'),
     ].join('\n')
@@ -92,9 +98,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       secondaryCategories: p.types ? (p.types as string[]).slice(1, 4).map((t: string) => t.replace(/_/g, ' ')) : [],
       rating,
       reviewCount,
-      hasRecentReviews: reviewCount > 0 ? true : (aiData.hasRecentReviews ?? false),
+      hasRecentReviews: hasRecentReviews || reviewCount > 0 || (aiData.hasRecentReviews ?? false),
       unansweredReviews: aiData.unansweredReviews ?? 0,
-      ownerRespondsToReviews: aiData.ownerRespondsToReviews ?? false,
+      ownerRespondsToReviews: ownerReplied || (aiData.ownerRespondsToReviews ?? false),
       hoursSet,
       allDaysSet,
       holidayHoursSet: aiData.holidayHoursSet ?? false,
