@@ -522,7 +522,22 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
             <div><Lbl>Suburb (optional)</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury, New South Wales" className="inp w-full" /></div>
             <div><Lbl>Results</Lbl><select value={count} onChange={e => setCount(e.target.value)} className="inp w-full"><option value="3">3 prospects</option><option value="5">5 prospects</option><option value="8">8 prospects</option></select></div>
           </div>
-          <Btn primary onClick={run} disabled={loading}>{loading ? ' Searching...' : ' Find prospects'}</Btn>
+          <div className="mt-3 mb-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>I can confirm these are set on this GBP:</div>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  [manualPosts, setManualPosts, 'Google Posts active'],
+                  [manualOwnerResponds, setManualOwnerResponds, 'Responds to reviews'],
+                  [manualServiceArea, setManualServiceArea, 'Service area configured'],
+                  [manualDescription, setManualDescription, 'Business description set'],
+                ] as [boolean, (v: boolean) => void, string][]).map((item, idx) => (
+                  <button key={idx} onClick={() => item[1](!item[0])} className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-left transition-colors" style={{ background: item[0] ? 'rgba(16,185,129,0.12)' : 'var(--bg3)', border: item[0] ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border)', color: item[0] ? 'var(--green)' : 'var(--t2)' }}>
+                    <span style={{ fontSize: 14 }}>{item[0] ? '✓' : '○'}</span>{item[2]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Btn primary onClick={run} disabled={loading}>{loading ? ' Searching...' : ' Find prospects'}</Btn>
         </Card>
 
         {savedSearches.length > 0 && prospects.length === 0 && !loading && (
@@ -787,6 +802,10 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
     fetch('/api/gbp').then(r => r.json()).then((d: Record<string,unknown>) => setGbpConnected(!!(d.connected))).catch(() => setGbpConnected(false))
   }, [])
   const [bizName, setBizName] = useState('')
+  const [manualPosts, setManualPosts] = useState(false)
+  const [manualOwnerResponds, setManualOwnerResponds] = useState(false)
+  const [manualServiceArea, setManualServiceArea] = useState(false)
+  const [manualDescription, setManualDescription] = useState(false)
   const [suburb, setSuburb] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -812,7 +831,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       const res = await fetch('/api/gbp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName: bizName, suburb: suburb, clientHtml: window._gbpClientHtml || '' })
+        body: JSON.stringify({ businessName: bizName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription })
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }

@@ -10,7 +10,7 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as AnyRecord
-    const { businessName, suburb } = body as { businessName: string; suburb: string }
+    const { businessName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription } = body as { businessName: string; suburb: string; manualPosts?: boolean; manualOwnerResponds?: boolean; manualServiceArea?: boolean; manualDescription?: boolean }
     if (!businessName || !suburb) {
       return NextResponse.json({ success: false, error: 'Business name and suburb are required' }, { status: 400 })
     }
@@ -116,6 +116,12 @@ Return ONLY this JSON (no markdown):
       notFound: aiData.notFound ?? false,
       dataSource: 'places_api+web_search',
     }
+
+    // Apply manual user confirmations — user knows their GBP better than any scraper
+    if (manualPosts) result.hasRecentPosts = true
+    if (manualOwnerResponds) result.ownerRespondsToReviews = true
+    if (manualServiceArea) result.serviceAreaSet = true
+    if (manualDescription) result.hasDescription = true
 
     return NextResponse.json({ success: true, data: result })
   } catch (e) {
