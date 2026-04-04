@@ -772,8 +772,8 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
 
       <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
         <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}></span> Pass  —  in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Fail</span> Fail  —  needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Partial</span> Partial  —  could be better</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Fail</span>  —  needs fixing</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Partial</span>  —  could be better</span>
         <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>-</span> Unknown  —  not publicly visible</span>
       </div>
 
