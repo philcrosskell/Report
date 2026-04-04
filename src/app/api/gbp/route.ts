@@ -119,9 +119,21 @@ Return ONLY this JSON (no markdown):
 
     // Apply manual user confirmations — user knows their GBP better than any scraper
     if (manualPosts) result.hasRecentPosts = true
-    if (manualOwnerResponds) result.ownerRespondsToReviews = true
+    if (manualOwnerResponds) { result.ownerRespondsToReviews = true; result.unansweredReviews = 0 }
     if (manualServiceArea) result.serviceAreaSet = true
     if (manualDescription) result.hasDescription = true
+
+    // Filter issues that contradict manual confirmations
+    if (Array.isArray(result.issues)) {
+      result.issues = (result.issues as string[]).filter((issue: string) => {
+        const t = issue.toLowerCase()
+        if (manualPosts && (t.includes('post') || t.includes('update'))) return false
+        if (manualOwnerResponds && (t.includes('owner') || t.includes('respond') || t.includes('unanswer') || t.includes('review') && t.includes('no '))) return false
+        if (manualServiceArea && (t.includes('service area') || t.includes('service region'))) return false
+        if (manualDescription && (t.includes('description') || t.includes('from the owner'))) return false
+        return true
+      })
+    }
 
     return NextResponse.json({ success: true, data: result })
   } catch (e) {
