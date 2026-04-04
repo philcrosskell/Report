@@ -800,7 +800,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       // Client-side Maps scrape
       window._gbpClientHtml = ''
       try {
-        const mapsQ = encodeURIComponent(bizName + ' ' + bizSuburb)
+        const mapsQ = encodeURIComponent(bizName + ' ' + suburb)
         const scrapeTab = window.open('https://www.google.com/maps/search/' + mapsQ, '_blank', 'width=1,height=1,left=-9999,top=-9999')
         if (scrapeTab) {
           await new Promise(r => setTimeout(r, 5000))
@@ -812,7 +812,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       const res = await fetch('/api/gbp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName: bizName, suburb: bizSuburb, clientHtml: window._gbpClientHtml || '' })
+        body: JSON.stringify({ businessName: bizName, suburb: suburb, clientHtml: window._gbpClientHtml || '' })
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
