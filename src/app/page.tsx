@@ -715,78 +715,101 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <GbpScoreBar label="Photos" score={scores.photos} />
           <GbpScoreBar label="Posts & activity" score={scores.activity} />
           <GbpScoreBar label="Local SEO signals" score={scores.localSeo} />
+          <div className="mt-2 text-[11px]" style={{ color: 'var(--t3)' }}>
+            {scores.localSeo < 50 && <div className="mt-1">Local SEO: add appointment link, attributes and holiday hours to your GBP dashboard</div>}
+            {scores.activity < 50 && <div className="mt-1">Posts & activity: publish a Google Post and confirm your service area is set</div>}
+            {scores.reviews < 60 && <div className="mt-1">Reviews: respond to all reviews and aim for 50+ total reviews to max this score</div>}
+          </div>
         </Card>
         <Card>
-          <CTitle>Issues to fix</CTitle>
-          {d.issues?.length ? d.issues.map((iss, i) => (
-            <div key={i} className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">Fail</span>
-              <span style={{ color: 'var(--t2)' }}>{iss}</span>
-            </div>
-          )) : <p className="text-[12px]" style={{ color: 'var(--t3)' }}>No major issues found</p>}
-          {d.wins?.length > 0 && <>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--t3)' }}>What they do well</div>
-            {d.wins.map((w, i) => (
-              <div key={i} className="flex items-start gap-2 py-1 text-[12px]">
-                <span style={{ color: 'var(--green)' }} className="flex-shrink-0"></span>
+          {/* Action items — grouped by priority */}
+          {(() => {
+            const fails = d.issues ?? []
+            const checks = [
+              { label: 'Phone number', pass: !!d.phone, warn: false, action: 'Add your phone number in GBP dashboard → Info' },
+              { label: 'Website linked', pass: !!d.website, warn: false, action: 'Add your website URL in GBP dashboard → Info' },
+              { label: 'Business description', pass: !!d.hasDescription, warn: false, action: 'Write a 750-char description in GBP → Info → From the owner' },
+              { label: 'Description uses keywords', pass: !!d.descriptionUsesKeywords, warn: true, action: 'Include your main services and suburb names in your description' },
+              { label: 'Mentions service area in description', pass: !!d.descriptionMentionsServiceArea, warn: true, action: 'Name the regions you serve (Albury, Wodonga, Bendigo) in your description' },
+              { label: 'Hours set (all days)', pass: !!d.allDaysSet, warn: false, action: 'Set hours for every day including Closed days in GBP → Info → Hours' },
+              { label: 'Holiday hours configured', pass: !!d.holidayHoursSet, warn: true, action: 'Add special hours for public holidays in GBP → Info → Special hours' },
+              { label: 'Services listed', pass: !!d.servicesListed, warn: true, action: 'Add your services (Web Design, SEO etc.) in GBP → Services' },
+              { label: 'Appointment / booking link', pass: !!d.appointmentLink, warn: true, action: 'Add a booking link in GBP → Info → Appointment links' },
+              { label: 'Has reviews', pass: (d.reviewCount ?? 0) > 0, warn: false, action: 'Ask recent clients to leave a Google review' },
+              { label: 'Recent reviews (90 days)', pass: !!d.hasRecentReviews, warn: false, action: 'Actively request reviews after each job' },
+              { label: 'Owner responds to reviews', pass: !!d.ownerRespondsToReviews, warn: false, action: 'Reply to every review in GBP → Reviews' },
+              { label: 'No unanswered reviews', pass: (d.unansweredReviews ?? 0) === 0, warn: (d.unansweredReviews ?? 0) < 3, action: 'Reply to outstanding reviews in GBP → Reviews' },
+              { label: 'Logo uploaded', pass: !!d.hasLogo, warn: false, action: 'Upload a logo in GBP → Photos → Logo' },
+              { label: 'Cover photo uploaded', pass: !!d.hasCoverPhoto, warn: false, action: 'Upload a cover photo in GBP → Photos → Cover' },
+              { label: '10+ photos uploaded', pass: (d.photoCount ?? 0) >= 10, warn: (d.photoCount ?? 0) >= 5, action: 'Upload at least 10 photos of your work, team and premises' },
+              { label: 'Recent photos added', pass: !!d.hasRecentPhotos, warn: true, action: 'Add new photos regularly to signal an active listing' },
+              { label: 'Google Posts active', pass: !!d.hasRecentPosts, warn: false, action: 'Publish a Google Post in GBP → Updates at least monthly' },
+              { label: 'Service area configured', pass: !!d.serviceAreaSet, warn: false, action: 'Set your service area in GBP → Info → Service area' },
+              { label: 'Attributes set', pass: !!d.attributesSet, warn: true, action: 'Add relevant attributes in GBP → Info → From the business' },
+            ]
+            const fixNow = checks.filter(c => !c.pass && !c.warn)
+            const easyWins = checks.filter(c => !c.pass && c.warn)
+            const passing = checks.filter(c => c.pass)
+            return (
+              <>
+                {fixNow.length > 0 && (
+                  <div className="mb-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--red)' }}>Fix now</div>
+                    {fixNow.map((c, i) => (
+                      <div key={i} className="flex items-start gap-3 py-2 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+                        <span style={{ color: 'var(--red)', fontWeight: 700, minWidth: 36 }}>Fail</span>
+                        <div className="flex-1">
+                          <div style={{ color: 'var(--t1)', fontWeight: 600 }}>{c.label}</div>
+                          <div style={{ color: 'var(--t3)' }}>{c.action}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {easyWins.length > 0 && (
+                  <div className="mb-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Easy wins</div>
+                    {easyWins.map((c, i) => (
+                      <div key={i} className="flex items-start gap-3 py-2 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+                        <span style={{ color: 'var(--accent)', fontWeight: 700, minWidth: 36 }}>Do it</span>
+                        <div className="flex-1">
+                          <div style={{ color: 'var(--t1)', fontWeight: 600 }}>{c.label}</div>
+                          <div style={{ color: 'var(--t3)' }}>{c.action}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {passing.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--green)' }}>In good shape</div>
+                    <div className="flex flex-wrap gap-2">
+                      {passing.map((c, i) => (
+                        <span key={i} className="px-2 py-1 rounded text-[11px]" style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--green)', border: '1px solid rgba(16,185,129,0.2)' }}>{c.label}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+        </Card>
+        {d.wins && d.wins.length > 0 && (
+          <Card>
+            <CTitle>What they do well</CTitle>
+            {d.wins.map((w: string, i: number) => (
+              <div key={i} className="flex items-start gap-2 py-2 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+                <span style={{ color: 'var(--green)' }}>✓</span>
                 <span style={{ color: 'var(--t2)' }}>{w}</span>
               </div>
             ))}
-          </>}
-        </Card>
-      </div>
-
-      <Card>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Profile completeness</div>
-            <GbpCheckItem label="Phone number" pass={!!d.phone} />
-            <GbpCheckItem label="Website linked" pass={!!d.website} />
-            <GbpCheckItem label="Description added" pass={d.hasDescription} />
-            <GbpCheckItem label="Description uses keywords" pass={d.descriptionUsesKeywords} warn />
-            <GbpCheckItem label="Mentions service area" pass={d.descriptionMentionsServiceArea} warn />
-            <GbpCheckItem label="Hours set (all days)" pass={d.allDaysSet} />
-            <GbpCheckItem label="Holiday hours set" pass={d.holidayHoursSet} warn />
-            <GbpCheckItem label="Services listed" pass={d.servicesListed} warn />
-            <GbpCheckItem label="Appointment link" pass={d.appointmentLink} warn />
-          </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Reviews & photos</div>
-            <GbpCheckItem label="Has reviews" pass={(d.reviewCount || 0) > 0} />
-            <GbpCheckItem label="Recent reviews (90 days)" pass={d.hasRecentReviews} warn />
-            <GbpCheckItem label="Owner responds to reviews" pass={d.ownerRespondsToReviews} />
-            <GbpCheckItem label={d.unansweredReviews === 0 ? 'No unanswered reviews' : `${d.unansweredReviews} unanswered reviews`} pass={d.unansweredReviews === 0} />
-            <GbpCheckItem label="Logo uploaded" pass={d.hasLogo} />
-            <GbpCheckItem label="Cover photo uploaded" pass={d.hasCoverPhoto} />
-            <GbpCheckItem label="10+ photos" pass={(d.photoCount || 0) >= 10} warn />
-            <GbpCheckItem label="Recent photos added" pass={d.hasRecentPhotos} warn />
-          </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Activity & local SEO</div>
-            <GbpCheckItem label={d.lastPostDaysAgo !== null ? `Last post ${d.lastPostDaysAgo} days ago` : 'No posts found'} pass={d.hasRecentPosts} warn />
-            <GbpCheckItem label="Service area set" pass={d.serviceAreaSet} warn />
-            <GbpCheckItem label="Attributes set" pass={d.attributesSet} warn />
-          </div>
-        </div>
-      </Card>
-
-      <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}></span> Pass  —  in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Fail</span>  —  needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Partial</span>  —  could be better</span>
-        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>-</span> Unknown  —  not publicly visible</span>
-      </div>
-
-      {d.pitchSummary && (
-        <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CTitle>Pitch summary</CTitle>
-              <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
-            </div>
-            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? ' Copied' : 'Copy'}</Btn>
-          </div>
-        </Card>
+          </Card>
+        )}
+        {d.pitchSummary && (
+          <Card>
+            <CTitle>Pitch summary</CTitle>
+            <p className="text-[12px]" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
+          </Card>
       )}
 
       <div className="mt-4 flex gap-2">
