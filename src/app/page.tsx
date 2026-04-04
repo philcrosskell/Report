@@ -669,7 +669,7 @@ function GbpScoreBar({ label, score }: { label: string; score: number }) {
 
 function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
   const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
-  const icon = pass === null ? '-' : pass ? '' : 'Fail'
+  const icon = pass === null ? '-' : pass ? '' : warn ? 'Partial' : 'Fail'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
       <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: col }}>{icon}</span>
