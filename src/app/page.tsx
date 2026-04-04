@@ -897,7 +897,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                   </div>
                   <span className="text-[13px] font-bold" style={{ color: 'var(--accent)' }}>{scoreGbp(a.data).overall}</span>
                   <Btn sm onClick={() => setResult(a)}>View</Btn>
-                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}></Btn>
+                  <Btn sm danger onClick={() => { deleteGbpAudit(a.id); setSavedAudits(getGbpAudits()); onSave() }}>Delete</Btn>
                 </div>
               ))}
             </div>
