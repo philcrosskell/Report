@@ -530,8 +530,8 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                   [manualOwnerResponds, setManualOwnerResponds, 'Responds to reviews'],
                   [manualServiceArea, setManualServiceArea, 'Service area configured'],
                   [manualDescription, setManualDescription, 'Business description set'],
-                ] as [boolean, (v: boolean) => void, string][]).map((item, ti) => (
-                  <button key={ti} onClick={() => item[1](!item[0])} className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-left transition-colors" style={{ background: item[0] ? 'rgba(16,185,129,0.12)' : 'var(--bg3)', border: item[0] ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border)', color: item[0] ? 'var(--green)' : 'var(--t2)' }}>
+                ] as [boolean, (v: boolean) => void, string][]).map((item, idx) => (
+                  <button key={idx} onClick={() => item[1](!item[0])} className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-left transition-colors" style={{ background: item[0] ? 'rgba(16,185,129,0.12)' : 'var(--bg3)', border: item[0] ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border)', color: item[0] ? 'var(--green)' : 'var(--t2)' }}>
                     <span style={{ fontSize: 14 }}>{item[0] ? '✓' : '○'}</span>{item[2]}
                   </button>
                 ))}
@@ -863,6 +863,15 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       <div className="flex-1 overflow-y-auto p-6">
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
+              {!gbpConnected && (
+                <div className="flex items-center justify-between p-3 rounded-lg mt-2 mb-1" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
+                  <div>
+                    <div className="text-[12px] font-semibold" style={{ color: 'var(--t1)' }}>Connect Google Account for accurate results</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Posts, service area and owner responses require authentication</div>
+                  </div>
+                  <a href="/api/auth/google" className="ml-4 shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold" style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}>Connect Google</a>
+                </div>
+              )}
               {gbpConnected && (
                 <div className="flex items-center gap-2 p-2 rounded-lg mt-2 mb-1 text-[12px]" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', color: 'var(--green)' }}>
                   <span>&#10003;</span><span className="font-semibold">Google Account connected</span><span style={{ color: 'var(--t3)' }}> — full Business Profile data enabled</span>
@@ -871,6 +880,21 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div><Lbl>Business name *</Lbl><input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="e.g. Smith's Plumbing" className="inp w-full" /></div>
             <div><Lbl>Suburb *</Lbl><input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="e.g. Albury NSW" className="inp w-full" /></div>
+          </div>
+          <div className="mt-3 mb-1">
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>I can confirm these are set on this GBP:</div>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                [manualPosts, setManualPosts, 'Google Posts active'],
+                [manualOwnerResponds, setManualOwnerResponds, 'Responds to reviews'],
+                [manualServiceArea, setManualServiceArea, 'Service area configured'],
+                [manualDescription, setManualDescription, 'Business description set'],
+              ] as [boolean, (v: boolean) => void, string][]).map((item, ti) => (
+                <button key={ti} onClick={() => item[1](!item[0])} className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-left transition-colors" style={{ background: item[0] ? 'rgba(16,185,129,0.12)' : 'var(--bg3)', border: item[0] ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border)', color: item[0] ? 'var(--green)' : 'var(--t2)' }}>
+                  <span style={{ fontSize: 14 }}>{item[0] ? '✓' : '○'}</span>{item[2]}
+                </button>
+              ))}
+            </div>
           </div>
           <Btn primary onClick={run} disabled={loading}>{loading ? ' Searching GBP...' : ' Run GBP Audit'}</Btn>
           {error && <p className="text-[13px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
