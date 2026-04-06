@@ -82,6 +82,8 @@ Extract these SPECIFIC facts from what you find in the search results:
 12. pitchSummary: Write a 3-sentence improvement summary for this business (no greeting, no personal address): Sentence 1 - what the GBP is genuinely doing well. Sentence 2 - the most impactful gaps that are hurting their score and visibility. Sentence 3 - end positively: what fixing these gaps will specifically mean for their local search visibility and leads.
 
 Places API already confirmed: rating=${placesData.rating ?? 'unknown'}, reviews=${placesData.reviewCount ?? 0}, hours=${placesData.hoursSet ? 'set' : 'missing'}, photos=${placesData.photoCount ?? 0}
+User has manually confirmed the following are set on this GBP: ${[manualPosts && 'Google Posts active', manualOwnerResponds && 'owner responds to reviews', manualServiceArea && 'service area configured', manualDescription && 'business description added', manualHolidayHours && 'holiday hours configured', manualServices && 'services listed', manualAppointment && 'appointment link set', manualRecentPhotos && 'recent photos added'].filter(Boolean).join(', ') || 'none confirmed'}
+IMPORTANT: Do NOT contradict what the user has manually confirmed above. If they confirmed something is set, treat it as true in your analysis and summary.
 
 Return ONLY this JSON (no markdown):
 {"hasRecentPosts":false,"lastPostDaysAgo":null,"serviceAreaSet":false,"ownerRespondsToReviews":false,"hasDescription":false,"description":null,"appointmentLink":false,"servicesListed":false,"holidayHoursSet":false,"unansweredReviews":0,"issues":[],"wins":[],"pitchSummary":"","notFound":false}`
