@@ -349,14 +349,14 @@ def generate_pdf(audit):
     business_name = label
     name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
     for ln in name_lines[:2]:
-        txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT); y += 56
+        txt(cv, L, y, ln, bold=True, sz=32.8, col=DARK_TEXT); y += 56
     y += 20 - 56  # adjust: we already added 56 per line, subtract one extra 56, add 20
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
     # Reset properly:
     y = 6 + 108 + 90
     for i, ln in enumerate(name_lines[:2]):
-        txt(cv, L, y, ln, bold=True, sz=46.8, col=DARK_TEXT)
+        txt(cv, L, y, ln, bold=True, sz=32.8, col=DARK_TEXT)
         y += 56
     y -= 56; y += 20  # replace last line-advance with 20
 
