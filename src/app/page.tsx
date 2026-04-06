@@ -657,7 +657,7 @@ function GbpCheckItem({ label, pass, warn, source }: { label: string; pass: bool
   const icon = pass === null ? '?' : pass ? '✓' : warn ? '◼' : '✕'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-      <span className="flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ color: col, fontWeight: 700, fontSize: warn && !pass ? 10 : 13, width: 16, height: 16, background: warn && !pass ? 'rgba(245,158,11,0.15)' : 'transparent', border: warn && !pass ? '1.5px solid var(--accent)' : 'none', borderRadius: 3 }}>{icon}</span>
+      <span className="flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ color: col, fontWeight: 700, fontSize: warn && !pass ? 10 : 13, width: 16, height: 16, background: warn && !pass ? 'rgba(245,158,11,0.15)' : 'transparent', border: 'none', borderRadius: 3 }}>{icon}</span>
       <span style={{ color: 'var(--t2)', flex: 1 }}>{label}</span>
       {source && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, marginLeft: 6, flexShrink: 0, background: source === 'api' ? 'rgba(59,130,246,0.1)' : 'rgba(99,102,241,0.1)', color: source === 'api' ? '#3b82f6' : 'var(--accent)', border: source === 'api' ? '1px solid rgba(59,130,246,0.25)' : '1px solid rgba(99,102,241,0.25)' }}>{source === 'api' ? 'API' : 'You'}</span>}
     </div>
@@ -696,11 +696,26 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Card>
           <CTitle>Score breakdown</CTitle>
-          <GbpScoreBar label="Profile completeness" score={scores.completeness} />
-          <GbpScoreBar label="Reviews" score={scores.reviews} />
-          <GbpScoreBar label="Photos" score={scores.photos} />
-          <GbpScoreBar label="Posts & activity" score={scores.activity} />
-          <GbpScoreBar label="Local SEO signals" score={scores.localSeo} />
+         <div className="mb-3">
+            <GbpScoreBar label="Profile completeness" score={scores.completeness} />
+            {scores.completeness < 100 && <div className="text-[11px] mt-1 pl-1" style={{ color: 'var(--t3)' }}>To improve: {[!d.phone && 'add phone', !d.website && 'add website', !d.hasDescription && 'add business description', !d.allDaysSet && 'set all day hours', !d.holidayHoursSet && 'configure holiday hours', !d.servicesListed && 'list services', !d.appointmentLink && 'add booking link'].filter(Boolean).join(' · ')}</div>}
+          </div>
+          <div className="mb-3">
+            <GbpScoreBar label="Reviews" score={scores.reviews} />
+            {scores.reviews < 100 && <div className="text-[11px] mt-1 pl-1" style={{ color: 'var(--t3)' }}>To improve: {[(d.reviewCount ?? 0) < 50 && 'get more reviews (aim for 50+)', !d.ownerRespondsToReviews && 'respond to all reviews', (d.unansweredReviews ?? 0) > 0 && 'reply to unanswered reviews'].filter(Boolean).join(' · ')}</div>}
+          </div>
+          <div className="mb-3">
+            <GbpScoreBar label="Photos" score={scores.photos} />
+            {scores.photos < 100 && <div className="text-[11px] mt-1 pl-1" style={{ color: 'var(--t3)' }}>To improve: {[!d.hasLogo && 'upload a logo', !d.hasCoverPhoto && 'upload a cover photo', (d.photoCount ?? 0) < 10 && 'upload 10+ photos', !d.hasRecentPhotos && 'add recent photos'].filter(Boolean).join(' · ')}</div>}
+          </div>
+          <div className="mb-3">
+            <GbpScoreBar label="Posts & activity" score={scores.activity} />
+            {scores.activity < 100 && <div className="text-[11px] mt-1 pl-1" style={{ color: 'var(--t3)' }}>To improve: {[!d.hasRecentPosts && 'publish a Google Post monthly'].filter(Boolean).join(' · ')}</div>}
+          </div>
+          <div>
+            <GbpScoreBar label="Local SEO signals" score={scores.localSeo} />
+            {scores.localSeo < 100 && <div className="text-[11px] mt-1 pl-1" style={{ color: 'var(--t3)' }}>To improve: {[!d.serviceAreaSet && 'configure service area', !d.attributesSet && 'add business attributes', !d.appointmentLink && 'add appointment link', !d.holidayHoursSet && 'set holiday hours'].filter(Boolean).join(' · ')}</div>}
+          </div>
         </Card>
         <Card>
           <CTitle>Issues to fix</CTitle>
