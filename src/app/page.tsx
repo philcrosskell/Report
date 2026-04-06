@@ -654,10 +654,10 @@ function GbpScoreBar({ label, score }: { label: string; score: number }) {
 
 function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
   const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
-  const icon = pass === null ? '-' : pass ? '' : warn ? 'Partial' : 'Fail'
+  const icon = pass === null ? '?' : pass ? '✓' : warn ? '◼' : '✕'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-      <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: col }}>{icon}</span>
+      <span className="flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ color: col, fontWeight: 700, fontSize: warn && !pass ? 10 : 13, width: 16, height: 16, background: warn && !pass ? 'rgba(245,158,11,0.15)' : 'transparent', border: warn && !pass ? '1.5px solid var(--accent)' : 'none', borderRadius: 3 }}>{icon}</span>
       <span style={{ color: 'var(--t2)' }}>{label}</span>
     </div>
   )
@@ -757,8 +757,8 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
 
       <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
         <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}></span> Pass  —  in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Fail</span>  —  needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Partial</span>  —  could be better</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>✕</span>  —  needs fixing</span>
+        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>◼</span>  —  could be better</span>
         <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>-</span> Unknown  —  not publicly visible</span>
       </div>
 
