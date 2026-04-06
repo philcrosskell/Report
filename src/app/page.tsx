@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import GbpActionItems from '@/components/GbpActionItems'
 import { Project, Audit, AuditReport, LpWeights, SeoCategories, LpScoring, CompetitorIntelligenceReport, SavedCompetitorReport, Competitor } from '@/lib/types'
 import {
   getProjects, addProject, updateProject, deleteProject,
@@ -700,78 +701,29 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
           <GbpScoreBar label="Photos" score={scores.photos} />
           <GbpScoreBar label="Posts & activity" score={scores.activity} />
           <GbpScoreBar label="Local SEO signals" score={scores.localSeo} />
+          {scores.localSeo < 50 && <div className="mt-2 text-[11px]" style={{ color: 'var(--t3)' }}>Tip: add appointment link, attributes and holiday hours to improve Local SEO</div>}
+          {scores.activity < 50 && <div className="mt-1 text-[11px]" style={{ color: 'var(--t3)' }}>Tip: publish a Google Post and confirm your service area is set</div>}
         </Card>
         <Card>
-          <CTitle>Issues to fix</CTitle>
-          {d.issues?.length ? d.issues.map((iss, i) => (
-            <div key={i} className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
-              <span style={{ color: 'var(--red)' }} className="flex-shrink-0 mt-0.5">Fail</span>
-              <span style={{ color: 'var(--t2)' }}>{iss}</span>
-            </div>
-          )) : <p className="text-[12px]" style={{ color: 'var(--t3)' }}>No major issues found</p>}
-          {d.wins?.length > 0 && <>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--t3)' }}>What they do well</div>
-            {d.wins.map((w, i) => (
-              <div key={i} className="flex items-start gap-2 py-1 text-[12px]">
-                <span style={{ color: 'var(--green)' }} className="flex-shrink-0"></span>
+          <CTitle>Action items</CTitle>
+          <GbpActionItems d={d} />
+        </Card>
+        {d.wins && d.wins.length > 0 && (
+          <Card>
+            <CTitle>What they do well</CTitle>
+            {(d.wins as string[]).map((w: string, i: number) => (
+              <div key={i} className="flex items-start gap-2 py-2 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
+                <span style={{ color: 'var(--green)' }}>✓</span>
                 <span style={{ color: 'var(--t2)' }}>{w}</span>
               </div>
             ))}
-          </>}
-        </Card>
-      </div>
-
-      <Card>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Profile completeness</div>
-            <GbpCheckItem label="Phone number" pass={!!d.phone} />
-            <GbpCheckItem label="Website linked" pass={!!d.website} />
-            <GbpCheckItem label="Description added" pass={d.hasDescription} />
-            <GbpCheckItem label="Description uses keywords" pass={d.descriptionUsesKeywords} warn />
-            <GbpCheckItem label="Mentions service area" pass={d.descriptionMentionsServiceArea} warn />
-            <GbpCheckItem label="Hours set (all days)" pass={d.allDaysSet} />
-            <GbpCheckItem label="Holiday hours set" pass={d.holidayHoursSet} warn />
-            <GbpCheckItem label="Services listed" pass={d.servicesListed} warn />
-            <GbpCheckItem label="Appointment link" pass={d.appointmentLink} warn />
-          </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Reviews & photos</div>
-            <GbpCheckItem label="Has reviews" pass={(d.reviewCount || 0) > 0} />
-            <GbpCheckItem label="Recent reviews (90 days)" pass={d.hasRecentReviews} warn />
-            <GbpCheckItem label="Owner responds to reviews" pass={d.ownerRespondsToReviews} />
-            <GbpCheckItem label={d.unansweredReviews === 0 ? 'No unanswered reviews' : `${d.unansweredReviews} unanswered reviews`} pass={d.unansweredReviews === 0} />
-            <GbpCheckItem label="Logo uploaded" pass={d.hasLogo} />
-            <GbpCheckItem label="Cover photo uploaded" pass={d.hasCoverPhoto} />
-            <GbpCheckItem label="10+ photos" pass={(d.photoCount || 0) >= 10} warn />
-            <GbpCheckItem label="Recent photos added" pass={d.hasRecentPhotos} warn />
-          </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--t3)' }}>Activity & local SEO</div>
-            <GbpCheckItem label={d.lastPostDaysAgo !== null ? `Last post ${d.lastPostDaysAgo} days ago` : 'No posts found'} pass={d.hasRecentPosts} warn />
-            <GbpCheckItem label="Service area set" pass={d.serviceAreaSet} warn />
-            <GbpCheckItem label="Attributes set" pass={d.attributesSet} warn />
-          </div>
-        </div>
-      </Card>
-
-      <div className="flex gap-6 px-1 mb-2 text-[11px]" style={{ color: 'var(--t3)' }}>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--green)', fontWeight: 700 }}></span> Pass  —  in good shape</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--red)', fontWeight: 700 }}>Fail</span>  —  needs fixing</span>
-        <span className="flex items-center gap-1.5"><span style={{ color: 'var(--accent)', fontWeight: 700 }}>Partial</span>  —  could be better</span>
-        <span className="flex items-center gap-1.5"><span style={{ fontWeight: 700 }}>-</span> Unknown  —  not publicly visible</span>
-      </div>
-
-      {d.pitchSummary && (
-        <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CTitle>Pitch summary</CTitle>
-              <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
-            </div>
-            <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? ' Copied' : 'Copy'}</Btn>
-          </div>
-        </Card>
+          </Card>
+        )}
+        {d.pitchSummary && (
+          <Card>
+            <CTitle>Pitch summary</CTitle>
+            <p className="text-[12px]" style={{ color: 'var(--t2)' }}>{d.pitchSummary as string}</p>
+          </Card>
       )}
 
       <div className="mt-4 flex gap-2">
