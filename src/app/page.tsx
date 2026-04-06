@@ -782,7 +782,7 @@ function GbpReport({ audit, onDelete }: { audit: GbpAudit; onDelete: () => void 
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CTitle>Pitch summary</CTitle>
+              <CTitle>Summary</CTitle>
               <p className="text-[13px] leading-relaxed mt-1" style={{ color: 'var(--t2)' }}>{d.pitchSummary}</p>
             </div>
             <Btn sm onClick={copyPitch} cls="flex-shrink-0">{copied ? ' Copied' : 'Copy'}</Btn>
@@ -869,7 +869,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
         <Card>
           <CTitle>Audit a Google Business Profile</CTitle>
               {!gbpConnected && (
-                <div className="flex items-center justify-between p-3 rounded-lg mt-2 mb-1" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
+                <div className="flex items-center justify-between p-3 rounded-lg mt-2 mb-1" style={}>
                   <div>
                     <div className="text-[12px] font-semibold" style={{ color: 'var(--t1)' }}>Connect Google Account for accurate results</div>
                     <div className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>Posts, service area and owner responses require authentication</div>

@@ -79,7 +79,7 @@ Extract these SPECIFIC facts from what you find in the search results:
 9. holidayHoursSet: Did you see special/holiday hours configured? (true/false)
 10. issues: List 3-5 SPECIFIC issues you found with this GBP listing
 11. wins: List 2-4 SPECIFIC wins/strengths you found
-12. pitchSummary: Write a personalised cold outreach message referencing specific things you found
+12. pitchSummary: Write a 3-sentence improvement summary for this business (no greeting, no personal address): Sentence 1 - what the GBP is genuinely doing well. Sentence 2 - the most impactful gaps that are hurting their score and visibility. Sentence 3 - end positively: what fixing these gaps will specifically mean for their local search visibility and leads.
 
 Places API already confirmed: rating=${placesData.rating ?? 'unknown'}, reviews=${placesData.reviewCount ?? 0}, hours=${placesData.hoursSet ? 'set' : 'missing'}, photos=${placesData.photoCount ?? 0}
 
