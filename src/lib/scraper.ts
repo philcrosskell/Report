@@ -112,11 +112,37 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
       blank.serverHeader = res.headers.get('server') ?? ''
       blank.htmlSizeBytes = parseInt(res.headers.get('content-length') ?? '0')
 
-      if (res.status >= 400) {
-        return { ...blank, error: 'HTTP ' + res.status }
+      let blocked = res.status >= 400 || res.status === 403 || res.status === 429
+      if (!blocked) {
+        const bodyText = await res.text()
+        // Detect soft blocks — tiny body or obvious bot detection pages
+        if (bodyText.length < 1000 || /access denied|blocked|captcha|bot detection/i.test(bodyText.substring(0, 500))) {
+          blocked = true
+        } else {
+          html = bodyText
+        }
       }
 
-      html = await res.text()
+      // ScrapingBee fallback for IP-blocked sites
+      if (blocked) {
+        const sbKey = process.env.SCRAPINGBEE_API_KEY
+        if (sbKey) {
+          try {
+            const sbUrl = 'https://app.scrapingbee.com/api/v1/?api_key=' + sbKey + '&url=' + encodeURIComponent(url) + '&render_js=false&block_ads=true'
+            const sbRes = await fetch(sbUrl, { signal: AbortSignal.timeout(15000) })
+            if (sbRes.ok) {
+              const sbBody = await sbRes.text()
+              if (sbBody.length > 1000) {
+                html = sbBody
+                blank.estimated = false
+              }
+            }
+          } catch (_sbErr) { /* ScrapingBee also failed */ }
+        }
+        if (!html) {
+          return { ...blank, error: 'HTTP ' + res.status }
+        }
+      }
     }
 
     if (!blank.htmlSizeBytes) blank.htmlSizeBytes = new TextEncoder().encode(html).length
