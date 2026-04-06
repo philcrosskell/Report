@@ -324,8 +324,15 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     blank.hasStarRatings = /(?:class=["'][^"']*(?:star-rating|stars|fa-star|rating)[^"']*["']|"ratingValue"|itemprop=["']ratingValue["'])/i.test(html)
 
     // Case study / portfolio detection
-    // Case study detection — broad pattern covering common ways agencies show their work
-    blank.hasCaseStudies = /case.stud|portfolio|our.work|client.result|project.result|view.work|see.work|success.stor|our.project|featured.work|recent.work|what.we.built|we.built|recent.project|client.project|work.we.ve|work.we.have|our.client|showcase|gallery|built.for|designed.for|developed.for|created.for|delivered.for|worked.with/i.test(html)
+    // Case study detection — strip scripts/styles first to avoid false positives from framework code
+    const htmlNoScript = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '')
+    // Only match in visible text content — look for patterns in tag text/attributes that indicate real work examples
+    const hasRealCaseStudies = /case\s*stud/i.test(htmlNoScript)
+    const hasPortfolioContent = /(?:class|id|href|title|alt|aria-label)=[^>]*portfolio[^>]*>|>\s*(?:our\s+)?portfolio\s*</i.test(htmlNoScript)
+    const hasWorkSection = />\s*(?:our\s+work|recent\s+work|featured\s+work|view\s+work|see\s+our\s+work)\s*</i.test(htmlNoScript)
+    const hasClientResults = />\s*(?:client\s+results?|client\s+projects?|success\s+stor|case\s+results?)\s*</i.test(htmlNoScript)
+    const hasBuiltFor = />\s*(?:built\s+for|designed\s+for|developed\s+for|delivered\s+for)\s*</i.test(htmlNoScript)
+    blank.hasCaseStudies = hasRealCaseStudies || hasPortfolioContent || hasWorkSection || hasClientResults || hasBuiltFor
 
     // Nav link text extraction
     const navMatches = html.match(/<(?:nav|header)[^>]*>[\s\S]*?<\/(?:nav|header)>/gi) ?? []
