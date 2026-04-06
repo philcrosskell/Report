@@ -652,13 +652,14 @@ function GbpScoreBar({ label, score }: { label: string; score: number }) {
   )
 }
 
-function GbpCheckItem({ label, pass, warn }: { label: string; pass: boolean | null; warn?: boolean }) {
+function GbpCheckItem({ label, pass, warn, source }: { label: string; pass: boolean | null; warn?: boolean; source?: string }) {
   const col = pass === null ? 'var(--t3)' : pass ? 'var(--green)' : warn ? 'var(--accent)' : 'var(--red)'
   const icon = pass === null ? '?' : pass ? '✓' : warn ? '◼' : '✕'
   return (
     <div className="flex items-start gap-2 py-1.5 border-b last:border-0 text-[12px]" style={{ borderColor: 'var(--border)' }}>
       <span className="flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ color: col, fontWeight: 700, fontSize: warn && !pass ? 10 : 13, width: 16, height: 16, background: warn && !pass ? 'rgba(245,158,11,0.15)' : 'transparent', border: warn && !pass ? '1.5px solid var(--accent)' : 'none', borderRadius: 3 }}>{icon}</span>
-      <span style={{ color: 'var(--t2)' }}>{label}</span>
+      <span style={{ color: 'var(--t2)', flex: 1 }}>{label}</span>
+      {source && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, marginLeft: 6, flexShrink: 0, background: source === 'api' ? 'rgba(59,130,246,0.1)' : 'rgba(99,102,241,0.1)', color: source === 'api' ? '#3b82f6' : 'var(--accent)', border: source === 'api' ? '1px solid rgba(59,130,246,0.25)' : '1px solid rgba(99,102,241,0.25)' }}>{source === 'api' ? 'API' : 'You'}</span>}
     </div>
   )
 }
@@ -791,6 +792,10 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
   const [manualOwnerResponds, setManualOwnerResponds] = useState(false)
   const [manualServiceArea, setManualServiceArea] = useState(false)
   const [manualDescription, setManualDescription] = useState(false)
+  const [manualHolidayHours, setManualHolidayHours] = useState(false)
+  const [manualServices, setManualServices] = useState(false)
+  const [manualAppointment, setManualAppointment] = useState(false)
+  const [manualRecentPhotos, setManualRecentPhotos] = useState(false)
   const [suburb, setSuburb] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -816,7 +821,7 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
       const res = await fetch('/api/gbp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName: bizName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription })
+        body: JSON.stringify({ businessName: bizName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription, manualHolidayHours, manualServices, manualAppointment, manualRecentPhotos })
       })
       const json = await res.json() as { success: boolean; data?: GbpAuditData; error?: string }
       if (!json.success || !json.data) { setError(json.error || 'Audit failed'); return }
@@ -874,6 +879,10 @@ function GbpAuditPage({ onSave }: { onSave: () => void }) {
                 [manualOwnerResponds, setManualOwnerResponds, 'Responds to reviews'],
                 [manualServiceArea, setManualServiceArea, 'Service area configured'],
                 [manualDescription, setManualDescription, 'Business description set'],
+                  [manualHolidayHours, setManualHolidayHours, 'Holiday hours configured'],
+                  [manualServices, setManualServices, 'Services listed on GBP'],
+                  [manualAppointment, setManualAppointment, 'Appointment / booking link'],
+                  [manualRecentPhotos, setManualRecentPhotos, 'Recent photos added'],
               ] as [boolean, (v: boolean) => void, string][]).map((item, ti) => (
                 <button key={ti} onClick={() => item[1](!item[0])} className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-left transition-colors" style={{ background: item[0] ? 'rgba(16,185,129,0.12)' : 'var(--bg3)', border: item[0] ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border)', color: item[0] ? 'var(--green)' : 'var(--t2)' }}>
                   <span style={{ fontSize: 14 }}>{item[0] ? '✓' : '○'}</span>{item[2]}

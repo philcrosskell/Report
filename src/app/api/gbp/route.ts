@@ -10,7 +10,7 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json() as AnyRecord
-    const { businessName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription } = body as { businessName: string; suburb: string; manualPosts?: boolean; manualOwnerResponds?: boolean; manualServiceArea?: boolean; manualDescription?: boolean }
+    const { businessName, suburb, manualPosts, manualOwnerResponds, manualServiceArea, manualDescription, manualHolidayHours, manualServices, manualAppointment, manualRecentPhotos } = body as { businessName: string; suburb: string; manualPosts?: boolean; manualOwnerResponds?: boolean; manualServiceArea?: boolean; manualDescription?: boolean; manualHolidayHours?: boolean; manualServices?: boolean; manualAppointment?: boolean; manualRecentPhotos?: boolean }
     if (!businessName || !suburb) {
       return NextResponse.json({ success: false, error: 'Business name and suburb are required' }, { status: 400 })
     }
@@ -122,6 +122,10 @@ Return ONLY this JSON (no markdown):
     if (manualOwnerResponds) { result.ownerRespondsToReviews = true; result.unansweredReviews = 0 }
     if (manualServiceArea) result.serviceAreaSet = true
     if (manualDescription) result.hasDescription = true
+    if (manualHolidayHours) result.holidayHoursSet = true
+    if (manualServices) result.servicesListed = true
+    if (manualAppointment) result.appointmentLink = true
+    if (manualRecentPhotos) result.hasRecentPhotos = true
 
     // Filter issues that contradict manual confirmations
     if (Array.isArray(result.issues)) {
