@@ -1,5 +1,5 @@
 'use client'
-import { GbpAuditData } from '@/lib/types'
+import { GbpAuditData } from '@/lib/storage'
 
 type CheckItem = { label: string; pass: boolean; warn: boolean; action: string }
 
