@@ -206,12 +206,12 @@ def cat_bar(cv, y, label, pct, fill_col, pct_col):
     return y + 18
 
 def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail, compact=False):
-    text_w = int(CW * 0.68)
+    text_w = int(CW * 0.88)
     cv.setFillColor(dot_col); cv.circle(L+4, ry(y-3), 4, fill=1, stroke=0)
     _sz = 8.5 if compact else 9.5
     txt(cv, L+14, y, label, bold=True, sz=_sz, col=DARK_TEXT)
     tw_tag = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
-    tag_x = (L + text_w + R) / 2 - tw_tag / 2
+    tag_x = R - tw_tag - 4
     tag(cv, tag_x, y-3, tg_text, tg_bg, tg_fg)
     det_lines = simpleSplit(detail, 'Helvetica', 9.5, text_w - 14)
     cy = y + 14
