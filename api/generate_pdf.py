@@ -205,11 +205,10 @@ def cat_bar(cv, y, label, pct, fill_col, pct_col):
     txt(cv, R-8, y, f'{pct}%', bold=True, sz=9, col=pct_col, align='right')
     return y + 18
 
-def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail, compact=False):
+def check_item(cv, y, dot_col, label, tg_text, tg_bg, tg_fg, detail):
     text_w = int(CW * 0.68)
     cv.setFillColor(dot_col); cv.circle(L+4, ry(y-3), 4, fill=1, stroke=0)
-    _sz = 8.5 if compact else 9.5
-    txt(cv, L+14, y, label, bold=True, sz=_sz, col=DARK_TEXT)
+    txt(cv, L+14, y, label, bold=True, sz=9.5, col=DARK_TEXT)
     tw_tag = cv.stringWidth(tg_text, 'Helvetica-Bold', 7.5) + 18
     tag_x = (L + text_w + R) / 2 - tw_tag / 2
     tag(cv, tag_x, y-3, tg_text, tg_bg, tg_fg)
@@ -348,9 +347,9 @@ def generate_pdf(audit):
     # Cover body
     y = 6 + 108 + 90
     business_name = label
-    name_lines = simpleSplit(business_name, 'Helvetica-Bold', 52, CW)
+    name_lines = simpleSplit(business_name, 'Helvetica-Bold', 32.8, CW)
     for ln in name_lines[:2]:
-        txt(cv, L, y, ln, bold=True, sz=32.8, col=DARK_TEXT); y += 56
+        txt(cv, L, y, ln, bold=True, sz=32.8, col=DARK_TEXT); y += 40
     y += 20 - 56  # adjust: we already added 56 per line, subtract one extra 56, add 20
     # Actually recalc: after the loop y has been advanced by 56 * len(name_lines[:2])
     # We want: after last name line, gap of 20pt before page type
@@ -618,18 +617,14 @@ def generate_pdf(audit):
                 dot_col = {'pass': GREEN, 'fail': CORAL, 'warn': AMBER}.get(status, AMBER)
                 tg_bg, tg_fg = tg_map_def.get(crit, (TAG_AMB_BG, TAG_AMB_FG))
                 tg_text = crit_map.get(crit, crit)
-                _compact = group_idx == 2
-                _det_font = 8.0 if _compact else 9.5*0.9
-                _lh2 = 11 if _compact else 13
-                _overhead = 24 if _compact else 30
-                det_lines = simpleSplit(check.get('detail',''), 'Helvetica', _det_font, int(CW*0.68)-14)
-                item_h = len(det_lines)*_lh2 + _overhead
+                det_lines = simpleSplit(check.get('detail',''), 'Helvetica', 9.5*0.9, int(CW*0.68)-14)
+                item_h = len(det_lines)*13 + 30
                 if y + item_h > H - 80:
                     new_page()
                     page_n += 1
                     cont_header(cv, CORAL, ORANGE, 'SEO Analysis', pg_of(page_n), audit_lbl)
                     y = 4 + 36 + 20
-                y = check_item(cv, y, dot_col, check.get('label',''), tg_text, tg_bg, tg_fg, check.get('detail',''), compact=_compact)
+                y = check_item(cv, y, dot_col, check.get('label',''), tg_text, tg_bg, tg_fg, check.get('detail',''))
             y += 6
     # ─────────────── AEO SECTION ──────────────────────────────────────────────
     aeo = r.get('aeoScore')
