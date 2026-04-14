@@ -475,7 +475,7 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
   }>>([])
   const [error, setError] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
-  const [savedSearches, setSavedSearches] = useState<LeadSearch[]>(() => getLeadSearches())
+  const [savedSearches, setSavedSearches] = useState<LeadSearch[]>(() => getLeadSearches().filter(s => s.prospects.length === 0 || s.prospects[0]?.businessName))
   const STEPS = ['Searching for local businesses...', 'Discovering websites...', 'Analysing SEO signals...', 'Checking conversion readiness...', 'Scoring branding & UX...', 'Ranking by opportunity...']
 
   const run = async () => {
@@ -535,7 +535,14 @@ function LeadMachinePage({ onAudit }: { onAudit: (url: string, label: string, in
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--t1)' }}>{s.industry} · {s.postcode}{s.suburb ? ' · ' + s.suburb : ''}</div>
                     <div className="text-[11px]" style={{ color: 'var(--t3)' }}>{s.prospects.length} prospects · {new Date(s.searchedAt).toLocaleDateString('en-AU')}</div>
                   </div>
-                  <Btn sm onClick={() => setProspects(s.prospects as never)}>Load</Btn>
+                  <Btn sm onClick={() => () => {
+                    if (s.prospects[0]?.businessName) {
+                      setProspects(s.prospects as never)
+                    } else {
+                      // Stale data — auto-re-run the search
+                      setIndustry(s.industry); setPostcode(s.postcode); setSuburb(s.suburb || '')
+                    }
+                  }}>Load</Btn>
                   <Btn sm danger onClick={() => { deleteLeadSearch(s.id); setSavedSearches(getLeadSearches()) }}>✕</Btn>
                 </div>
               ))}
