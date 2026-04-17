@@ -29,6 +29,7 @@ Testimonials/Reviews: ${scraped.hasTestimonials ? `YES — ${scraped.testimonial
 HTTPS: ${scraped.hasHttps ? 'yes' : 'NO'} | Response: ${scraped.responseTimeMs}ms | Size: ${Math.round(scraped.htmlSizeBytes/1024)}kB
 Canonical: ${scraped.canonicalUrl || 'missing'} | Lang: ${scraped.language || 'not set'} | Viewport: ${scraped.hasViewport ? 'yes' : 'MISSING'}
 Schema: ${scraped.hasSchema ? scraped.schemaTypes.join(', ') : 'none'} | OG: ${scraped.hasOpenGraph ? 'yes' : 'missing'} | Analytics: ${scraped.hasGoogleAnalytics || scraped.hasGTM ? 'yes' : 'none detected'} | Favicon: ${scraped.hasFavicon ? 'yes' : 'missing'} | Case studies/portfolio: ${scraped.hasCaseStudies ? 'YES — detected on page' : 'not detected in HTML (may be JS-rendered)'} | Nav pages: ${scraped.navLinks && scraped.navLinks.length ? scraped.navLinks.join(', ') : 'unknown'}
+AEO signals (GROUND TRUTH — use these exact values when scoring AEO): FAQ schema Q&A pairs: ${scraped.faqSchemaQAPairs} | FAQ answer pairs in content: ${scraped.faqAnswerPairs} | Question headings (H1-H6 ending in ?): ${scraped.questionHeadings} — if faqSchemaQAPairs > 0 or faqAnswerPairs > 0, the page DOES have Q&A content and must score pass on that AEO check
 ${scraped.isSinglePageSite ? `
 ⚠ SINGLE PAGE SITE — This appears to be a single page website. You MUST flag the following as critical SEO issues in pageQuality and linkStructure checks:
 - Limited keyword targeting: can only rank for one primary topic
