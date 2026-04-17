@@ -24,7 +24,8 @@ function runAeoChecks(s: ScrapedPage, pageType?: string): import('./types').AeoS
 
     // faqAnswerPairs: question headings with 40+ word answer paragraph (3pts)
     // 1-3 = 1pt, 4-6 = 2pts, 7+ = 3pts
-    const ap = s.faqAnswerPairs ?? 0
+    // Use max of HTML pairs or schema pairs — schema Q&A also proves answer content exists
+    const ap = Math.max(s.faqAnswerPairs ?? 0, s.faqSchemaQAPairs ?? 0)
     faqAnswerPairs = ap >= 7 ? 3 : ap >= 4 ? 2 : ap >= 1 ? 1 : 0
 
     // questionHeadings: question-phrased headings count (3pts)
