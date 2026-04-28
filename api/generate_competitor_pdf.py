@@ -138,6 +138,19 @@ def tbl_row(cv, y, cols, cells, even=False, cell_cols=None):
 
 def sco_col(n): return GREEN if n >= 56 else AMBER if n >= 45 else CORAL
 
+SEO_CAT_MAX = {
+    'title': 10, 'metadescription': 4, 'h1': 8, 'wordcount': 6,
+    'https': 6, 'viewport': 5, 'imagealt': 3, 'titleh1alignment': 5,
+    'schema': 4, 'canonical': 3, 'responsetime': 3,
+}
+
+def sco_col_cat(v, cat):
+    key = cat.lower().replace(' ', '').replace('_', '')
+    mx = SEO_CAT_MAX.get(key, 10)
+    if mx == 0: return MUTED
+    pct = v / mx
+    return GREEN if pct >= 0.9 else AMBER if pct > 0.5 else CORAL
+
 def bar_row(cv, y, label, val, max_val, fill_col):
     txt(cv, L, y, label, sz=9.5, col=BODY)
     bx = L+160; bw = CW-170-50; bh = 10
@@ -304,7 +317,7 @@ def generate_competitor_pdf(report):
                 for p in seo_profiles:
                     v = p.get('seoBreakdown',{}).get(cat, 0)
                     cells.append(str(v))
-                    cell_cols.append(GREEN if v > 0 else MUTED)
+                    cell_cols.append(sco_col_cat(v, cat) if v > 0 else CORAL)
                 y = tbl_row(cv, y, bd_cols, cells, even=(i%2==1), cell_cols=cell_cols)
                 if y > H-80:
                     new_page()
@@ -358,7 +371,7 @@ def generate_competitor_pdf(report):
         if seo is not None:
             seo_label = f'SEO: {seo}/62'
             tag(cv, R-80, y+10, seo_label, sco_col(seo), WHITE)
-        y += 36+2
+        y += 36+14
 
         # Two-column field layout
         half = CW//2
@@ -408,7 +421,7 @@ def generate_competitor_pdf(report):
             vals = [row.get('claimType','')]
             vcols = [DARK_TEXT]
             for ct in cm_types:
-                v = row.get('values',{}).get(ct,'—')
+                v = row.get('values',{}).get(ct, row.get(ct,'—'))
                 vals.append(str(v))
                 vcols.append(val_col_map.get(str(v), MUTED))
             y = tbl_row(cv, y, cm_cols, vals, even=(i%2==1), cell_cols=vcols)
