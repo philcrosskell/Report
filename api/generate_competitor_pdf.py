@@ -145,11 +145,7 @@ SEO_CAT_MAX = {
 }
 
 def sco_col_cat(v, cat):
-    key = cat.lower().replace(' ', '').replace('_', '')
-    mx = SEO_CAT_MAX.get(key, 10)
-    if mx == 0: return MUTED
-    pct = v / mx
-    return GREEN if pct >= 0.9 else AMBER if pct > 0.5 else CORAL
+    return GREEN if v >= 9 else AMBER if v >= 6 else CORAL
 
 def bar_row(cv, y, label, val, max_val, fill_col):
     txt(cv, L, y, label, sz=9.5, col=BODY)
@@ -205,8 +201,8 @@ def generate_competitor_pdf(report):
     # Title block
     y = 6+108+60
     nm_lines = simpleSplit(biz_name, 'Helvetica-Bold', 46, CW)
-    for ln in nm_lines[:2]: txt(cv, L, y, ln, bold=True, sz=46, col=DARK_TEXT); y += 52
-    y -= 52; y += 18
+    for ln in nm_lines[:2]: txt(cv, L, y, ln, bold=True, sz=32, col=DARK_TEXT); y += 38
+    y -= 38; y += 14
     txt(cv, L, y, 'COMPETITOR ANALYSIS REPORT', bold=True, sz=9, col=MUTED); y += 14
     if market: txt(cv, L, y, market, sz=10, col=LABEL); y += 14
     txt(cv, L, y, biz_url, sz=9.5, col=LABEL); y += 18
@@ -242,7 +238,7 @@ def generate_competitor_pdf(report):
     findings = report.get('headlineFindings', [])
     if findings:
         y += 8
-        txt(cv, L, y, 'HEADLINE FINDINGS', bold=True, sz=8, col=LABEL); y += 16
+        txt(cv, L, y, 'HEADLINE FINDINGS', bold=True, sz=8, col=INDIGO); y += 16
         for f in findings[:5]:
             if y > H-80: break
             num_w = tw(cv, str(f.get('number','')), True, 11)
@@ -259,7 +255,7 @@ def generate_competitor_pdf(report):
 
     # Table: Name | Tier | SEO Score | Positioning | What they do well
     tier_cols = [DARK, HexColor('#1E3A8A'), HexColor('#065F46'), HexColor('#4C1D95'), HexColor('#7F1D1D')]
-    cols = [140, 45, 70, CW-340, CW-200-(CW-340)-45-70]
+    cols = [120, 45, 65, 160, 0]
     # Make last col fill remaining
     used = sum(cols[:-1]); cols[-1] = CW - used
     y = tbl_header(cv, y, cols, ['COMPETITOR','TIER','SEO SCORE','POSITIONING','WHAT THEY DO WELL'])
@@ -302,6 +298,12 @@ def generate_competitor_pdf(report):
                 cont_header(cv, INDIGO, GREEN, 'SEO Breakdown', str(pg[0]))
                 y = 4+36+20
 
+            # Force SEO breakdown onto one page — start new page if not enough room
+            needed = len(list(first_bd.keys())) * 26 + 80
+            if y + needed > H - 40:
+                new_page()
+                cont_header(cv, INDIGO, GREEN, 'SEO Breakdown', str(pg[0]))
+                y = 4+36+20
             y = sub_head(cv, y, 'SEO Category Breakdown', INDIGO)
             n_comp_cols = len(seo_profiles)
             cat_col_w = 130
@@ -319,11 +321,6 @@ def generate_competitor_pdf(report):
                     cells.append(str(v))
                     cell_cols.append(sco_col_cat(v, cat) if v > 0 else CORAL)
                 y = tbl_row(cv, y, bd_cols, cells, even=(i%2==1), cell_cols=cell_cols)
-                if y > H-80:
-                    new_page()
-                    cont_header(cv, INDIGO, GREEN, 'SEO Breakdown', str(pg[0]))
-                    y = 4+36+20
-                    y = tbl_header(cv, y, bd_cols, headers)
 
             # Total row
             total_cells = ['TOTAL /62']
@@ -364,14 +361,15 @@ def generate_competitor_pdf(report):
             y = 4+36+20
 
         # Profile card header
+        y += 10
         seo = p.get('seoScore')
-        rect(cv, L, y, CW, 36, fill=DARK, r=8)
-        txt(cv, L+14, y+14, p.get('name',''), bold=True, sz=13, col=WHITE)
-        txt(cv, L+14, y+28, p.get('url',''), sz=8.5, col=Color(1,1,1,0.3))
+        rect(cv, L, y, CW, 44, fill=DARK, r=8)
+        txt(cv, L+14, y+18, p.get('name',''), bold=True, sz=13, col=WHITE)
+        txt(cv, L+14, y+33, p.get('url',''), sz=8.5, col=Color(1,1,1,0.3))
         if seo is not None:
             seo_label = f'SEO: {seo}/62'
-            tag(cv, R-80, y+10, seo_label, sco_col(seo), WHITE)
-        y += 36+14
+            tag(cv, R-80, y+14, seo_label, sco_col(seo), WHITE)
+        y += 44+20
 
         # Two-column field layout
         half = CW//2
@@ -416,12 +414,14 @@ def generate_competitor_pdf(report):
         headers = ['CLAIM TYPE'] + cm_types
         y = tbl_header(cv, y, cm_cols, headers)
 
-        val_col_map = {'Yes': GREEN, 'No': CORAL, 'Partial': AMBER}
+        IGNORED_RED = HexColor('#7F1D1D')
+        val_col_map = {'Yes': GREEN, 'No': IGNORED_RED, 'Partial': AMBER}
         for i, row in enumerate(cm_rows):
             vals = [row.get('claimType','')]
             vcols = [DARK_TEXT]
+            row_vals = row.get('values', {})
             for ct in cm_types:
-                v = row.get('values',{}).get(ct, row.get(ct,'—'))
+                v = row_vals.get(ct, row.get(ct, '—'))
                 vals.append(str(v))
                 vcols.append(val_col_map.get(str(v), MUTED))
             y = tbl_row(cv, y, cm_cols, vals, even=(i%2==1), cell_cols=vcols)
@@ -467,7 +467,7 @@ def generate_competitor_pdf(report):
         for i, ba in enumerate(anxieties):
             y = tbl_row(cv, y, a_cols,
                 [ba.get('concern',''), ba.get('addressedBy',''), ba.get('ignoredBy','')],
-                even=(i%2==1), cell_cols=[DARK_TEXT, GREEN, CORAL])
+                even=(i%2==1), cell_cols=[DARK_TEXT, GREEN, HexColor('#7F1D1D')])
             if y > H-80:
                 new_page(); cont_header(cv, GREEN, MINT, 'Strategic Landscape', str(pg[0])); y = 4+36+20
                 y = tbl_header(cv, y, a_cols, ['BUYER CONCERN', 'ADDRESSED BY', 'IGNORED BY'])
@@ -486,9 +486,7 @@ def generate_competitor_pdf(report):
     # Quick Wins
     quick_wins = report.get('quickWins', [])
     if quick_wins:
-        if y + 60 > H-60:
-            new_page(); cont_header(cv, GREEN, MINT, 'Strategic Landscape', str(pg[0])); y = 4+36+20
-        y = sub_head(cv, y, 'Quick Wins', GREEN)
+        new_page(); sec_header(cv, GREEN, MINT, 'SECTION', 'Quick Wins', str(pg[0]), biz_name.upper()); y = 6+72+20
         eff_map = {'Easy':(TAG_GRN_BG,TAG_GRN_FG),'Medium':(TAG_AMB_BG,TAG_AMB_FG),'Hard':(TAG_RED_BG,TAG_RED_FG)}
         for qw in quick_wins:
             eff = qw.get('effort','Medium')
