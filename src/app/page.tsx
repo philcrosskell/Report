@@ -13,6 +13,9 @@ import {
   getBrandLogo, saveBrandLogo, clearBrandLogo, getSeoChecks, addSeoCheck, deleteSeoCheck, SeoCheckResult,
 } from '@/lib/storage'
 import { exportHTML } from '@/lib/htmlExport'
+import { getAdsReports, addAdsReport, deleteAdsReport, AdsReport, AdsReportData, AdsReportRecommendation, AdsReportKeywordSuggestion, AdsReportNegativeSuggestion } from '@/lib/adsReportStorage'
+import { ParsedFile, AdsFileKind, FILE_KIND_LABELS, parseFile, computeAdsReport, buildAiSummary } from '@/lib/adsReportParse'
+import { exportAdsReportHtml } from '@/lib/adsReportHtmlExport'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
 
@@ -179,7 +182,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
 }
 
 //  app 
-type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'seocheck'
+type View = 'dashboard' | 'projects' | 'audit' | 'competitor' | 'reports' | 'settings' | 'lead' | 'gbp' | 'seocheck' | 'adsreport'
 const LP_LABELS: Record<keyof LpScoring, string> = { messageClarity: 'Message & Value Clarity', trustSocialProof: 'Trust & Social Proof', ctaForms: 'CTA & Forms', technicalPerformance: 'Technical Performance', visualUX: 'Visual Design & UX' }
 const SEO_LABELS: Record<keyof SeoCategories, string> = { metaInformation: 'Meta Information', pageQuality: 'Page Quality', pageStructure: 'Page Structure', linkStructure: 'Link Structure', serverTechnical: 'Server & Technical', externalFactors: 'External Factors' }
 const STEPS = ['Fetching page signals', 'Analysing SEO — 6 categories', 'Scoring landing page', 'Evaluating messaging & trust', 'Competitor gap analysis', 'Classifying positioning', 'Building gap analysis']
@@ -192,6 +195,7 @@ const NAV_ICONS: Record<string, string> = {
   gbp: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
   greats: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
   seocheck: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v6m-3-3h6',
+adsreport: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
   settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
 }
 
@@ -233,6 +237,7 @@ export default function Home() {
     { id: 'competitor', label: 'Competitor Analysis', section: 'Tools' },
     { id: 'lead', label: 'Lead Machine', section: 'Tools' },
         { id: 'seocheck', label: 'SEO Check', section: 'Tools' },
+{ id: 'adsreport', label: 'Ads & Analytics Report', section: 'Tools' },
     { id: 'settings', label: 'Settings', section: 'Config' },
   ]
 
@@ -452,6 +457,7 @@ function SeoCheckSection() {
         {view === 'gbp' && <GbpAuditPage onSave={() => setGbpAudits(getGbpAudits())} />}
                 {view === 'lead' && <LeadMachinePage onAudit={(url, label, industry) => { setView('audit'); setTimeout(() => { (window as { auditProspect?: (d: { name?: string; website?: string; industry?: string }) => void }).auditProspect?.({ website: url, name: label, industry }) }, 300) }} />}
         {view === 'seocheck' && <SeoCheckSection />}
+{view === 'adsreport' && <AdsReportPage />}
           {view === 'settings' && <Settings weights={weights} onSave={w => { setWeights(w); saveLpWeights(w) }} />}
       </main>
     </div>
@@ -2351,5 +2357,301 @@ function Settings({ weights, onSave }: { weights: LpWeights; onSave: (w: LpWeigh
         </Card>
       </div>
     </>
+  )
+}
+
+// ============================================================
+// ADS & ANALYTICS REPORT — Google Ads + GA4 CSV upload, AI-drafted
+// recommendations (reviewed before export), branded HTML export.
+// Appended as a standalone view component; wired up via the
+// 'adsreport' View id in the sidebar.
+// ============================================================
+function AdsReportPage() {
+  const [clientName, setClientName] = useState('')
+  const [periodLabel, setPeriodLabel] = useState('')
+  const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([])
+  const [unrecognized, setUnrecognized] = useState<string[]>([])
+  const [step, setStep] = useState<'upload' | 'review' | 'recommend'>('upload')
+  const [reportData, setReportData] = useState<AdsReportData | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState('')
+  const [recs, setRecs] = useState<AdsReportRecommendation[]>([])
+  const [longTail, setLongTail] = useState<AdsReportKeywordSuggestion[]>([])
+  const [negative, setNegative] = useState<AdsReportNegativeSuggestion[]>([])
+  const [saved, setSaved] = useState<AdsReport[]>(() => getAdsReports())
+  const [savedNotice, setSavedNotice] = useState('')
+
+  const REQUIRED_KINDS: AdsFileKind[] = [
+    'dailyPerformance', 'campaignComparison', 'campaignConversions', 'optimizationScore',
+    'device', 'gender', 'age', 'hourOfDay', 'keywords', 'searchTerms', 'gaTraffic', 'gaPages', 'gaAttribution',
+  ]
+
+  const foundKinds = new Set(parsedFiles.map(f => f.kind))
+
+  const onFiles = async (fileList: FileList | null) => {
+    if (!fileList) return
+    const newFiles: ParsedFile[] = []
+    const failed: string[] = []
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i]
+      const text = await file.text()
+      const parsed = parseFile(file.name, text)
+      if (parsed) newFiles.push(parsed)
+      else failed.push(file.name)
+    }
+    setParsedFiles(prev => {
+      const byKind = new Map(prev.map(f => [f.kind, f]))
+      newFiles.forEach(f => byKind.set(f.kind, f))
+      return Array.from(byKind.values())
+    })
+    setUnrecognized(failed)
+  }
+
+  const runAnalyze = () => {
+    const data = computeAdsReport(parsedFiles)
+    setReportData(data)
+    setStep('review')
+  }
+
+  const draftRecommendations = async () => {
+    if (!reportData) return
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const summary = buildAiSummary(reportData)
+      const res = await fetch('/api/ads-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientName, periodLabel, summary }),
+      })
+      const json = await res.json()
+      if (!json.success) { setAiError(json.error || 'Failed to draft recommendations'); return }
+      const draftedRecs = (json.recommendations || []).map((r: { title: string; description: string; priority: string }) => ({
+        id: uid(), title: r.title, description: r.description, priority: r.priority === 'strategic' ? 'strategic' : 'quick',
+      }))
+      const draftedLongTail = (json.longTailKeywords || []).map((t: { term: string; note: string }) => ({ term: t.term, note: t.note }))
+      const draftedNegative = (json.negativeKeywords || []).map((t: { term: string; reason: string }) => ({
+        term: t.term,
+        reason: t.reason,
+        cost: (reportData.longTailCandidates.find(c => c.term.toLowerCase() === t.term.toLowerCase()) || { cost: 0 }).cost,
+      }))
+      setRecs(draftedRecs)
+      setLongTail(draftedLongTail)
+      setNegative(draftedNegative)
+      setStep('recommend')
+    } catch (e) {
+      setAiError('Network error — please try again')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const updateRec = (id: string, field: 'title' | 'description' | 'priority', value: string) => {
+    setRecs(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r))
+  }
+  const removeRec = (id: string) => setRecs(prev => prev.filter(r => r.id !== id))
+  const addRec = () => setRecs(prev => [...prev, { id: uid(), title: 'New recommendation', description: '', priority: 'quick' }])
+
+  const updateLongTail = (i: number, field: 'term' | 'note', value: string) => {
+    setLongTail(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
+  }
+  const removeLongTail = (i: number) => setLongTail(prev => prev.filter((_, idx) => idx !== i))
+  const addLongTail = () => setLongTail(prev => [...prev, { term: '', note: '' }])
+
+  const updateNegative = (i: number, field: 'term' | 'reason', value: string) => {
+    setNegative(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
+  }
+  const removeNegative = (i: number) => setNegative(prev => prev.filter((_, idx) => idx !== i))
+  const addNegative = () => setNegative(prev => [...prev, { term: '', reason: '', cost: 0 }])
+
+  const approveAndExport = () => {
+    if (!reportData) return
+    const report: AdsReport = {
+      id: uid(),
+      clientName: clientName || 'Client',
+      periodLabel: periodLabel || 'Reporting period',
+      createdAt: new Date().toISOString(),
+      data: reportData,
+      recommendations: recs,
+      approvedLongTail: longTail,
+      approvedNegative: negative,
+      status: 'approved',
+    }
+    addAdsReport(report)
+    setSaved(getAdsReports())
+    exportAdsReportHtml(report)
+    setSavedNotice('Report saved and downloaded.')
+  }
+
+  const startOver = () => {
+    setClientName(''); setPeriodLabel(''); setParsedFiles([]); setUnrecognized([])
+    setStep('upload'); setReportData(null); setRecs([]); setLongTail([]); setNegative([])
+    setAiError(''); setSavedNotice('')
+  }
+
+  const redownload = (r: AdsReport) => exportAdsReportHtml(r)
+  const removeSaved = (id: string) => { deleteAdsReport(id); setSaved(getAdsReports()) }
+
+  return (
+    <>
+      <TopBar title="Ads &amp; Analytics Report" sub="Upload Google Ads + GA4 exports, review the recommendations an AI drafts from the numbers, then export a branded client report.">
+        {step !== 'upload' && <Btn onClick={startOver} sm>Start over</Btn>}
+      </TopBar>
+      <div className="flex-1 overflow-y-auto" style={{ padding: '28px 32px', maxWidth: 960 }}>
+
+        {step === 'upload' && (
+          <>
+            <Card>
+              <CTitle>Report details</CTitle>
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <Lbl>Client name</Lbl>
+                  <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="e.g. Murray Valley Bins &amp; Skips" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Lbl>Reporting period</Lbl>
+                  <input value={periodLabel} onChange={e => setPeriodLabel(e.target.value)} placeholder="e.g. 17 Jun – 8 Jul 2026" />
+                </div>
+              </div>
+            </Card>
+
+            <Card>
+              <CTitle>Upload CSV exports</CTitle>
+              <div
+                style={{ border: '1px dashed var(--border2)', borderRadius: 10, padding: '28px', textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => document.getElementById('ads-report-file-input')?.click()}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); onFiles(e.dataTransfer.files) }}
+              >
+                <input id="ads-report-file-input" type="file" accept=".csv" multiple className="hidden" onChange={e => onFiles(e.target.files)} />
+                <div style={{ fontSize: 13, color: 'var(--t2)' }}>Drop your Google Ads + GA4 CSV exports here, or click to browse.</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>Files are matched automatically by their header row — no need to rename anything.</div>
+              </div>
+
+              <div style={{ marginTop: 18 }}>
+                {REQUIRED_KINDS.map(k => (
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', fontSize: 12.5 }}>
+                    <span style={{ width: 16, color: foundKinds.has(k) ? 'var(--green)' : 'var(--t3)' }}>{foundKinds.has(k) ? '✓' : '—'}</span>
+                    <span style={{ color: foundKinds.has(k) ? 'var(--t1)' : 'var(--t3)' }}>{FILE_KIND_LABELS[k]}</span>
+                  </div>
+                ))}
+              </div>
+
+              {unrecognized.length > 0 && (
+                <div style={{ marginTop: 12, fontSize: 12, color: 'var(--amber)' }}>
+                  Couldn&apos;t match: {unrecognized.join(', ')} — double check these are unedited exports from Google Ads / GA4.
+                </div>
+              )}
+            </Card>
+
+            <Btn primary onClick={runAnalyze} disabled={!clientName.trim() || !periodLabel.trim() || parsedFiles.length === 0}>
+              Analyse {parsedFiles.length} file{parsedFiles.length === 1 ? '' : 's'}
+            </Btn>
+          </>
+        )}
+
+        {step === 'review' && reportData && (
+          <>
+            <Card>
+              <CTitle>Quick check before drafting recommendations</CTitle>
+              <div className="kpi-preview" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <MiniKpi label="Spend" value={'A$' + reportData.kpis.spend.toFixed(2)} />
+                <MiniKpi label="Clicks" value={String(reportData.kpis.clicks)} />
+                <MiniKpi label="Conversions" value={String(reportData.kpis.conversions)} />
+                <MiniKpi label="CTR" value={reportData.kpis.ctr.toFixed(1) + '%'} />
+                <MiniKpi label="Conv. rate" value={reportData.kpis.convRate.toFixed(1) + '%'} />
+                <MiniKpi label="Cost / conv." value={'A$' + reportData.kpis.costPerConv.toFixed(2)} />
+              </div>
+              {reportData.warnings.length > 0 && (
+                <div style={{ marginTop: 14, fontSize: 12.5, color: 'var(--amber)' }}>
+                  {reportData.warnings.map(w => <div key={w}>⚠ {w}</div>)}
+                </div>
+              )}
+            </Card>
+            <Btn primary onClick={draftRecommendations} disabled={aiLoading}>
+              {aiLoading ? 'Drafting…' : 'Draft recommendations with AI'}
+            </Btn>
+            {aiError && <div style={{ marginTop: 10, fontSize: 12.5, color: 'var(--red)' }}>{aiError}</div>}
+          </>
+        )}
+
+        {step === 'recommend' && (
+          <>
+            <Card>
+              <CTitle>Recommendations &amp; next steps — review before export</CTitle>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {recs.map(r => (
+                  <div key={r.id} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                      <input value={r.title} onChange={e => updateRec(r.id, 'title', e.target.value)} style={{ flex: 1 }} />
+                      <select value={r.priority} onChange={e => updateRec(r.id, 'priority', e.target.value)} style={{ width: 120 }}>
+                        <option value="quick">Quick win</option>
+                        <option value="strategic">Strategic</option>
+                      </select>
+                      <Btn danger sm onClick={() => removeRec(r.id)}>Remove</Btn>
+                    </div>
+                    <textarea value={r.description} onChange={e => updateRec(r.id, 'description', e.target.value)} rows={2} style={{ width: '100%' }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10 }}><Btn sm onClick={addRec}>+ Add recommendation</Btn></div>
+            </Card>
+
+            <Card>
+              <CTitle>Keywords to add</CTitle>
+              {longTail.map((t, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input value={t.term} onChange={e => updateLongTail(i, 'term', e.target.value)} placeholder="keyword" style={{ flex: 1 }} />
+                  <input value={t.note} onChange={e => updateLongTail(i, 'note', e.target.value)} placeholder="why" style={{ flex: 2 }} />
+                  <Btn danger sm onClick={() => removeLongTail(i)}>Remove</Btn>
+                </div>
+              ))}
+              <Btn sm onClick={addLongTail}>+ Add keyword</Btn>
+            </Card>
+
+            <Card>
+              <CTitle>Keywords to exclude</CTitle>
+              {negative.map((t, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input value={t.term} onChange={e => updateNegative(i, 'term', e.target.value)} placeholder="keyword" style={{ flex: 1 }} />
+                  <input value={t.reason} onChange={e => updateNegative(i, 'reason', e.target.value)} placeholder="reason" style={{ flex: 2 }} />
+                  <Btn danger sm onClick={() => removeNegative(i)}>Remove</Btn>
+                </div>
+              ))}
+              <Btn sm onClick={addNegative}>+ Add keyword</Btn>
+            </Card>
+
+            <Btn primary onClick={approveAndExport}>Approve &amp; export HTML report</Btn>
+            {savedNotice && <div style={{ marginTop: 10, fontSize: 12.5, color: 'var(--green)' }}>{savedNotice}</div>}
+          </>
+        )}
+
+        <SectionDivider label="Saved reports" />
+        {saved.length === 0 && <Empty icon="📊" title="No reports yet" sub="Generated reports will appear here for re-download." />}
+        {saved.map(r => (
+          <Card key={r.id}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{r.clientName}</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>{r.periodLabel} · {new Date(r.createdAt).toLocaleDateString('en-AU')}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Btn sm onClick={() => redownload(r)}>Re-download</Btn>
+                <Btn danger sm onClick={() => removeSaved(r.id)}>Delete</Btn>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function MiniKpi({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px' }}>
+      <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)' }}>{value}</div>
+      <div style={{ fontSize: 11, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+    </div>
   )
 }
