@@ -124,6 +124,7 @@ th:first-child{border-radius:6px 0 0 0;} th:last-child{border-radius:0 6px 0 0;}
 td{padding:9px 12px;border-bottom:1px solid var(--border);}
 tr:nth-child(even) td{background:#fafbfc;}
 td.num{text-align:right;font-variant-numeric:tabular-nums;}
+th.num{text-align:right;}
 .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
 .tag.good{background:var(--green-light);color:var(--green);} .tag.watch{background:var(--amber-light);color:var(--amber);} .tag.alert{background:var(--red-light);color:var(--red);}
 .cols2{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
@@ -198,7 +199,7 @@ ul.rec-list li:last-child{border-bottom:none;}
     <div>
       <h3 class="mini-title">Period vs. prior period</h3>
       <table>
-        <tr><th>Metric</th><th>This period</th><th>Prior period</th></tr>
+        <tr><th>Metric</th><th class="num">This period</th><th class="num">Prior period</th></tr>
         <tr><td>Ad spend</td><td class="num">${money(k.spend)}</td><td class="num">${k.prevSpend !== null ? money(k.prevSpend) : '—'}</td></tr>
         <tr><td>Clicks</td><td class="num">${k.clicks}</td><td class="num">${k.prevClicks !== null ? k.prevClicks : '—'}</td></tr>
         <tr><td>Avg. CPC</td><td class="num">${money(k.avgCpc)}</td><td class="num">${k.prevAvgCpc !== null ? money(k.prevAvgCpc) : '—'}</td></tr>
@@ -225,7 +226,7 @@ ul.rec-list li:last-child{border-bottom:none;}
   <div class="section-title"><div class="section-num ${colorClasses[3]}">4</div><h2>Keyword &amp; Search Term Performance</h2></div>
   <p class="section-sub">What people typed before clicking your ad</p>
   <h3 class="mini-title">Top keywords by spend</h3>
-  <table><tr><th>Keyword</th><th>Cost</th><th>Clicks</th><th>CTR</th></tr>${keywordRows}</table>
+  <table><tr><th>Keyword</th><th class="num">Cost</th><th class="num">Clicks</th><th class="num">CTR</th></tr>${keywordRows}</table>
 </section>
 
 <section class="page">
@@ -238,7 +239,7 @@ ul.rec-list li:last-child{border-bottom:none;}
     </div>
     <div>
       <h3 class="mini-title">Negative: keywords to exclude</h3>
-      <table><tr><th>Term</th><th>Cost</th><th>Reason</th></tr>${negRows || '<tr><td colspan="3" style="color:var(--muted);">No negative keyword candidates flagged this period.</td></tr>'}</table>
+      <table><tr><th>Term</th><th class="num">Cost</th><th>Reason</th></tr>${negRows || '<tr><td colspan="3" style="color:var(--muted);">No negative keyword candidates flagged this period.</td></tr>'}</table>
     </div>
   </div>
 </section>
@@ -247,7 +248,7 @@ ul.rec-list li:last-child{border-bottom:none;}
   <div class="section-title"><div class="section-num ${colorClasses[5]}">6</div><h2>When Customers Search</h2></div>
   <p class="section-sub">Day-of-week and time-of-day patterns — useful for budget pacing</p>
   <h3 class="mini-title">Clicks &amp; conversions by day</h3>
-  <table><tr><th>Day</th><th>Clicks</th><th>CTR</th><th>Conversions</th></tr>${dayRows}</table>
+  <table><tr><th>Day</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Conversions</th></tr>${dayRows}</table>
   <h3 class="mini-title">Impressions by hour of day</h3>
   <div class="hourchart">${hourBars}</div>
 </section>
@@ -256,11 +257,11 @@ ul.rec-list li:last-child{border-bottom:none;}
   <div class="section-title"><div class="section-num ${colorClasses[6]}">7</div><h2>Website Performance (Google Analytics)</h2></div>
   <p class="section-sub">How traffic from all sources behaves once it lands on the site</p>
   <h3 class="mini-title">Traffic channels</h3>
-  <table><tr><th>Channel</th><th>Sessions</th><th>Share</th><th>Key events</th><th>Conv. rate</th></tr>${channelRows}</table>
+  <table><tr><th>Channel</th><th class="num">Sessions</th><th class="num">Share</th><th class="num">Key events</th><th class="num">Conv. rate</th></tr>${channelRows}</table>
   <h3 class="mini-title">Top pages</h3>
-  <table><tr><th>Page</th><th>Views</th><th>Users</th><th>Key events</th></tr>${pageRows}</table>
+  <table><tr><th>Page</th><th class="num">Views</th><th class="num">Users</th><th class="num">Key events</th></tr>${pageRows}</table>
   ${d.attributionPaths.length ? `<h3 class="mini-title">How customers actually convert (attribution paths)</h3>
-  <table><tr><th>Customer journey</th><th>Key events</th><th>Avg. days to convert</th><th>Touchpoints</th></tr>${attrRows}</table>` : ''}
+  <table><tr><th>Customer journey</th><th class="num">Key events</th><th class="num">Avg. days to convert</th><th class="num">Touchpoints</th></tr>${attrRows}</table>` : ''}
 </section>
 
 <section class="page">
