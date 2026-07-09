@@ -14,7 +14,7 @@ import {
 } from '@/lib/storage'
 import { exportHTML } from '@/lib/htmlExport'
 import { getAdsReports, addAdsReport, deleteAdsReport, AdsReport, AdsReportData, AdsReportRecommendation, AdsReportKeywordSuggestion, AdsReportNegativeSuggestion } from '@/lib/adsReportStorage'
-import { ParsedFile, AdsFileKind, FILE_KIND_LABELS, parseFile, computeAdsReport, buildAiSummary } from '@/lib/adsReportParse'
+import { ParsedFile, AdsFileKind, FILE_KIND_LABELS, parseFile, detectFileKind, computeAdsReport, buildAiSummary } from '@/lib/adsReportParse'
 import { exportAdsReportHtml } from '@/lib/adsReportHtmlExport'
 
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36) }
@@ -2371,6 +2371,7 @@ function AdsReportPage() {
   const [periodLabel, setPeriodLabel] = useState('')
   const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([])
   const [unrecognized, setUnrecognized] = useState<string[]>([])
+  const [skippedFiles, setSkippedFiles] = useState<string[]>([])
   const [step, setStep] = useState<'upload' | 'review' | 'recommend'>('upload')
   const [reportData, setReportData] = useState<AdsReportData | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
@@ -2392,9 +2393,13 @@ function AdsReportPage() {
     if (!fileList) return
     const newFiles: ParsedFile[] = []
     const failed: string[] = []
+    const skipped: string[] = []
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
       const text = await file.text()
+      const kind = detectFileKind(text)
+      if (kind === 'ignored') { skipped.push(file.name); continue }
+      if (!kind) { failed.push(file.name); continue }
       const parsed = parseFile(file.name, text)
       if (parsed) newFiles.push(parsed)
       else failed.push(file.name)
@@ -2405,6 +2410,7 @@ function AdsReportPage() {
       return Array.from(byKind.values())
     })
     setUnrecognized(failed)
+    setSkippedFiles(skipped)
   }
 
   const runAnalyze = () => {
@@ -2484,7 +2490,7 @@ function AdsReportPage() {
   }
 
   const startOver = () => {
-    setClientName(''); setPeriodLabel(''); setParsedFiles([]); setUnrecognized([])
+    setClientName(''); setPeriodLabel(''); setParsedFiles([]); setUnrecognized([]); setSkippedFiles([])
     setStep('upload'); setReportData(null); setRecs([]); setLongTail([]); setNegative([])
     setAiError(''); setSavedNotice('')
   }
@@ -2540,6 +2546,11 @@ function AdsReportPage() {
               {unrecognized.length > 0 && (
                 <div style={{ marginTop: 12, fontSize: 12, color: 'var(--amber)' }}>
                   Couldn&apos;t match: {unrecognized.join(', ')} — double check these are unedited exports from Google Ads / GA4.
+                </div>
+              )}
+              {skippedFiles.length > 0 && (
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--t3)' }}>
+                  Skipped {skippedFiles.length} file{skippedFiles.length === 1 ? '' : 's'} not needed for this report (day-of-week impressions, word report, combined gender+age, or day+hour breakdown) — safe to include the full download package every time.
                 </div>
               )}
             </Card>

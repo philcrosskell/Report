@@ -88,7 +88,7 @@ function splitGa4Comment(rows: string[][]): { commentText: string; header: strin
   return { commentText: commentLines.join('\n'), header, dataRows }
 }
 
-export function detectFileKind(text: string): AdsFileKind | null {
+export function detectFileKind(text: string): AdsFileKind | 'ignored' | null {
   const rows = parseCsvLines(text.trim())
   if (rows.length === 0) return null
 
@@ -111,15 +111,19 @@ export function detectFileKind(text: string): AdsFileKind | null {
   if (h0 === 'Device') return 'device'
   if (h0 === 'Search Keyword') return 'keywords'
   if (h0 === 'Search' && joined.includes('Impressions')) return 'searchTerms'
+  if (h0 === 'Gender' && joined.includes('Age Range')) return 'ignored' // combined gender+age breakdown — not used, day/device/gender/age files cover this
   if (h0 === 'Gender' && header.length <= 3) return 'gender'
   if (h0 === 'Age Range' && header.length <= 3) return 'age'
   if (h0 === 'Start Hour' && header.length === 2) return 'hourOfDay'
+  if (h0 === 'Word' && joined.includes('Top Containing Queries')) return 'ignored' // search-term word report — not used
+  if (h0 === 'Day' && joined.includes('Start Hour')) return 'ignored' // day+hour matrix — not used
+  if (h0 === 'Day' && header.length === 2) return 'ignored' // day-of-week impressions — derived from daily performance instead
   return null
 }
 
 export function parseFile(fileName: string, text: string): ParsedFile | null {
   const kind = detectFileKind(text)
-  if (!kind) return null
+  if (!kind || kind === 'ignored') return null
   const rows = parseCsvLines(text.trim())
   if (kind === 'gaTraffic' || kind === 'gaPages' || kind === 'gaAttribution') {
     const { header, dataRows } = splitGa4Comment(rows)
