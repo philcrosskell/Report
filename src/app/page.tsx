@@ -211,13 +211,6 @@ export default function Home() {
   const [viewingAudit, setViewingAudit] = useState<Audit | null>(null)
 
   useEffect(() => {
-    // Check GBP connection status
-    fetch('/api/gbp', { method: 'GET' }).then(r => r.json()).then(d => {
-      setGbpConnected(!!(d as Record<string,unknown>).connected)
-    }).catch(() => setGbpConnected(false))
-  }, [])
-
-  useEffect(() => {
     setProjects(getProjects()); setAudits(getAudits()); setWeights(getLpWeights())
     setCompReports(getCompetitorReports()); setBrandLogo(getBrandLogo()); setReady(true)
   }, [])
