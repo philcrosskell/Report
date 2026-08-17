@@ -217,11 +217,14 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     // Paragraphs
     blank.paragraphCount = (html.match(/<p[\s>]/gi) ?? []).length
 
-    // Links
+    // Links — resolve every href against the page's base URL instead of string-matching,
+    // so relative links with no leading slash (e.g. href="profile.html", common on
+    // hand-built/legacy sites) are correctly recognised as internal pages
     const domain = new URL(url).hostname.replace('www.', '')
-    const allLinks = [...html.matchAll(/href=["']([^"'#?]+)/gi)].map(m => m[1])
-    blank.internalLinks = allLinks.filter(l => l.startsWith('/') || l.includes(domain)).length
-    blank.externalLinks = allLinks.filter(l => l.startsWith('http') && !l.includes(domain)).length
+    const rawHrefs = [...html.matchAll(/href=["']([^"'#?]+)/gi)].map(m => m[1]).filter(l => !/^(mailto:|tel:|javascript:)/i.test(l))
+    const resolvedLinks = rawHrefs.map(l => { try { return new URL(l, blank.finalUrl || url) } catch { return null } }).filter(u => u !== null) as URL[]
+    blank.internalLinks = resolvedLinks.filter(u => u.hostname.replace('www.', '') === domain).length
+    blank.externalLinks = resolvedLinks.filter(u => u.hostname.replace('www.', '') !== domain).length
 
     // Images
     const htmlForImages = html.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '') // exclude noscript-only tracking pixels (e.g. Meta Pixel fallback) — they never render for real visitors
@@ -273,12 +276,11 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
 
     // Single page site detection
     // Signals: very few unique internal paths, low word count, minimal heading structure
+    // (uses resolvedLinks from the Links section above, not raw href string matching)
     const uniquePaths = new Set(
-      allLinks
-        .filter(l => l.startsWith('/') || l.includes(domain))
-        .map(l => {
-          try { return new URL(l.startsWith('http') ? l : `https://${domain}${l}`).pathname } catch { return l }
-        })
+      resolvedLinks
+        .filter(u => u.hostname.replace('www.', '') === domain)
+        .map(u => u.pathname)
         .filter(p => p !== '/' && p !== '')
     )
     blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
