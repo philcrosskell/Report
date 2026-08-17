@@ -11,7 +11,7 @@ export interface ScrapedPage {
   h1: string[]
   h2: string[]
   h3: string[]
-  wordCount: number
+ wordCount: number
   paragraphCount: number
   internalLinks: number
   externalLinks: number
@@ -224,11 +224,12 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     blank.externalLinks = allLinks.filter(l => l.startsWith('http') && !l.includes(domain)).length
 
     // Images
-    const imgTags = [...html.matchAll(/<img[^>]+>/gi)].map(m => m[0])
+    const htmlForImages = html.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '') // exclude noscript-only tracking pixels (e.g. Meta Pixel fallback) — they never render for real visitors
+    const imgTags = [...htmlForImages.matchAll(/<img[^>]+>/gi)].map(m => m[0])
+      .filter(img => !(/width=["']?1["']?/i.test(img) && /height=["']?1["']?/i.test(img))) // drop 1x1 tracking pixels outside noscript too
     blank.images = imgTags.length
     blank.imagesWithAlt = imgTags.filter(img => /alt=["'][^"']+["']/i.test(img)).length
     blank.imagesMissingAlt = imgTags.filter(img => !(/alt=["'][^"']*["']/i.test(img)) || /alt=["']['"]/.test(img)).length
-
     // Forms — exclude hidden inputs, honeypot fields, and non-visible inputs
     const formTags = html.match(/<form[\s>]/gi) ?? []
     blank.formCount = formTags.length
@@ -283,11 +284,9 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
 
     // Phone numbers — check tel: href links AND scan text for AU phone patterns (catches JS-rendered phones)
-    const telMatches = html.match(/(?:tel:|href=["']tel:)[^"'\s<>]+/gi) ?? []
-    const telPhones = telMatches.map(p => p.replace(/tel:|href=["']tel:|["']/gi, '').trim())
-    const auPhoneMatches = html.match(/(?:\+61|0)[2-9]\d{8}|(?:\+61|0)4\d{8}/g) ?? []
-    blank.phoneNumbers = ([...new Set([...telPhones, ...auPhoneMatches])].filter(p => p.length >= 8) as string[]).slice(0, 3)
-
+    const telHrefMatches = [...html.matchAll(/href=["']tel:([^"']+)["']/gi)].map(m => m[1].trim()) // capture the FULL quoted href value — some builders (e.g. Duda) render "tel:02 6023 3399" with a space, which the old [^"'\s<>]+ regex truncated to "02" and then dropped via the length filter below
+    const auPhoneMatches = (html.match(/(?:\+61|0)[2-9][\d\s\-()]{7,13}\d|(?:\+61|0)4[\d\s\-()]{7,11}\d/g) ?? []).map(p => p.trim()) // tolerate spaces/dashes/brackets between digit groups
+    blank.phoneNumbers = ([...new Set([...telHrefMatches, ...auPhoneMatches])].filter(p => p.replace(/\D/g, '').length >= 8) as string[]).slice(0, 3) // filter by digit COUNT, not raw string length, so spaced-out numbers aren't penalised
     // Email addresses
     const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) ?? []
     blank.emailAddresses = [...new Set(emailMatches)].slice(0, 3)
