@@ -132,7 +132,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   if (wordCount <= 30) {
     return <p className={`text-[13px] leading-relaxed ${className}`} style={{ color }}>{text}</p>
   }
-  // Protect common abbreviations AND domain names
+  // Protect common abbreviations AND domain names (e.g. strommfg.com.au) before splitting on
   // sentence boundaries — without this, any domain with 2+ labels gets shredded into one
   // fragment per period ("strommfg." / "com." / "au is a...") because the sentence-boundary
   // regex below has no concept of a domain, only of ". "/"! "/"? " as an end-of-sentence marker.
