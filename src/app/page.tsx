@@ -132,8 +132,12 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   if (wordCount <= 30) {
     return <p className={`text-[13px] leading-relaxed ${className}`} style={{ color }}>{text}</p>
   }
-  // Protect common abbreviations before splitting on sentence boundaries
-  const protected_ = text
+  // Protect common abbreviations AND domain names
+  // sentence boundaries — without this, any domain with 2+ labels gets shredded into one
+  // fragment per period ("strommfg." / "com." / "au is a...") because the sentence-boundary
+  // regex below has no concept of a domain, only of ". "/"! "/"? " as an end-of-sentence marker.
+    const protected_ = text
+    .replace(/\b((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+(?:com|net|org|io|co|au|nz|uk|us|ca|info|biz|edu|gov|dev|app)(?:\.[a-z]{2,3})?)\b/gi, m => m.replace(/\./g, 'DOTABBR'))
     .replace(/\be\.g\./gi, 'EGABBR')
     .replace(/\bi\.e\./gi, 'IEABBR')
     .replace(/\betc\./gi, 'ETCABBR')
@@ -148,6 +152,7 @@ function SmartText({ text, className = '', color = 'var(--t2)' }: { text: string
   const sentences = protected_.match(/[^.!?]+[.!?]+[\s]*/g) ?? [protected_]
   const cleaned = sentences
     .map(s => s
+      .replace(/DOTABBR/g, '.')
       .replace(/EGABBR/g, 'e.g.')
       .replace(/IEABBR/g, 'i.e.')
       .replace(/ETCABBR/g, 'etc.')
