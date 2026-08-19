@@ -41,6 +41,7 @@ export interface ScrapedPage {
   navLinksCount: number
   ctaButtonCount: number
   phoneNumbers: string[]
+    hasClickToCall: boolean
   emailAddresses: string[]
   isSinglePageSite: boolean
   questionHeadings: number
@@ -67,7 +68,7 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     hasTwitterCard: false, hasViewport: false, hasHttps: url.startsWith('https'),
     responseTimeMs: 0, htmlSizeBytes: 0, hasGoogleAnalytics: false, hasGTM: false,
     hasFavicon: false, hasCanonical: false, robots: '', charset: '', serverHeader: '',
-    hasHreflang: false, navLinksCount: 0, ctaButtonCount: 0, phoneNumbers: [], emailAddresses: [],
+        hasHreflang: false, navLinksCount: 0, ctaButtonCount: 0, phoneNumbers: [], hasClickToCall: false, emailAddresses: [],
     isSinglePageSite: false,
   questionHeadings: 0,
   listCount: 0,
@@ -275,7 +276,13 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
     }
 
     // Single page site detection
-    // Signals: very few unique internal paths, low word count, minimal heading structure
+        // "Single page" means literally one indexable URL — every internal link resolves back
+        // to the homepage (nav is anchor/hash links) and no other real path was ever found.
+        // Previously this fired whenever uniquePaths.size <= 3, which mislabelled perfectly
+        // normal small multi-page sites (e.g. Home + Capability + Quoting = 3 pages) as
+        // "single-page architecture" and drove the report's headline recommendation off a
+        // false premise (seen on strommfg.com.au and butko.com.au). A site with even one
+        // other distinct internal path is, by definition, not a single page.
     // (uses resolvedLinks from the Links section above, not raw href string matching)
     const uniquePaths = new Set(
       resolvedLinks
@@ -283,12 +290,17 @@ export async function scrapePage(url: string, clientHtml?: string): Promise<Scra
         .map(u => u.pathname)
         .filter(p => p !== '/' && p !== '')
     )
-    blank.isSinglePageSite = uniquePaths.size <= 3 && blank.internalLinks < 15
-
+        blank.isSinglePageSite = uniquePaths.size === 0
+    
     // Phone numbers — check tel: href links AND scan text for AU phone patterns (catches JS-rendered phones)
     const telHrefMatches = [...html.matchAll(/href=["']tel:([^"']+)["']/gi)].map(m => m[1].trim()) // capture the FULL quoted href value — some builders (e.g. Duda) render "tel:02 6023 3399" with a space, which the old [^"'\s<>]+ regex truncated to "02" and then dropped via the length filter below
     const auPhoneMatches = (html.match(/(?:\+61|0)[2-9][\d\s\-()]{7,13}\d|(?:\+61|0)4[\d\s\-()]{7,11}\d/g) ?? []).map(p => p.trim()) // tolerate spaces/dashes/brackets between digit groups
     blank.phoneNumbers = ([...new Set([...telHrefMatches, ...auPhoneMatches])].filter(p => p.replace(/\D/g, '').length >= 8) as string[]).slice(0, 3) // filter by digit COUNT, not raw string length, so spaced-out numbers aren't penalised
+        // Whether a real tel: link exists — the phoneNumbers array above only carries the number
+        // STRING, not where it came from, so without this the AI has no ground truth on whether
+        // the number is already clickable and has been seen guessing "not clickable" even when a
+        // valid <a href="tel:..."> is right there in the HTML (e.g. realhealth.com.au, 19 Aug).
+        blank.hasClickToCall = telHrefMatches.some(p => p.replace(/\D/g, '').length >= 8)
     // Email addresses
     const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) ?? []
     blank.emailAddresses = [...new Set(emailMatches)].slice(0, 3)
@@ -423,7 +435,7 @@ export function scraperSummary(s: ScrapedPage): string {
     `--- CONVERSION ---`,
     `Forms on page: ${s.hasForms ? `YES — ${s.formCount} form(s) with ~${s.formFields} input fields` : 'NO FORMS DETECTED — FLAG THIS'}`,
     `CTA elements: ${s.ctaButtonCount}`,
-    `Phone numbers: ${s.phoneNumbers.length > 0 ? s.phoneNumbers.join(', ') : 'none found on page'}`,
+        `Phone numbers: ${s.phoneNumbers.length > 0 ? `${s.phoneNumbers.join(', ')} (${s.hasClickToCall ? 'already a clickable tel: link — do NOT recommend adding click-to-call' : 'plain text only, NOT wrapped in a tel: link'})` : 'none found on page'}`,
     `Email addresses: ${s.emailAddresses.length > 0 ? s.emailAddresses.join(', ') : 'none visible'}`,
     `Video content: ${s.hasVideo ? 'YES' : 'none detected'}`,
     ``,
