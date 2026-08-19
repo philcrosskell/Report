@@ -24,7 +24,7 @@ Words: ${scraped.wordCount} | Paragraphs: ${scraped.paragraphCount}
 Internal links: ${scraped.internalLinks} | External: ${scraped.externalLinks} | Nav items: ${scraped.navLinksCount}
 Images: ${scraped.images} | Missing alt: ${scraped.imagesMissingAlt}
 Forms: ${scraped.hasForms ? `YES — ${scraped.formCount} form(s), ~${scraped.formFields} fields` : 'NO FORMS ON THIS PAGE'}
-CTAs: ${scraped.ctaButtonCount} | Phone: ${scraped.phoneNumbers[0] ?? 'none'} | Email: ${scraped.emailAddresses[0] ?? 'none'}
+CTAs: ${scraped.ctaButtonCount} | Phone: ${scraped.phoneNumbers[0] ?? 'none'}${scraped.phoneNumbers.length ? (scraped.hasClickToCall ? ' (GROUND TRUTH: already wrapped in a clickable tel: link — do NOT recommend "add click-to-call", it already exists)' : ' (GROUND TRUTH: plain text only, NOT wrapped in a tel: link — recommending click-to-call here is valid)') : ''} | Email: ${scraped.emailAddresses[0] ?? 'none'}
 Testimonials/Reviews: ${scraped.hasTestimonials ? `YES — ${scraped.testimonialCount} detected` : 'NONE DETECTED'} | Star ratings: ${scraped.hasStarRatings ? 'YES' : 'NO'}
 HTTPS: ${scraped.hasHttps ? 'yes' : 'NO'} | Response: ${scraped.responseTimeMs}ms | Size: ${Math.round(scraped.htmlSizeBytes/1024)}kB
 Canonical: ${scraped.canonicalUrl || 'missing'} | Lang: ${scraped.language || 'not set'} | Viewport: ${scraped.hasViewport ? 'yes' : 'MISSING'}
@@ -82,7 +82,7 @@ ${competitors.length ? `Competitors: ${competitors.map(c => `${c.name} (${c.url}
 
 Part 1 scores: ${part1Summary}
 
-${hasReal ? `Key facts: Forms=${scraped.hasForms ? `YES (${scraped.formCount}, ~${scraped.formFields} fields)` : 'NONE'} | H1="${scraped.h1[0] ?? 'not found in static HTML (may be JS-rendered)'}" | Words=${scraped.wordCount} | Phone=${scraped.phoneNumbers[0] ?? 'none'} | Schema=${scraped.hasSchema ? scraped.schemaTypes.join(',') : 'none'} | Missing alt=${scraped.imagesMissingAlt}${scraped.isSinglePageSite ? ' | ⚠ SINGLE PAGE SITE — include migration to multi-page as a High priority fix and critical issue in gap analysis' : ''}` : ''}
+${hasReal ? `Key facts: Forms=${scraped.hasForms ? `YES (${scraped.formCount}, ~${scraped.formFields} fields)` : 'NONE'} | H1="${scraped.h1[0] ?? 'not found in static HTML (may be JS-rendered)'}" | Words=${scraped.wordCount} | Phone=${scraped.phoneNumbers[0] ?? 'none'}${scraped.phoneNumbers.length ? (scraped.hasClickToCall ? ' (GROUND TRUTH: already a clickable tel: link — do NOT suggest adding click-to-call, it already exists)' : ' (plain text only, not a tel: link — click-to-call is a valid quick win)') : ''} | Schema=${scraped.hasSchema ? scraped.schemaTypes.join(',') : 'none'} | Missing alt=${scraped.imagesMissingAlt}${scraped.isSinglePageSite ? ' | ⚠ SINGLE PAGE SITE — include migration to multi-page as a High priority fix and critical issue in gap analysis' : ''}` : ''}
 
 Return ONLY valid complete JSON for Part 2. Start your response with { and end with }. No markdown. No preamble. No explanation. No truncation.
 
